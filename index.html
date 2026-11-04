@@ -1464,6 +1464,15 @@ body,.panel,details,.choice,.ctab,.sheet{transition:background-color .6s ease,bo
 .appmaj{display:flex; gap:10px; align-items:center; justify-content:space-between; background:var(--panel); border:1px solid var(--torch); border-radius:12px; padding:8px 10px 8px 14px; font-weight:700}
 .appmaj .btn{width:auto}
 p.appli.hint a{color:var(--torch); font-weight:700}
+/* ===== Retouches demandées dans les commentaires du 3 novembre au soir (lots C1 à C3) ===== */
+/* Avant une épreuve (lot C1) : Enregistrer à gauche, Commencer au centre, Passer à droite en simple icône */
+.bbar:has(> .autob) > .autob{order:3; flex:0 0 56px; width:56px; padding-left:0; padding-right:0; font-size:1.2rem}
+.bbar:has(> .autob) > .autob .stx{display:none}
+.bbar:has(> .autob) > .btn[data-act="go"]{order:2}
+/* Lot C3 : moins d'espace en haut, icône centrée dans les cases des poignards, ⓘ des dés aligné à droite */
+body{padding-top:8px}
+.dcell{display:grid; place-items:center; padding:0; line-height:1}
+.impact li.idice > .ibtn{justify-self:end; margin-left:0}
 </style>
 
 <div id="app"></div>
@@ -2672,7 +2681,7 @@ function highlights(p){if(S.day>=5&&moraleOf(tk(p))>=68)unlock(p,'morale');const
 
 
 let PRECHOICE=null,STASH=false,BREAK=null;
-const autoBtn=()=>S&&S.humans<=1&&humansAlive().length===1?`<button class="btn ghost autob" data-act="auto" data-pre="1" title="${L("Skip: play it for me","Passer : jouer à ma place")}">⏭️ ${L("Skip","Passer")}</button>`:'';
+const autoBtn=()=>S&&S.humans<=1&&humansAlive().length===1?`<button class="btn ghost autob" data-act="auto" data-pre="1" title="${L("Skip: play it for me","Passer : jouer à ma place")}" aria-label="${L("Skip: play it for me","Passer : jouer à ma place")}">⏭️<span class="stx"> ${L("Skip","Passer")}</span></button>`:'';
 async function stashOrAsk(fin,html){if(STASH){BREAK={fin,html:html.replace(/<button class="btn" data-act="ok">[\s\S]*?<\/button>/,'').replace(/<p class="eyebrow">[\s\S]*?<\/p>/,'').replace(/<h1 class="h">[\s\S]*?<\/h1>/,'')};return}return ask(html)}
 const breakBox=()=>{if(!BREAK)return'';const b=BREAK;BREAK=null;return `<details class="statd yourscore"><summary>⭐ ${L("Your score","Votre score")} : <b class="num">${b.fin}</b> · ${L("details","détail")}</summary>${b.html}</details>`};
 const choiceOff=(t,why)=>`<button class="choice off" disabled><b>${t}</b><span class="why">✓ ${why}</span></button>`;
@@ -2793,7 +2802,7 @@ function paceApply(p,b,mul){if(mul<=1)return;const t=b.t,k=mul-1,rr=v=>{const x=
   const de=p.energy-b.en;if(de)p.energy=clamp(Math.round(p.energy+de*k));if(p.mot!=null&&b.mot!=null){const dmo=p.mot-b.mot;if(dmo)p.mot=clamp(Math.round(p.mot+dmo*k))}
   const w=wrec(p.id);for(const key in b.w){const d=(w[key]||0)-(b.w[key]||0);if(d>0)w[key]+=d*k}
   for(const q of S.players){if(q.id===p.id)continue;const da=S.aff[q.id][p.id]-b.aff['a'+q.id],db=S.aff[p.id][q.id]-b.aff['b'+q.id];if(da)S.aff[q.id][p.id]=clamp(S.aff[q.id][p.id]+da*k,-100,100);if(db)S.aff[p.id][q.id]=clamp(S.aff[p.id][q.id]+db*k,-100,100)}}
-const paceRow=()=>`<label class="field"><span class="lbl">⏱️ ${L("Default pace","Rythme par défaut")}</span><select data-pacedef="1">${[5,7,9].map(n=>`<option value="${n}" ${+(SET.pace||7)===n?'selected':''}>${PACEN[n]()} · ${L(`${n} actions a day`,`${n} actions par jour`)}</option>`).join('')}</select><span class="hint">${L("Applies to new games.","S'applique aux nouvelles parties.")}</span></label>`;
+const paceRow=()=>(typeof INGAME!=='undefined'&&INGAME)?'':`<label class="field"><span class="lbl">⏱️ ${L("Default pace","Rythme par défaut")}</span><select data-pacedef="1">${[5,7,9].map(n=>`<option value="${n}" ${+(SET.pace||7)===n?'selected':''}>${PACEN[n]()} · ${L(`${n} actions a day`,`${n} actions par jour`)}</option>`).join('')}</select><span class="hint">${L("Applies to new games.","S'applique aux nouvelles parties.")}</span></label>`;
 const SICK={stomach:["stomach bug",'gastro','gastroenteritis'],fever:['fever',"fièvre",'fiebre'],cut:["infected cut","plaie infectée","herida infectada"],food:["food poisoning","intoxication alimentaire","intoxicación alimentaria"]};
 const sickTxt=p=>p.sick?`🤒 ${L("Sick","Malade","Enfermo")} (${L(...SICK[p.sick.k])})`:'';
 const sickMul=p=>p.sick?.85:1;
@@ -3156,7 +3165,7 @@ function gainOf(act,p,t){if(act==='eat')return MEALS(t)>0?15:(S.food[t]||0)>0?6:
 let CAMPCTX=null;
 const evoList=p=>{const ev=evOf(p),out=[];if(ev>.08)out.push(L("sunburn","coups de soleil"));if(ev>.3)out.push(L("hollow cheeks","joues creusées"));if(p.energy!=null&&p.energy<35)out.push(L("dark circles","cernes"));if(p.g==='m'){const LK=lookOf(p);if(!LK.bd||LK.bd==='none'){const d=p.alive?S.day:((S.out.find(o=>o.id===p.id)||{}).day||S.day);out.push(L(`${d}-day beard`,`barbe de ${d} jours`))}}if(ev>.25)out.push(L("messy hair","cheveux en bataille"));if(ev>.55)out.push(L("torn top","haut déchiré"));return out};
 function syncWx(){try{const b=document.body;if(!INGAME||!S){delete b.dataset.phase;delete b.dataset.wx;return}if(b.dataset.phase&&S.wx)b.dataset.wx=S.wx.type}catch(e){}}
-const paceSeg=()=>`<div class="field"><span class="lbl">⏱️ ${L("Default pace","Rythme par défaut")}</span><div class="flagrow">${[5,7,9].map(n=>`<button data-pacedefb="${n}" class="${+(SET.pace||7)===n?'on':''}">${PACEN[n]()} <span>${n}</span></button>`).join('')}</div><span class="hint">${L("Actions per day. Applies to new games.","Actions par jour. S'applique aux nouvelles parties.")}</span></div>`;
+const paceSeg=()=>(typeof INGAME!=='undefined'&&INGAME)?'':`<div class="field"><span class="lbl">⏱️ ${L("Default pace","Rythme par défaut")}</span><div class="flagrow">${[5,7,9].map(n=>`<button data-pacedefb="${n}" class="${+(SET.pace||7)===n?'on':''}">${PACEN[n]()} <span>${n}</span></button>`).join('')}</div><span class="hint">${L("Actions per day. Applies to new games.","Actions par jour. S'applique aux nouvelles parties.")}</span></div>`;
 async function shareGame(r){const t=recapText(r);S&&S.players.filter(p=>p.human).forEach(p=>unlock(p,'share'));
   const blob=await new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=1200;c.height=900;c.getContext('2d').drawImage(img,0,0,1200,900);c.toBlob(res,'image/png')};img.onerror=()=>res(null);img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(recapSVG(r))});
   try{if(blob){const f=new File([blob],'aventuriers.png',{type:'image/png'});window.__lastShare=blob;if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t});return}}}catch(e){if(e&&e.name==='AbortError')return}
@@ -4409,14 +4418,17 @@ const TLVN={e:()=>L("Easy","Facile"),n:()=>L("Normal","Normal"),h:()=>L("Hard","
 const tlvGet=()=>{try{const v=localStorage.getItem(TLV_KEY);return ['e','n','h','x'].includes(v)?v:'n'}catch(e){return'n'}};
 const tbk=(g,lv)=>lv==='n'?g:g+'_'+lv;
 const TFAM=[['new','🆕',()=>L("New challenges","Nouvelles épreuves"),NJK],['logic','🧠',()=>L("Logic","Logique"),['seq','calc','logs']],['camp','🏝️',()=>L("Camp mini-games","Mini-jeux du camp"),['fish','wood','shelter','climb']],['classic','🔥',()=>L("Classic challenges","Épreuves classiques"),null]];
-function trainScreen(){const best=bestGet(),lv=tlvGet();const used=new Set([...NJK,'seq','calc','logs','fish','wood','shelter','climb']);
+/* Groupes de l'entraînement : repliés à chaque arrivée depuis l'accueil, gardés ouverts pendant la visite (retour d'une épreuve). */
+const TROPEN=new Set();
+function trainScreen(garder){if(garder!==true)TROPEN.clear();const best=bestGet(),lv=tlvGet();const used=new Set([...NJK,'seq','calc','logs','fish','wood','shelter','climb']);
   screen(`${langToggle()}${eb(L("Training","Entraînement"))}<h1 class="h">${L("Practise the challenges","Entraînez-vous aux épreuves")}</h1>
     <p class="hint">${L("Every challenge of the game, on its own, at the level you choose. Your best score is kept for each level.","Toutes les épreuves du jeu, seules, au niveau de votre choix. Votre record est gardé pour chaque niveau.")}</p>
     <p class="lbl">${L("Level","Niveau")}</p><div class="seg" id="tlv">${['e','n','h','x'].map(k=>`<button data-tl="${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>
-    ${tfamList().map(([id,ic,n,list],gi)=>{const gs=list.filter(g=>GAMES[g]&&PLAYG[g]);return gs.length?`<details class="achg" data-keep="tr_${id}" ${keepGet()['tr_'+id]===1?'open':''}><summary>${ic} ${n()} <span class="muted num">${gs.length}</span></summary><div class="choices" style="padding:0 12px 12px">${gs.map(g=>{const b=best[tbk(g,lv)];return `<button class="choice" data-g="${g}"><b>${gN(g)}${typeof FNEW!=='undefined'&&FNEW.includes(g)?` <span class="nbadge">${L("New · to validate","Nouveau · à valider")}</span>`:''}</b><span>${b!=null?`🏅 ${L("Best","Record")} : ${g==='dagger'?triesTxt(b):b}`:L("No record yet","Pas encore de record")}</span></button>`}).join('')}</div></details>`:''}).join('')}
+    ${tfamList().map(([id,ic,n,list],gi)=>{const gs=list.filter(g=>GAMES[g]&&PLAYG[g]);return gs.length?`<details class="achg" data-tr="${id}" ${TROPEN.has(id)?'open':''}><summary>${ic} ${n()} <span class="muted num">${gs.length}</span></summary><div class="choices" style="padding:0 12px 12px">${gs.map(g=>{const b=best[tbk(g,lv)];return `<button class="choice" data-g="${g}"><b>${gN(g)}${typeof FNEW!=='undefined'&&FNEW.includes(g)?` <span class="nbadge">${L("New · to validate","Nouveau · à valider")}</span>`:''}</b><span>${b!=null?`🏅 ${L("Best","Record")} : ${g==='dagger'?triesTxt(b):b}`:L("No record yet","Pas encore de record")}</span></button>`}).join('')}</div></details>`:''}).join('')}
     <button class="btn ghost" id="back">${L("Back","Retour")}</button>`);
   wireLang(trainScreen);el('back').onclick=home;
-  $app.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(TLV_KEY,b.dataset.tl)}catch(e){}trainScreen()});
+  $app.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(TLV_KEY,b.dataset.tl)}catch(e){}trainScreen(true)});
+  $app.querySelectorAll('details[data-tr]').forEach(d=>d.addEventListener('toggle',()=>{d.open?TROPEN.add(d.dataset.tr):TROPEN.delete(d.dataset.tr)}));
   $app.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>trainGame(b.dataset.g))}
 /* ---------- Entraînement : vitesse des épreuves selon le niveau (lot L11) ----------
    Chaque fiche d'épreuve porte sa vitesse : GAMES[g].vit = {e, n, h, x} (Facile, Normal, Difficile, Expert).
@@ -4476,18 +4488,18 @@ const scoreRule=g=>{const r=SCORE_RULES[g];return r?r():L("Score from 0 to 100 b
 const scoreBox=(g,open,extra)=>`<details class="scoreh" ${open?'open':''}><summary>📏 ${L("How it's scored","Comment c'est noté")}</summary><p>${scoreRule(g)}</p>${extra?`<p class="muted" style="margin-top:6px">${extra}</p>`:''}<p class="muted" style="margin-top:6px">${L("Every challenge gives 0 to 100. In a full game, your characteristics and energy then adjust it.","Chaque épreuve donne une note de 0 à 100. En partie, tes caractéristiques et ton énergie l'ajustent ensuite.")}</p></details>`;
 async function trainGame(g){const lv=tlvGet(),key=tbk(g,lv),best0=bestGet()[key];
   const a=await ask(`${eb(L("Training","Entraînement")+' · '+TLVN[lv]())}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>
-    <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?(g==='dagger'?triesTxt(best0):best0):'—'}</b></div>${scoreBox(g,true)}
+    <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?(g==='dagger'?triesTxt(best0):best0):'—'}</b></div>${scoreBox(g,false)}
     <div class="seg">${['e','n','h','x'].map(k=>`<button data-act="lv_${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>
     <div class="row"><button class="btn" data-act="go">${L("Start","Commencer")}</button><button class="btn ghost" data-act="back">${L("Back","Retour")}</button></div>`);
-  if(a==='back')return trainScreen();if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}
-  TLV=lv;let sc;window.__rounds=null;try{await countdown();horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
+  if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}
+  TLV=lv;let sc;window.__rounds=null;try{await countdown(true);horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
   const dg=g==='dagger',val=dg?window.__lastDigs:sc;
   const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(dg?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}
   try{const o=JSON.parse(localStorage.getItem('aventuriers-njplayed')||'{}');if(NJK.includes(g)){o[g]=1;localStorage.setItem('aventuriers-njplayed',JSON.stringify(o));if(NJK.every(k=>o[k])){const a=achGet();if(!a.alltrades)unlock({human:true,name:L("Training","Entraînement"),id:-1},'alltrades')}}}catch(e){}
   const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?(dg?triesTxt(best[key]):best[key]):'—'}</p>`}
     ${(()=>{const R=!gave&&(g==='spear'||g==='bamboo')&&Array.isArray(window.__rounds)&&window.__rounds.length?window.__rounds:null;return scoreBox(g,false,R?`${g==='spear'?L("Throws","Lancers"):L("Pours","Versements")} : ${R.join(' · ')} → ${L("average","moyenne")} ${sc}`:'')})()}
     <div class="row"><button class="btn" data-act="again">${L("Play again","Rejouer")}</button><button class="btn ghost" data-act="list">${L("Other challenges","Autres épreuves")}</button></div>`);
-  if(b==='again')return trainGame(g);trainScreen()}
+  if(b==='again')return trainGame(g);trainScreen(true)}
 let KBC={drag:null,cur:0};
 KBMAP.S='#hook,#cut,#tie,#pull,#pour,#th,#eat,#njd,#njg,#njj';KBMAP.L+=',#njl';KBMAP.R+=',#njr';KBMAP.G+=',.nj-tot';
 
@@ -5839,7 +5851,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.62 · 2026-11-03';
+const APP_VER='2.63 · 2026-11-03';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6152,8 +6164,8 @@ function jAnswer(tone,f){let a=(()=>{S._jaU=S._jaU instanceof Set?S._jaU:new Set
 try{if(Math.random()<.45){const w=whyOf(f);return a+' '+WHYW[w.w][1]()}}catch(e){}return a}
 
 /* countdown: opaque screen, only the number animates */
-async function countdown(){let d=null;try{d=document.createElement('div');d.className='cdown';d.setAttribute('aria-live','assertive');document.body.appendChild(d)}catch(e){d=null}
-  try{for(const n of ['3','2','1',L("Go!","Partez !")]){if(d)d.innerHTML=`<span class="cdn${n.length>2?' long':''}">${n}</span>`;await wait(n.length>1?450:650)}}finally{try{d&&d.remove()}catch(e){}try{if(typeof KBC!=='undefined')KBC.drag=null;window.focus();const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()}catch(e){}}}
+async function countdown(court){let d=null;try{d=document.createElement('div');d.className='cdown';d.setAttribute('aria-live','assertive');document.body.appendChild(d)}catch(e){d=null}
+  try{for(const n of ['3','2','1',L("Go!","Partez !")]){if(d)d.innerHTML=`<span class="cdn${n.length>2?' long':''}">${n}</span>`;await wait((n.length>1?450:650)*(court?.5:1))}}finally{try{d&&d.remove()}catch(e){}try{if(typeof KBC!=='undefined')KBC.drag=null;window.focus();const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()}catch(e){}}}
 
 /* names everywhere open the profile, including in menus */
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')&&n.classList.contains('gm')){try{colorNames(n);normSpace(n)}catch(_){}}}))}).observe(document.body,{childList:true})}catch(e){}
@@ -6423,7 +6435,7 @@ function screenCampHelpers(html){try{const w=$app.querySelector('.wrap');if(!w||
   if(w.querySelector(':scope > .camp2,:scope > .agroups')&&SET.discover&&S.day<=3&&VIEW!=null&&!DAG4()&&!w.querySelector('.discover')){try{const p=P(VIEW),t=tk(p);const r=recoActs(p,t).filter(([a])=>!blockedWhy(a,p,t))[0];const btn=r&&w.querySelector(`.agroups .choice[data-act="${r[0]}"]`);
     if(btn){const bc=(btn.querySelector('b')||btn).cloneNode(true);bc.querySelectorAll('.cost,.dinfo,.chance,button,i:not(.ico)').forEach(x=>x.remove());const lbl=bc.textContent.replace('★','').replace(/\s+/g,' ').trim();const d=document.createElement('div');d.className='discover';d.innerHTML=`<p class="lbl">🧭 ${L("Suggested now","Conseillé maintenant")}</p><p class="dsc">${r[1]?String(r[1]):''}</p>`;const b2=document.createElement('button');b2.className='btn';b2.type='button';b2.textContent='👉 '+lbl;b2.onclick=()=>btn.click();d.appendChild(b2);const sb=w.querySelector(':scope > .sbar');if(sb)sb.after(d)}}catch(e){}}
   const sb2=w.querySelector('.sbar .sb2');if(sb2&&!sb2.querySelector('[data-help]'))sb2.insertAdjacentHTML('beforeend',`<span class="sbhelp" data-help="1" role="button" tabindex="0" aria-label="${L("Help","Aide")}">❓</span>`);
-  else if(!sb2){const h=w.querySelector(':scope > h1.h');if(h&&!h.querySelector('.helpq'))h.insertAdjacentHTML('beforeend',` <button type="button" class="helpq" aria-label="${L("Help on this screen","Aide sur cet écran")}">?</button>`)}
+  else if(!sb2&&!w.querySelector('.bbar .autob,.bbar [data-act="auto"],.chance')){const h=w.querySelector(':scope > h1.h');if(h&&!h.querySelector('.helpq'))h.insertAdjacentHTML('beforeend',` <button type="button" class="helpq" aria-label="${L("Help on this screen","Aide sur cet écran")}">?</button>`)}
   try{fitBars()}catch(e){}}catch(e){}}
 // après l'affichage
 function screenPhaseUnread(html){try{
@@ -6565,7 +6577,7 @@ const TESTS={GUIDE:{until:2,guide:1},CAMP:{until:2},CONFORT:{k:'confort'},J5:{un
 function startTest(kind,tries){
 const t=TESTS[kind];
 let ok=(()=>{
-if(kind==='FORCE'){INGAME=false;trainScreen();const d=document.querySelector('details[data-keep="tr_st_str"]');if(d){d.open=true;try{d.scrollIntoView({block:'start'})}catch(e){}}return true}
+if(kind==='FORCE'){INGAME=false;trainScreen();const d=document.querySelector('details[data-tr="st_str"]');if(d){d.open=true;TROPEN.add('st_str');try{d.scrollIntoView({block:'start'})}catch(e){}}return true}
 tries=tries||0;const t=TESTS[kind];if(!t)return false;if(t.guide)try{localStorage.removeItem('aventuriers-coach')}catch(e){};const code='FJ-16'+(Math.random()<.5?'F':'M')+'-12-RAN-'+Math.floor(Math.random()*1e7).toString(36).toUpperCase();if(!startFromCode(code))return false;if(t.tw)S.tw[t.tw]=true;
   AUTO={k:t.k||'test',until:t.until||null,log:[],dec:[],nostop:true};
   const kick=()=>{try{if(!AUTO)return;const acts=[...$app.querySelectorAll('[data-act]')].map(y=>y.dataset.act);if(!acts.length)return;const b=$app.querySelector('[data-act="done"],[data-act="simrest"]')||[...$app.querySelectorAll('[data-act]')].find(x=>x.dataset.act===(autoAnswer(acts)||autoDecide(acts,$app.innerHTML)));b&&b.click()}catch(e){}};
