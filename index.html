@@ -1473,6 +1473,39 @@ p.appli.hint a{color:var(--torch); font-weight:700}
 body{padding-top:8px}
 .dcell{display:grid; place-items:center; padding:0; line-height:1}
 .impact li.idice > .ibtn{justify-self:end; margin-left:0}
+/* Camp (C2, C6) : coûts, ⓘ et ★ alignés en colonne sur tous les boutons d'action */
+.agroups .choice > b{width:100%; justify-self:stretch}
+.agroups .choice b::after{content:''; display:inline-block; width:1.1em; flex:0 0 1.1em; text-align:right}
+.agroups .choice.reco b::after{content:'★'}
+.agroups .choice b .chance{display:inline; flex:0 0 auto; border:0; background:none; padding:0; border-radius:0; margin-left:6px!important; font-size:.78rem; color:var(--torch)!important}
+/* Onglet Mission : la pastille 0/2 suffit, il ne doit pas ressembler à un onglet ouvert */
+#app .ctab[data-ctab="mission"].unread{background:transparent; color:inherit; animation:none}
+#app .ctab.unread.on{background:rgba(243,154,43,.16); color:var(--sand); animation:none}
+/* Stratégie du jour : choix en attente de validation */
+.stratb button.pend{outline:2px dashed var(--sand); outline-offset:2px}
+.stratbar .stratok{margin-top:8px; width:100%}
+/* Onglets du camp : le contenu ouvert défile au-dessus de la barre du bas */
+.ctpanel{scroll-margin-bottom:150px}
+.agroups .choice b .cost{margin-left:auto!important}
+.agroups .choice b .dinfo{margin-left:8px!important}
+.agroups .choice b .chance + .cost{margin-left:8px!important}
+.agroups .choice b .chance{margin-left:auto!important}
+/* Dilemme : titre plus visible, pas de Nouvelles sur cet écran (elles passent à l'écran suivant) */
+.wrap:has(> i[data-dil]) > .eyebrow{font-size:1rem; letter-spacing:.12em}
+.schap .sobj{margin:4px 0 2px; font-weight:700}
+/* Entraînement : « Simuler » sur la ligne du titre, sans ligne à lui */
+#app .wrap:not(.ingame):has(> .giveup){position:relative}
+#app .wrap:not(.ingame) > .giveup{position:absolute; top:0; right:16px; width:auto; margin:0!important; min-height:32px!important; padding:0 4px!important; z-index:2}
+#app .wrap:not(.ingame):has(> .giveup) > .eyebrow{padding-right:96px}
+/* Création : jauge de durée aux couleurs du jeu, bornes affichées */
+#days{accent-color:var(--torch); width:100%}
+.rangeb{display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); margin-top:2px}
+/* Accueil compact (commentaire du 3 au soir : « que la page d'accueil tienne sans scroll »).
+   Version de secours : supprimer ce fichier rend l'accueil de la v2.63. */
+.hometotem{width:78px}
+.totembox{padding:0}
+.wrap .title{margin-top:0; margin-bottom:4px}
+.homephrase{margin-top:4px; margin-bottom:4px}
 </style>
 
 <div id="app"></div>
@@ -1494,7 +1527,7 @@ function withGiveUp(promise){window.__simd=false;
   if(W){ost=W.setTimeout;osi=W.setInterval;oraf=W.requestAnimationFrame;W.setTimeout=(f,ms,...x)=>{const id=ost.call(W,f,ms,...x);T.push(id);return id};W.setInterval=(f,ms,...x)=>{const id=osi.call(W,f,ms,...x);I.push(id);return id};if(oraf)W.requestAnimationFrame=f=>{const id=oraf.call(W,f);R.push(id);return id}}
   const restore=()=>{if(!W)return;W.setTimeout=ost;W.setInterval=osi;if(oraf)W.requestAnimationFrame=oraf};
   try{b=document.createElement('button');b.className='giveup';b.textContent='🎲 '+L("Simulate","Simuler");const w=$app.querySelector('.wrap');if(w)w.prepend(b);window.__gu=b;setTimeout(kbHint,60)}catch(e){}
-  return Promise.race([promise,new Promise(res=>{if(b)b.onclick=()=>{if(!b.dataset.armed){b.dataset.armed='1';b.classList.add('armed');b.textContent=L("Tap again: your stats play for you","Touchez encore : vos stats jouent pour vous");(ost||setTimeout)(()=>{if(b&&!b.disabled){delete b.dataset.armed;b.classList.remove('armed');b.textContent='🎲 '+L("Simulate","Simuler")}},2500);return}b.disabled=true;gave=true;window.__simd=true;res(-1)}})]).finally(()=>{restore();if(gave&&W){T.forEach(id=>clearTimeout(id));I.forEach(id=>clearInterval(id));R.forEach(id=>{try{cancelAnimationFrame(id)}catch(e){}})}window.__gu=null;try{b&&b.remove()}catch(e){}})}
+  return Promise.race([promise,new Promise(res=>{if(b)b.onclick=()=>{b.disabled=true;gave=true;window.__simd=true;res(-1)}})]).finally(()=>{restore();if(gave&&W){T.forEach(id=>clearTimeout(id));I.forEach(id=>clearInterval(id));R.forEach(id=>{try{cancelAnimationFrame(id)}catch(e){}})}window.__gu=null;try{b&&b.remove()}catch(e){}})}
 
 const LANG_KEY='aventuriers-lang';
 let LANG=(()=>{try{const v=localStorage.getItem(LANG_KEY);if(v==='fr'||v==='en'||v==='es')return v}catch(e){}return 'fr'})();
@@ -1658,11 +1691,11 @@ try{if(STORY()==='short'&&INGAME&&S&&!AUTO){const h1=((html.match(/<h1 class="h"
   if(SIMR&&!AUTO&&INGAME&&S&&!pass){const r=autoAnswer(acts);if(r!=null)return Promise.resolve(r)}
   if(AUTO&&INGAME&&S&&!pass){const r=autoAnswer(acts);if(r!=null)return Promise.resolve(r);if(AUTO.nostop)return Promise.resolve(autoDecide(acts,html));stopAuto(L("a decision is waiting for you.","une décision vous attend."))}
   if(!narr)FF=false;
-  if(FLASH&&INGAME&&S&&!pass){const camp=/class="agroups"/.test(html);const b=camp?`<div class="banner">${FLASH}</div>`:`<details class="flashd"><summary><span class="fl1">📰 ${L("News","Nouvelles")}</span> <span class="muted">· ${String(FLASH).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,48)}…</span></summary><div class="banner">${FLASH}</div></details>`;html=camp?(/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html):(/<\/h1>/.test(html)?html.replace(/(<\/h1>)/,'$1'+b):/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html);FLASH=null}
+  if(FLASH&&INGAME&&S&&!pass&&!/data-noflash/.test(html)){const camp=/class="agroups"/.test(html);const b=camp?`<div class="banner">${FLASH}</div>`:`<details class="flashd"><summary><span class="fl1">📰 ${L("News","Nouvelles")}</span> <span class="muted">· ${String(FLASH).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,48)}…</span></summary><div class="banner">${FLASH}</div></details>`;html=camp?(/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html):(/<\/h1>/.test(html)?html.replace(/(<\/h1>)/,'$1'+b):/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html);FLASH=null}
   screen(html);const bs=[...$app.querySelectorAll('[data-act]')];
   return new Promise(res=>{let done=false;const fin=v=>{if(done)return;done=true;bs.forEach(x=>x.disabled=true);res(v)};
     const pre=html.includes('data-pre="1"');bs.forEach(b=>b.addEventListener('click',()=>{if(pre)PRECHOICE=b.dataset.act;fin(b.dataset.act)}));
-    if(narr&&!S.skip&&humansAlive().length&&!/data-pre="1"|class="arrive"|class="wx wx-|class="campdone"/.test(html)){try{const main=bs.find(b=>b.dataset.act!=='cast');const f=document.createElement('button');f.className='btn ghost ffbtn';f.textContent='⏩';f.title=L("Fast forward to your next decision","Avance rapide jusqu'à votre prochaine décision");f.setAttribute('aria-label',f.title);
+    if(narr&&!S.skip&&humansAlive().length&&!/data-pre="1"|class="arrive"|class="wx wx-|class="campdone"|class="agroups"/.test(html)){try{const main=bs.find(b=>b.dataset.act!=='cast');const f=document.createElement('button');f.className='btn ghost ffbtn';f.textContent='⏩';f.title=L("Fast forward to your next decision","Avance rapide jusqu'à votre prochaine décision");f.setAttribute('aria-label',f.title);
       f.onclick=()=>{FF=true;humansAlive().forEach(h=>unlock(h,'fastfwd'));fin(main.dataset.act)};
       const par=main.parentElement;if(par.classList.contains('row')||par.classList.contains('bbar'))par.appendChild(f);else{const r=document.createElement('div');r.className='row ffrow';main.replaceWith(r);r.appendChild(main);r.appendChild(f)}}catch(e){}}
   })}
@@ -1809,7 +1842,7 @@ function cityOpts(sel){const ks=(ORIGINS[LANG]||ORIGINS.fr).map(x=>x[0]),home=ks
   const short=(c,k)=>{const n=nm(k);return c.endsWith(', '+n)?c.slice(0,-(n.length+2)):c};
   Object.keys(groups).forEach(k=>{const g=groups[k];groups[k]=g.filter(c=>!g.some(d=>d!==c&&d.startsWith(c+', ')))});const all=new Set(Object.values(groups).flat());
   return `<option value="${RNDCITY}">🎲 ${L("Random city","Ville au hasard")}</option>${sel&&!all.has(sel)?`<option selected>${esc(sel)}</option>`:''}${order.map(k=>`<optgroup label="${OCN[k]?OCN[k][2]+' ':''}${esc(nm(k))}">${groups[k].slice().sort((a,b)=>a.localeCompare(b,LANG)).map(c=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(short(c,k))}</option>`).join('')}</optgroup>`).join('')}`}
-const prevBox=()=>S.prev&&S.prev.d===S.day-1&&S.prev.lines.length?`<section class="prevbox"><p class="lbl">${L("Previously…","Précédemment…")}</p><ul class="lines">${S.prev.lines.map(l=>`<li>${l}</li>`).join('')}</ul></section>`:'';
+const prevBox=()=>S.prev&&S.prev.d===S.day-1&&S.prev.lines.length?`<section class="prevbox"><p class="lbl">${L("Previously…","Précédemment…")}</p><ul class="lines">${S.prev.lines.filter(lnVis).map(l=>`<li>${l}</li>`).join('')}</ul></section>`:'';
 
 const isFlag=id=>{const cc={th:'TH',ph:'PH',fj:'FJ',pf:'PF',mg:'MG',my:'MY',id:'ID',kh:'KH',pa:'PA'}[id];return cc?String.fromCodePoint(...[...cc].map(c=>0x1F1E6+c.charCodeAt(0)-65)):''};
 const ISDIFF={pf:0,id:0,th:0,fj:1,my:1,pa:1,ph:2,mg:2,kh:2};
@@ -2433,7 +2466,7 @@ async function run(){
     if(needMerge()){await ambassadors(q,lines);await merge(q,lines)}
     if(q&&!S.skip){
       const a=await ask(`${eb(DAY())}<h1 class="h">${L("Meanwhile on the island","Pendant ce temps sur l'île","Mientras tanto en la isla")}</h1>
-        <ul class="lines">${lines.map(l=>`<li>${l}</li>`).join('')}</ul>
+        <ul class="lines">${lines.filter(lnVis).map(l=>`<li>${l}</li>`).join('')}</ul>
         <p class="muted">${L(`${alive().length} castaways remain.`,`Il reste ${alive().length} aventuriers.`,`Quedan ${alive().length} aventureros.`)}</p>
         <div class="row"><button class="btn" data-act="next">${L("Next day","Jour suivant","Día siguiente")}</button><button class="btn ghost" data-act="skip">${L("Skip to the final","Aller à la finale","Saltar a la final")}</button></div>`);
       if(a==='skip')S.skip=true;
@@ -2552,8 +2585,10 @@ const STRATS={low:['🤫',()=>L("Low profile","Discret"),()=>L("Threat −5, but
   lead:['📣',()=>L("Leader","Leader"),()=>L("Bonds +20 % and your allies follow your plan more, but threat +5.","Liens +20 % et vos alliés suivent davantage votre plan, mais menace +5.")],
   work:['💪',()=>L("Hard worker","Travailleur"),()=>L("Camp work counts 25 % more, bonds 10 % slower.","Le travail au camp compte 25 % de plus, les liens 10 % moins vite.")]};
 const stratOf=p=>{try{const s=S.strat&&S.strat[p.id];return s&&s.d===S.day?s.k:null}catch(e){return null}};
-function stratBar(p){if(!p||!p.human)return'';const k=stratOf(p);
-  return `<div class="stratbar" data-sp="${p.id}"><p class="lbl">🎭 ${L("Strategy of the day","Stratégie du jour")}</p><div class="stratb">${Object.entries(STRATS).map(([s,x])=>`<button type="button" class="${k===s?'on':''}" data-strat="${s}" ${k&&k!==s?'disabled':''}>${x[0]} ${x[1]()}</button>`).join('')}</div><p class="hint">${k?STRATS[k][2]():L("Pick one for today. It cannot be changed until tomorrow.","Choisissez pour la journée. Impossible d'en changer avant demain.")}</p></div>`}
+// Stratégie du jour : un premier appui montre les effets, « Valider » fixe le choix pour la journée
+let STRAT_PEND=null;
+function stratBar(p){if(!p||!p.human)return'';const k=stratOf(p),pk=!k&&STRAT_PEND&&STRAT_PEND.id===p.id&&STRAT_PEND.d===S.day?STRAT_PEND.k:null;
+  return `<div class="stratbar" data-sp="${p.id}"><p class="lbl">🎭 ${L("Strategy of the day","Stratégie du jour")}</p><div class="stratb">${Object.entries(STRATS).map(([s,x])=>`<button type="button" class="${k===s?'on':pk===s?'on pend':''}" data-strat="${s}" ${k&&k!==s?'disabled':''}>${x[0]} ${x[1]()}</button>`).join('')}</div><p class="hint">${k?STRATS[k][2]():pk?STRATS[pk][2]():L("Pick one for today. It cannot be changed until tomorrow.","Choisissez pour la journée. Impossible d'en changer avant demain.")}</p>${pk?`<button type="button" class="btn sbtn stratok" data-stratok="1">✓ ${L("Confirm this choice","Valider ce choix","Confirmar esta elección")}</button>`:''}</div>`}
 
 /* mistrust after a betrayal or a broken promise: 3 days */
 function mistSet(...ids){S.mist=S.mist||{};ids.forEach(id=>{S.mist[id]=S.day+2})}
@@ -2871,7 +2906,7 @@ async function humanCamp(p,when,left){musicSet('camp');
   CURGK=S.day+'|'+when+'|'+p.id;const gOpen=k=>(OPENG[CURGK]||[]).includes(k)?'open':'';
   const reads=mates.map(m=>({m,v:perceived(p.id,m.id)})).sort((a,b)=>(b.v??-999)-(a.v??-999));
   const nmsg=p.nightMsg&&p.nightMsg.d===S.day&&when==='am'&&left===ACTIONS[when]?`<div class="banner">🌙 <b>${L("Last night","Cette nuit")}</b> · ${p.nightMsg.msg}</div>`:'';if(nmsg)p.nightMsg=null;
-  CAMPCTX={p,t};SIMR=!AUTO&&p._simrest===S.day+'|'+when;let act=AUTO||SIMR?autoAct(p,t):await ask(`${statusBar(p,t,when,left)}${campView(t,when,p)}${nmsg}<details class="wxd statd" data-keep="wx" ${keepOpen('wx')}><summary>${({sun:'☀️',clouds:'⛅',rain:'🌧️',storm:'⛈️',heat:'🥵'})[S.wx?S.wx.type:'sun']||'☀️'} ${wxLine()}</summary><p class="muted wxeff">⚠️ ${wxEffect()}</p><p class="wxadv">💡 ${wxAdvice()}</p></details>${S.introBox===S.day&&when==='am'&&left===ACTIONS[when]?introBox():''}${S.banner||''}${missionLine(p,mates)}
+  CAMPCTX={p,t};SIMR=!AUTO&&p._simrest===S.day+'|'+when;let act=AUTO||SIMR?autoAct(p,t):await (h=>{CAMP_LAST={pid:p.id,d:S.day,w:when,sb:CAMP_SB,h};return ask(h)})(`${(CAMP_SB=statusBar(p,t,when,left))}${campView(t,when,p)}${nmsg}<details class="wxd statd" data-keep="wx" ${keepOpen('wx')}><summary>${({sun:'☀️',clouds:'⛅',rain:'🌧️',storm:'⛈️',heat:'🥵'})[S.wx?S.wx.type:'sun']||'☀️'} ${wxLine()}</summary><p class="muted wxeff">⚠️ ${wxEffect()}</p><p class="wxadv">💡 ${wxAdvice()}</p></details>${S.introBox===S.day&&when==='am'&&left===ACTIONS[when]?introBox():''}${S.banner||''}${missionLine(p,mates)}
     ${p._lastMsg?`<div class="lastmsg" role="status">${p._lastMsg}</div>`:''}<div class="raline">${redoBtn(p,t,left,when)}${undoBtn(p,when,left)}</div>
     ${p.human?objLine(p):''}
     ${newsBox}
@@ -2990,7 +3025,7 @@ async function humanCamp(p,when,left){musicSet('camp');
     else if(findItem(p,t))msg=ITEM_FOUND[p._found]();
     else msg=1?pick([L("Nothing but crabs and roots.","Rien que des crabes et des racines.","Solo cangrejos y raíces."),L("You dug under three trees. Nothing.","Vous avez creusé sous trois arbres. Rien.","Has cavado bajo tres árboles. Nada."),L("Someone was watching you. You came back empty-handed.","Quelqu'un vous observait. Vous rentrez bredouille.","Alguien te observaba. Vuelves con las manos vacías.")]):L("You searched everywhere. It looks like someone already found it.","Vous avez fouillé partout. Quelqu'un semble l'avoir déjà trouvé.","Lo has registrado todo. Parece que alguien ya lo encontró.");
   }else if(act==='bond'){
-    const id=await ask(`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${L("Who do you spend time with?","Passer du temps avec…","¿Con quién pasas el rato?")}</h1>${infoList(mates,p.id,m=>archN(m.arch,m.g))}`);
+    const id=await ask(`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${L("Who do you spend time with?","Passer du temps avec…","¿Con quién pasas el rato?")}</h1>${infoList(mates,p.id,m=>archN(m.arch,m.g)+chalTag(m))}`);
     const m=P(+id);p._lastBond=m.id;p._lastBondD=S.day;const g=bondGain(p)+(m.arch==='shy'?-4:0)+sharedLife(p,m);mutual(p.id,m.id,g);logH(p.id,m.id,"Spent time together at camp.","Ont passé du temps ensemble au camp.","Pasaron tiempo juntos en el campamento.");p.energy-=4;learn(p.id,m.id,0.2);if(m.human)learn(m.id,p.id,0.2);
     msg=m.arch==='shy'?L(`${esc(m.name)} didn't say much, but you shared a coconut. It's a start.`,`${esc(m.name)} n'a pas dit grand-chose, mais vous avez partagé une noix de coco. C'est un début.`,`${esc(m.name)} no habló mucho, pero compartisteis un coco. Es un comienzo.`):L(`You and ${esc(m.name)} talked for hours while gathering wood. Trust is growing.`,`Vous avez parlé des heures avec ${esc(m.name)} en ramassant du bois. La confiance grandit.`,`${esc(m.name)} y tú hablasteis durante horas mientras recogíais leña. La confianza crece.`);
   }else{credit(p,'rest',1);p.rested=true;p.energy+=(p.sick?-8:0)+(SH(t)>=40?22:12)+(perk(p)==='handy'?8:0)+(S.wx&&S.wx.type==='heat'?5:0);msg=L("You slept in the shade. You feel stronger.","Vous avez dormi à l'ombre. Vous vous sentez plus fort.","Has dormido a la sombra. Te sientes más fuerte.")}
@@ -2999,9 +3034,9 @@ async function humanCamp(p,when,left){musicSet('camp');
   if(LASTMG!=null)msg+=` <span class="muted">(🎮 ${L("mini-game","mini-jeu","minijuego")} : ${LASTMG})</span>`;
   p.energy=Math.min(enCap(),clamp(p.energy,10));
   const more=left>1;
-  if(SIMR&&p._simrest===S.day+'|'+when){p._simlog=(p._simlog||[]).concat([msg]);if(more)return true;const simH=`<b>🎲 ${L("Simulated actions","Actions simulées")}</b><ul class="lines simlog">${p._simlog.map(m=>`<li>${m}</li>`).join('')}</ul>`;p._simlog=[];p._simrest=null;SIMR=false;if(!AUTO&&S.humans<=1){await campDone(p,when,simH,nextLbl);return true}FLASH=(FLASH&&FLASH.length<3000?FLASH+'<br>':'')+simH;return true}
+  if(SIMR&&p._simrest===S.day+'|'+when){p._simlog=(p._simlog||[]).concat([msg]);if(more)return true;const simH=`<b>🎲 ${L("Simulated actions","Actions simulées")}</b><ul class="lines simlog">${p._simlog.map(m=>`<li>${m}</li>`).join('')}</ul>`;p._simlog=[];p._simrest=null;SIMR=false;if(!AUTO&&S.humans<=1){campNewsAdd(simH);await campFin(p,t,when,nextLbl,simH);return true}FLASH=(FLASH&&FLASH.length<3000?FLASH+'<br>':'')+simH;return true}
   if(more&&S.humans<=1){p._lastMsg=msg;return true}
-  if(S.humans<=1){if(AUTO||SIMR){FLASH=msg;return true}await campDone(p,when,msg,nextLbl);return true}
+  if(S.humans<=1){if(AUTO||SIMR){FLASH=msg;return true}campNewsAdd(msg);await campFin(p,t,when,nextLbl,msg);return true}
   await ask(`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${esc(p.name)}</h1><p style="font-size:1.1rem">${msg}</p><button class="btn" data-act="ok">${more?L(`Next action (${left-1} left)`,`Action suivante (${left-1} restante${left-1>1?'s':''})`,`Siguiente acción (quedan ${left-1})`):S.humans>1?L("Done, hide the screen","Terminé, cachez l'écran","Hecho, esconde la pantalla"):L("Continue","Continuer","Continuar")}</button>`);
   return true;
 }
@@ -3022,11 +3057,11 @@ function aiCamp(lines){
     const fishBias=a.arch==='chief'||a.arch==='survivor'?0.6:0.4,searchBias=a.arch==='strategic'?0.75:0.55;
     const lazy=a.arch==='survivor'?0:(rng((a.seed||a.id)+999)()*0.4+(a.arch==='shirker'?.35:0))*(1.3-st(a,'mot')/100);
     if(Math.random()<lazy){a.energy+=14;credit(a,'rest',1)}
-    else if(!HW(t)&&Math.random()<.45){if(searchWater(a)){credit(a,'water',1);lines&&lines.push(L(`<b>${esc(a.name)}</b> found fresh water for ${TR[t].n}.`,`<b>${esc(a.name)}</b> a trouvé de l'eau douce pour ${TR[t].n}.`,`<b>${esc(a.name)}</b> encontró agua dulce para ${TR[t].n}.`))}}
+    else if(!HW(t)&&Math.random()<.45){if(searchWater(a)){credit(a,'water',1);lines&&lines.push(lnTb(t)+L(`<b>${esc(a.name)}</b> found fresh water for ${TR[t].n}.`,`<b>${esc(a.name)}</b> a trouvé de l'eau douce pour ${TR[t].n}.`,`<b>${esc(a.name)}</b> encontró agua dulce para ${TR[t].n}.`))}}
     else if(S.fire[t]&&S.food[t]>=2&&MEALS(t)<3&&Math.random()<(S.day<4?.06:.15)+cookSkill(a)*.07){credit(a,'cook',cook(a))}
     else if(a.energy<35&&Math.random()<.35){a.energy+=14;credit(a,'rest',1)}
     else if(SH(t)<100&&Math.random()<(SH(t)<40?.5:.25)){credit(a,'shelter',buildShelter(a))}
-    else if(!S.fire[t]&&W(t)>0&&Math.random()<0.25){a.energy-=10;addWood(t,-1);if(Math.random()<fireOdds(a)*(S.wx&&S.wx.type==='storm'?.4:S.wx&&S.wx.type==='rain'?.7:1)){S.fire[t]=true;credit(a,'fire',1);lines&&lines.push(L(`<b>${esc(a.name)}</b> lit the fire for ${TR[t].n}.`,`<b>${esc(a.name)}</b> a allumé le feu pour ${TR[t].n}.`,`<b>${esc(a.name)}</b> encendió el fuego de ${TR[t].n}.`))}else feedAdd(a,'firefail')}
+    else if(!S.fire[t]&&W(t)>0&&Math.random()<0.25){a.energy-=10;addWood(t,-1);if(Math.random()<fireOdds(a)*(S.wx&&S.wx.type==='storm'?.4:S.wx&&S.wx.type==='rain'?.7:1)){S.fire[t]=true;credit(a,'fire',1);lines&&lines.push(lnTb(t)+L(`<b>${esc(a.name)}</b> lit the fire for ${TR[t].n}.`,`<b>${esc(a.name)}</b> a allumé le feu pour ${TR[t].n}.`,`<b>${esc(a.name)}</b> encendió el fuego de ${TR[t].n}.`))}else feedAdd(a,'firefail')}
     else if(W(t)<2&&Math.random()<0.3){a.energy-=8;addWood(t,2);credit(a,'wood',2)}
     else if(S.food[t]<3&&r<fishBias){if(S.wx&&S.wx.type==='storm'||Math.random()<0.35){const g=forageTry(a,pick(LOC(S.loc).plants));if(g>1)credit(a,'food',g-1);else feedAdd(a,'foragefail')}else{a.energy-=12;expAdd(a,'fish');if(Math.random()<(0.35+a.energy/250+(S.kit[t]?0.25:0)+(S.trap&&S.trap[t]?0.15:0)+(st(a,'surv')-55)/250+(perk(a)==='provider'?0.15:0))*fishWx()*effOf(a)*expMul(a,'fish')){const n=Math.random()<(S.kit[t]?0.5:0.2)?2:1;S.food[t]+=n;credit(a,'fish',n)}else feedAdd(a,'fishfail')}}
     else if(S.idolHidden[t]&&(r<searchBias&&Math.random()<0.5||aiDanger(a)&&Math.random()<0.6)){a.energy-=8;feedAdd(a,'search');if(Math.random()<0.1*st(a,'strat')/60*(perk(a)==='thinker'?1.5:1)){a.idol=true;S.idolHidden[t]=false;idolFound(t);setIdolKind(a)}}
@@ -3221,9 +3256,9 @@ function campView(t,when,me){const sh=SH(t),fire=S.fire[t],water=HW(t),food=S.fo
   return `<details class="campd" data-keep="camp" ${keepGet().camp!==0?'open':''}><summary>🏝️ ${L("The camp","Le camp")}</summary><figure class="campscene">${svg}</figure><p class="campinfo muted">${L("Tap an element of the camp or a castaway.","Touchez un élément du camp ou un aventurier.")}</p></details>`}
 async function campMini(p,kind){LASTMG=null;if(SET.campmg==='quick'||S.quick||SIMR||AUTO)return null;
   const a=await ask(`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${CAMPMG_N[kind]()}</h1><p>${gR(kind)}</p>
-    <div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu","Jugar al minijuego"),L("Your score decides the result: a great game brings back more.","Votre score décide du résultat : une belle partie rapporte plus.","Tu puntuación decide el resultado: una buena partida da más."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite","Hacerlo rápido"),L("The result depends on your characteristics, as before.","Le résultat dépend de vos caractéristiques, comme avant.","El resultado depende de tus características, como antes."))}</div>
+    <div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu","Jugar al minijuego"),L("Your score decides the result: a great game brings back more.","Votre score décide du résultat : une belle partie rapporte plus.","Tu puntuación decide el resultado: una buena partida da más."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite","Hacerlo rápido"),L("The result depends on your characteristics, as before.","Le résultat dépend de vos caractéristiques, comme avant.","El resultado depende de tus características, como antes."))}</div><div class="row"><button class="btn ghost" data-act="mgback">← ${L("Back","Retour","Volver")}</button></div>
     <p class="hint">${L("You can turn mini-games off in the Settings.","Vous pouvez désactiver les mini-jeux dans les Réglages.","Puedes desactivar los minijuegos en los Ajustes.")}</p>`);
-  if(a!=='mgplay')return null;
+  if(a==='mgback')return campRetour();if(a!=='mgplay')return null;
   await countdown();let sc=await lancerMiniJeu(kind);if(sc<0)return null;LASTMG=sc;
   if(sc>=90)unlock(p,'campace');
   try{const k='aventuriers-campmg',o=JSON.parse(localStorage.getItem(k)||'{}');o[kind]=1;localStorage.setItem(k,JSON.stringify(o));if(['fish','wood','shelter','climb'].every(x=>o[x]))unlock(p,'camp4')}catch(e){}
@@ -3239,7 +3274,7 @@ let CTAB_SEL=null;
 function campTabs(){try{const w=$app.querySelector('.wrap');if(!w||!w.querySelector(':scope > .sbar')||!w.querySelector(':scope > .agroups'))return;
   const defs=[['news','📰',L("News","Nouvelles")],['campd','🏝️',L("Camp","Camp")],['wxd','',L("Weather","Météo")],['mission','🎯',L("Mission","Mission")],['objd','🤫',L("Goal","Objectif")],['today','🏕️',L("Day","Journée")],['mystats','📊',L("Stats","Stats")],['eyed','👁️',L("Eye","Œil")],['reads','🤔',L("Opinions","Avis")]];
   const kids=[...w.children].filter(x=>x.tagName==='DETAILS');const tabs=[];
-  defs.forEach(([c,ic,n])=>{const d=kids.find(x=>c==='reads'?/^🤔/.test((x.querySelector('summary')||{}).textContent?.trim()||''):x.classList.contains(c));if(!d)return;
+  defs.forEach(([c,ic,n])=>{const d=kids.find(x=>c==='reads'?/^🤔/.test((x.querySelector('summary')||{}).textContent?.trim()||''):x.classList.contains(c));if(!d)return;if(c==='mystats'){d.remove();return}
     const sm=d.querySelector(':scope > summary'),st=sm?sm.textContent.trim():'';let lbl=n,icon=ic;
     if(c==='wxd'){const m=st.match(/^(\S+)\s.*?(-?\d+\s?°C)/);icon=m?m[1]:'⛅';lbl=m?m[2].replace(/\s/,' '):n}
     let bdg='';if(c==='mission'){const m=st.match(/(\d+\/\d+|✓)/);if(m)bdg=m[1]}
@@ -3276,18 +3311,38 @@ function shortHost(){if(STORY()!=='short')return;$app.querySelectorAll('p.host')
   const unfold=()=>{p.innerHTML=full+` <button type="button" class="hmore hless">${L("Reduce","Réduire")}</button>`;p.querySelector('.hless').onclick=e=>{e.stopPropagation();fold()}};fold()})}
 
 /* 1. after the last action: one button to the next step */
-async function campDone(p,when,msg,nextLbl){const t=tk(p);
-  try{if(!S._news||S._news.d!==S.day)S._news={d:S.day,h:''};const it=`<div class="lastmsg">${msg}</div>`;if(!S._news.h.includes(it))S._news.h=it+S._news.h}catch(e){}
-  await ask(`${statusBar(p,t,when,0)}<div class="campdone"><p class="cdtitle">✅ ${L("Actions done","Actions terminées")}</p>${voixLigne('travail',t)}<details class="news donenews"><summary>📰 ${L("News","Nouvelles")}</summary>${S._news.h.replace(/ data-act="[^"]*"/g,'')}</details></div>
-    <div class="bbar"><button class="btn" data-act="go">${nextLbl} ›</button></div>`)}
+// Fin des actions (commentaire du 3 au soir) : on reste sur le camp, les actions sont grisées
+// et « Simuler mes actions restantes » devient le bouton pour passer à la suite (confort, immunité, Conseil…).
+function campNewsAdd(msg){try{if(!S._news||S._news.d!==S.day)S._news={d:S.day,h:''};const it=`<div class="lastmsg">${msg}</div>`;if(!S._news.h.includes(it))S._news.h=it+S._news.h}catch(e){}}
+let CAMP_LAST=null,CAMP_SB='';
+// Reprend le dernier écran du camp tel quel (aucun recalcul, donc rien ne change dans la partie) :
+// barre d'état à jour, résultat de la dernière action, actions grisées, et « Aller à… » à la place de « Simuler ».
+async function campFin(p,t,when,nextLbl,msg){const left=0;const c=CAMP_LAST;CAMP_LAST=null;
+  let h;
+  if(c&&c.pid===p.id&&c.d===S.day&&c.w===when&&c.h.startsWith(c.sb)){
+    UNDO_PREV=UNDO_CUR;p._lastMsg=msg;const ub=undoBtn(p,when,0);p._lastMsg=null;
+    h=statusBar(p,t,when,0)+c.h.slice(c.sb.length).replace(/<div class="lastmsg" role="status">[\s\S]*?<\/div>/,'')
+      .replace(/<div class="raline">[\s\S]*?<\/div>/,()=>`<div class="lastmsg" role="status">${msg}</div>${voixLigne('travail',t)}<div class="raline">${ub}</div>`)
+      .replace(/<span class="bdots" aria-hidden="true">[^<]*<\/span>/,`<span class="bdots" aria-hidden="true">${'○'.repeat(ACTIONS[when])}</span>`)
+      .replace(/<span class="blbl">[^<]*<\/span>/,()=>`<span class="blbl">${L(`${left} action${left>1?'s':''} left`,`${left} action${left>1?'s':''} restante${left>1?'s':''}`,`${left} acción${left>1?'es':''} restante${left>1?'s':''}`)}</span>`);
+  }else h=`${statusBar(p,t,when,0)}<div class="lastmsg" role="status">${msg}</div>${voixLigne('travail',t)}<div class="bbar"><button class="btn simrest" data-act="go">${nextLbl} ›</button></div>`;
+  // plus aucune action possible : seul « Aller à… » garde un data-act
+  h=h.replace(/<button class="choice" data-act="[^"]*"/g,'<button class="choice off" disabled').replace(/<button class="choice blocked"[^>]*>/g,'<button class="choice off" disabled>')
+    .replace(/<button class="btn simrest"[\s\S]*?<\/button>/,'@@GO@@').replace(/ data-act="[^"]*"/g,'').replace('@@GO@@',`<button class="btn simrest" data-act="go">${nextLbl} ›</button>`);
+  for(;;){const a=await ask(h);if(a==='go')return}}
 
 /* 9. history: the important lines of every day, newest first */
 function histSave(){try{if(!S||!S.ds)return;S.histD=S.histD||{};S.histD[S.ds.day]=(S.ds.lines||[]).filter(l=>!/^(Weather|Météo|Tiempo)\s?:/.test(String(l).replace(/<[^>]+>/g,'')))}catch(e){}}
+// Lignes du travail au camp : marquées par tribu ; avant la réunification, chacun ne voit que celles de son camp
+const lnTb=t=>`<i hidden data-tb="${t}"></i>`;
+function lnVis(l){try{const m=/data-tb="(\w+)"/.exec(String(l));if(!m||S.merged)return true;const v=VIEW!=null?P(VIEW):humansAlive()[0];return !v||tk(v)===m[1]}catch(e){return true}}
 function histHtml(){const H=S.histD||{};const days=Object.keys(H).map(Number).filter(d=>H[d]&&H[d].length).sort((a,b)=>b-a);
   if(!days.length)return `<p class="hint">${L("Important events will gather here day after day.","Les événements importants s'accumulent ici jour après jour.")}</p>`;
-  return days.map(d=>`<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${H[d].slice().reverse().map(l=>`<li>${l}</li>`).join('')}</ul>`).join('')}
+  return days.map(d=>`<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${H[d].filter(lnVis).slice().reverse().map(l=>`<li>${l}</li>`).join('')}</ul>`).join('')}
 
 /* 4. "+" next to each castaway: what you know about them */
+// Résultats des dernières épreuves (notes 0-100), dans la liste « Passer du temps avec… »
+const chalTag=m=>m.cs&&m.cs.length?` · 🏅 ${L("Challenges:","Épreuves :","Pruebas:")} ${m.cs.map(x=>Math.round(x)).join(' · ')}`:'';
 function infoRow(m,viewer,label){let h=(()=>{const v=viewer!=null?viewer:(VIEW!=null?VIEW:(humansAlive()[0]||{}).id);let mood='';try{const r=theirView(v,m.id);mood=`<p class="minfo-l">🤔 ${L("What they think of you",("Ce qu'il pense de vous").replace('il',m.g==='f'?'elle':'il'))} : <span class="mood ${r[1]}">${r[0]}</span></p>`}catch(e){}
   const al=allied(v,m.id)?`<p class="minfo-l">🤝 ${L("Allied",("Allié"+((m.g==='f')?"e":"")))}</p>`:'';
   return `<div class="mrow"><button class="choice pp mrb" data-act="${m.id}">${face(m,44)}<b>${oflag(m)}${esc(m.name)}</b>${label?`<span class="mrsub">${label}</span>`:''}</button><button type="button" class="mplus" aria-expanded="false" aria-label="${L("What you know","Ce que vous savez")}">+</button><div class="minfo" hidden>${mood}${al}${statsBlock(m,v)}</div></div>`})();
@@ -4423,7 +4478,6 @@ const TROPEN=new Set();
 function trainScreen(garder){if(garder!==true)TROPEN.clear();const best=bestGet(),lv=tlvGet();const used=new Set([...NJK,'seq','calc','logs','fish','wood','shelter','climb']);
   screen(`${langToggle()}${eb(L("Training","Entraînement"))}<h1 class="h">${L("Practise the challenges","Entraînez-vous aux épreuves")}</h1>
     <p class="hint">${L("Every challenge of the game, on its own, at the level you choose. Your best score is kept for each level.","Toutes les épreuves du jeu, seules, au niveau de votre choix. Votre record est gardé pour chaque niveau.")}</p>
-    <p class="lbl">${L("Level","Niveau")}</p><div class="seg" id="tlv">${['e','n','h','x'].map(k=>`<button data-tl="${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>
     ${tfamList().map(([id,ic,n,list],gi)=>{const gs=list.filter(g=>GAMES[g]&&PLAYG[g]);return gs.length?`<details class="achg" data-tr="${id}" ${TROPEN.has(id)?'open':''}><summary>${ic} ${n()} <span class="muted num">${gs.length}</span></summary><div class="choices" style="padding:0 12px 12px">${gs.map(g=>{const b=best[tbk(g,lv)];return `<button class="choice" data-g="${g}"><b>${gN(g)}${typeof FNEW!=='undefined'&&FNEW.includes(g)?` <span class="nbadge">${L("New · to validate","Nouveau · à valider")}</span>`:''}</b><span>${b!=null?`🏅 ${L("Best","Record")} : ${g==='dagger'?triesTxt(b):b}`:L("No record yet","Pas encore de record")}</span></button>`}).join('')}</div></details>`:''}).join('')}
     <button class="btn ghost" id="back">${L("Back","Retour")}</button>`);
   wireLang(trainScreen);el('back').onclick=home;
@@ -5153,7 +5207,7 @@ const DILEMMAS=[
     o:[[L("Taste it","Y goûter"),()=>{if(st(p,'surv')>55||Math.random()<.5){p.energy=clamp(p.energy+10);return L("Delicious and filling. +10 energy.","Délicieuse et nourrissante. +10 d'énergie.")}sicken(p,'food',L(`${p.name} tasted an unknown root.`,`${p.name} a goûté une racine inconnue.`));return L("Bad idea: you feel sick.","Mauvaise idée : vous vous sentez malade.")}],
        [L("Leave it","La laisser"),()=>L("Better safe than sorry.","Prudence est mère de sûreté.")]]})];
 async function maybeDilemma(p,t,mates){if(!mates.length||S.merged&&alive().length<=4)return;S.dil=S.dil||{};if(S.dil[p.id]===S.day)return;S.dil[p.id]=S.day;if(Math.random()>0.33)return;
-  let _dm=pick(mates),d=pick(DILEMMAS)(p,_dm);for(let k=0;k<6&&S.day<4&&/maison|from home/.test(d.t);k++){_dm=pick(mates);d=pick(DILEMMAS)(p,_dm)}d._m=_dm;if(S.day<4&&/maison|from home/.test(d.t))return;const a=await ask(`${eb(L("Dilemma","Dilemme"))}<h1 class="h">${d.t}</h1><p style="font-size:1.05rem">${d.d}</p><div class="choices">${d.o.map((o,i)=>`<button class="choice" data-act="d${i}"><b>${o[0]}</b>${DF().adv!=='off'?dEffLine(o[1],d._m):''}</button>`).join('')}</div>`);
+  let _dm=pick(mates),d=pick(DILEMMAS)(p,_dm);for(let k=0;k<6&&S.day<4&&/maison|from home/.test(d.t);k++){_dm=pick(mates);d=pick(DILEMMAS)(p,_dm)}d._m=_dm;if(S.day<4&&/maison|from home/.test(d.t))return;const a=await ask(`${eb(L("Dilemma","Dilemme"))}<i hidden data-noflash data-dil></i><h1 class="h">${d.t}</h1><p style="font-size:1.05rem">${d.d}</p><div class="choices">${d.o.map((o,i)=>`<button class="choice" data-act="d${i}"><b>${o[0]}</b>${DF().adv!=='off'?dEffLine(o[1],d._m):''}</button>`).join('')}</div>`);
   const r=d.o[+a.slice(1)][1]();p.energy=clamp(p.energy,10);p.dilN=(p.dilN||0)+1;if(p.dilN>=3)unlock(p,'dilemma3');FLASH=(FLASH?FLASH+'<br>':'')+r;if(!AUTO&&!SIMR)S._pop=(S._pop||[]).concat([r])}
 
 const MISSIONS={fish:[2,L.bind(null,'Bring back 2 fish','Pêchez 2 poissons')],wood:[3,L.bind(null,'Bring back 3 logs','Rapportez 3 bûches')],cook:[1,L.bind(null,'Cook for the tribe','Cuisinez pour la tribu')],shelter:[10,L.bind(null,'Add 10% to the shelter','Faites avancer l\'abri de 10 %')],bond:[1,null],watch:[1,L.bind(null,'Watch the fire tonight','Veillez le feu cette nuit')]};
@@ -5429,9 +5483,9 @@ function storyHtml(){try{histSave()}catch(e){}const H=S.histD||{},h=S.players.fi
 const STORY_KEY='aventuriers-story';
 const storyGet=()=>jget(STORY_KEY)||{ch:[]},storySet=v=>jset(STORY_KEY,v);
 const CHAPS=[
-  {loc:'pf',size:12,days:12,tw:{},goal:'merge',ic:'🌊',n:()=>L("The shipwreck","Le naufrage"),d:()=>L("12 castaways in Polynesia. No rations, and a storm on day 2. Reach the merge.","12 aventuriers en Polynésie. Pas une ration, et une tempête le jour 2. Atteignez la réunification."),rw:()=>L("A collier for chapter 3","Un collier pour le chapitre 3")},
-  {loc:'ph',size:16,days:18,tw:{black:true,exch:true,swap:true},goal:'f5',ic:'🗡️',n:()=>L("The betrayal","La trahison"),d:()=>L("16 castaways in the Philippines. You start allied with two tribemates: one of them will betray you. Black vote, exchange, tribe swap. Reach the final 5.","16 aventuriers aux Philippines. Vous partez allié avec deux coéquipiers : l'un d'eux vous trahira. Vote noir, échange, redistribution. Atteignez les 5 derniers."),rw:()=>L("Your loyal ally comes back in chapter 3","Votre allié fidèle revient au chapitre 3")},
-  {loc:'mg',size:20,days:26,tw:{amb:true,judge:true,linked:true,duel:true},goal:'win',ic:'👑',n:()=>L("The legend","La légende"),d:()=>L("The full game: 20 castaways in Madagascar, ambassadors, judgement island, linked fates, exiles' duel, daggers and posts. Win.","La partie complète : 20 aventuriers à Madagascar, ambassadeurs, île du jugement, destins liés, duel des bannis, poignards et poteaux. Gagnez."),rw:()=>L("The title of legend","Le titre de légende")}];
+  {loc:'pf',size:12,days:12,tw:{},goal:'merge',ic:'🌊',n:()=>L("The shipwreck","Le naufrage"),d:()=>L("12 castaways in Polynesia. No rations, and a storm on day 2. Reach the merge.","12 aventuriers en Polynésie. Pas une ration, et une tempête le jour 2. Atteignez la réunification."),rw:()=>L("A collier for chapter 3","Un collier pour le chapitre 3"),obj:()=>"merge"},
+  {loc:'ph',size:16,days:18,tw:{black:true,exch:true,swap:true},goal:'f5',ic:'🗡️',n:()=>L("The betrayal","La trahison"),d:()=>L("16 castaways in the Philippines. You start allied with two tribemates: one of them will betray you. Black vote, exchange, tribe swap. Reach the final 5.","16 aventuriers aux Philippines. Vous partez allié avec deux coéquipiers : l'un d'eux vous trahira. Vote noir, échange, redistribution. Atteignez les 5 derniers."),rw:()=>L("Your loyal ally comes back in chapter 3","Votre allié fidèle revient au chapitre 3"),obj:()=>"f5"},
+  {loc:'mg',size:20,days:26,tw:{amb:true,judge:true,linked:true,duel:true},goal:'win',ic:'👑',n:()=>L("The legend","La légende"),d:()=>L("The full game: 20 castaways in Madagascar, ambassadors, judgement island, linked fates, exiles' duel, daggers and posts. Win.","La partie complète : 20 aventuriers à Madagascar, ambassadeurs, île du jugement, destins liés, duel des bannis, poignards et poteaux. Gagnez."),rw:()=>L("The title of legend","Le titre de légende"),obj:()=>"win"}];
 [{threatH:-5},{threatH:22,ai:1.1},{threatH:0,ai:1.05,mateH:.35,jury:0,post:1}].forEach((o,i)=>{DIFF['st'+(i+1)]={...DIFF.normal,n:['Story','Histoire'],hidden:true,...o}});
 const SKS=['str','agi','end','mind','surv','soc','strat','trust'];
 function storyHero(p){const o={};LIB_FIELDS.forEach(k=>{if(p[k]!=null)o[k]=p[k]});['wa','ww'].forEach(k=>{if(p[k])o[k]=p[k]});if(p.libStats)o.libStats=p.libStats;if(p.lib)o.lib=p.lib;return o}
@@ -5463,7 +5517,7 @@ function storyFinish(won){try{if(!S||!S.story||S.story.done)return;const i=S.sto
 const stv=(p,k)=>{try{return st(p,k)}catch(e){return p[k]||50}};
 let STORY_CREATE=false;
 async function storyScreen(){INGAME=false;const st=storyGet(),h=st.hero;const okN=i=>!!(st.ch[i]&&st.ch[i].ok);
-  const card=(c,i)=>{const open=i===0||okN(i-1),r=st.ch[i];return `<div class="schap ${open?'':'locked'}"><p class="lbl">${c.ic} ${L("Chapter","Chapitre")} ${i+1}${r?(r.ok?' · ✅':' · ❌'):''}</p><h3>${c.n()}</h3><p class="muted">${c.d()}</p><p class="hint">🎁 ${c.rw()}</p>${h&&open?`<button class="btn ${r&&r.ok?'ghost':''}" data-act="ch${i}">${r?L("Replay","Rejouer"):L("Play","Jouer")}</button>`:open?'':`<p class="hint">🔒 ${L("Complete the previous chapter to unlock it.","Réussissez le chapitre précédent pour le débloquer.")}</p>`}</div>`};
+  const card=(c,i)=>{const open=i===0||okN(i-1),r=st.ch[i];return `<div class="schap ${open?'':'locked'}"><p class="lbl">${c.ic} ${L("Chapter","Chapitre")} ${i+1}${r?(r.ok?' · ✅':' · ❌'):''}</p><h3>${c.n()}</h3><p class="sobj">🎯 ${c.obj()}</p><p class="hint">🎁 ${c.rw()}</p>${h&&open?`<button class="btn ${r&&r.ok?'ghost':''}" data-act="ch${i}">${r?L("Replay","Rejouer"):L("Play","Jouer")}</button>`:open?'':`<p class="hint">🔒 ${L("Complete the previous chapter to unlock it.","Réussissez le chapitre précédent pour le débloquer.")}</p>`}</div>`};
   const a=await ask(`${langToggle()}${eb(L("Story mode","Mode histoire"))}<h1 class="h">${L("Three chapters, one castaway","Trois chapitres, un aventurier")}</h1>
     ${h?`<div class="shero">${face({...h,id:0,age:+h.age,__ev:st.ev||0},72)}<div><b>${esc(h.name)}</b><span class="muted">${archN(h.arch,h.g)} · ${esc(sportName(h.sport))}</span>${(st.gain||[]).length?`<span class="muted">${st.gain.map(([i,k])=>`+3 ${statN(k)}`).join(' · ')}</span>`:''}${st.collar?`<span class="muted">🗿 ${L("Collier kept for chapter 3","Collier gardé pour le chapitre 3")}</span>`:''}${st.ally?`<span class="muted">🤝 ${L("Loyal ally","Allié fidèle")} : ${esc(st.ally.name)}</span>`:''}${st.legend?`<span>👑 ${L("Legend","Légende")}</span>`:''}</div></div>`:`<p>${L("Choose the castaway who will live the whole story. They keep their progress from one chapter to the next.","Choisissez l'aventurier qui vivra toute l'histoire. Il garde ses progrès d'un chapitre à l'autre.")}</p><div class="row"><button class="btn" data-act="pick">🎲 ${L("Choose a castaway","Choisir un aventurier")}</button><button class="btn ghost" data-act="make">✏️ ${L("Create my own","Créer sur mesure")}</button></div>`}
     ${CHAPS.map(card).join('')}
@@ -5578,7 +5632,7 @@ function setupScreen(modeArg,sopt={}){return new Promise(res=>{
       ${loc==='random'?'':countryMap(loc)}${loc==='random'?'':`<p class="flagline">${cflag(loc)} ${lx(LOC(loc),'country')} · ${isDiff(loc)}</p>`}<p class="hint" id="loch">${loc==='random'?L("A random island. Each island has its own climate, weather, fishing and fruit.","Une île au hasard. Chaque île a son climat, sa météo, sa pêche et ses fruits.","Una isla al azar. Cada isla tiene su clima, su tiempo, su pesca y su fruta."):climateTxt(LOC(loc))}</p>
       <label class="field"><span class="lbl">${L("Number of castaways","Nombre d'aventuriers","Número de aventureros")}</span><select id="size">${[10,12,14,16,18,20].map(n=>`<option value="${n}" ${size===n?'selected':''}>${n} · ${L(`2 tribes of ${n/2}`,`2 tribus de ${n/2}`,`2 tribus de ${n/2}`)}${n===20?' · '+L("full game","partie complète","partida completa"):''}</option>`).join('')}</select></label>
       <p class="hint">${L("Fewer castaways make a faster game. The adventure lasts between one and two days per castaway: 10 to 20 days for 10 castaways, 20 to 40 for 20.","Moins d'aventuriers, c'est une partie plus rapide. L'aventure dure entre un et deux jours par aventurier : 10 à 20 jours pour 10 aventuriers, 20 à 40 pour 20.","Menos aventureros hacen una partida más rápida. La aventura dura entre uno y dos días por aventurero: de 10 a 20 días con 10 aventureros, de 20 a 40 con 20.")}</p>
-      <label class="field"><span class="lbl">${L("Length of the adventure","Durée de l'aventure","Duración de la aventura")} : <b id="daysv">${days}</b> ${L("days","jours","días")}</span><input id="days" type="range" min="${size}" max="${size*2}" step="1" value="${days}"></label>
+      <label class="field"><span class="lbl">${L("Length of the adventure","Durée de l'aventure","Duración de la aventura")} : <b id="daysv">${days}</b> ${L("days","jours","días")}</span><input id="days" type="range" min="${size}" max="${size*2}" step="1" value="${days}"><span class="rangeb" aria-hidden="true"><span>${size}</span><span>${size*2}</span></span></label>
       `)}${blk(2,'⚖️ '+L("Rules","Règles","Reglas"),`${L(...DIFF[diff].n)} · ${form==='surprise'?L("random tribes","tribus au hasard"):formN(form)} · ${twSum()}`,`
       <label class="field"><span class="lbl">${L("Difficulty","Difficulté","Dificultad")}</span><select id="diff">${Object.keys(DIFF).filter(k=>!DIFF[k].hidden).map(k=>`<option value="${k}" ${diff===k?'selected':''}>${L(...DIFF[k].n)}</option>`).join('')}</select></label>
       <p class="hint" id="diffh">${L(...DIFF[diff].d)}</p>
@@ -5805,6 +5859,8 @@ function objLine(p){let h=(()=>{if(!p.obj)p.obj={k:pick(Object.keys(OBJS)),st:'r
 try{return h.replace(/<\/details>$/,lobjHtml(p)+'</details>').replace('<summary>🤫 ','<summary>🤫 ')}catch(e){return h}}
 
 let UNDO_CUR=null,UNDO_PREV=null;
+// « Retour » depuis le choix mini-jeu / rapide : on revient au camp tel qu'il était avant l'action (ni action ni énergie dépensées)
+function campRetour(){const c=UNDO_CUR;if(!c)return null;UNDO_CUR=UNDO_PREV;try{S=JSON.parse(c.snap);setLocation(S.loc);FF=false;run()}catch(_){return null}return new Promise(()=>{})}
 function undoSnap(p,when,left){UNDO_PREV=UNDO_CUR;try{UNDO_CUR={pid:p.id,d:S.day,w:when,left,snap:JSON.stringify(S)}}catch(e){UNDO_CUR=null}}
 const undoBtn=(p,when,left)=>S.humans===1&&UNDO_PREV&&UNDO_PREV.pid===p.id&&UNDO_PREV.d===S.day&&UNDO_PREV.w===when&&UNDO_PREV.left===left+1&&p._lastMsg?`<button class="btn ghost undo" data-undo="1">↩️ ${L("Undo this action","Annuler cette action")}</button>`:'';
 
@@ -5851,7 +5907,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.63 · 2026-11-03';
+const APP_VER='2.64 · 2026-11-03';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -5942,7 +5998,7 @@ const KIC={water:'💧',fish:'🎣',food:'🧺',wood:'🪵',shelter:'🛖',fire:
 
 
 async function fireQuick(p,t){let quick=SET.campmg==='quick'||S.quick;
-  if(!quick){const a=await ask(`${eb(L("Camp","Camp"))}<h1 class="h">${gN('fire')}</h1><div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu"),L("Rub, then blow: a score of 60 lights the fire.","Frotter puis souffler : un score de 60 allume le feu."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite"),L("The result depends on your Survival, Agility and job, like for the other castaways.","Le résultat dépend de votre Survie, de votre Agilité et de votre métier, comme pour les autres aventuriers."))}</div>`);quick=a!=='mgplay'}
+  if(!quick){const a=await ask(`${eb(L("Camp","Camp"))}<h1 class="h">${gN('fire')}</h1><div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu"),L("Rub, then blow: a score of 60 lights the fire.","Frotter puis souffler : un score de 60 allume le feu."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite"),L("The result depends on your Survival, Agility and job, like for the other castaways.","Le résultat dépend de votre Survie, de votre Agilité et de votre métier, comme pour les autres aventuriers."))}</div><div class="row"><button class="btn ghost" data-act="mgback">← ${L("Back","Retour","Volver")}</button></div>`);if(a==='mgback')return campRetour();quick=a!=='mgplay'}
   if(!quick)return null;const wxf=S.wx&&S.wx.type==='storm'?.4:S.wx&&S.wx.type==='rain'?.7:1;const ok=Math.random()<clamp(fireOdds(p)*wxf*2.5,.04,.5);
   if(ok){S.fire[t]=true;credit(p,'fire',1);unlock(p,'fire');tribeMembers(t).forEach(m=>{if(m.id!==p.id)mutual(p.id,m.id,4)});return L("<b>Fire!</b> After a long effort, the flame caught. The tribe cheers.","<b>Le feu !</b> Après un long effort, la flamme a pris. La tribu exulte.")}
   feedAdd(p,'firefail');return L("Plenty of smoke, but no flame. Someone can try again later.","Beaucoup de fumée, mais pas de flamme. Quelqu'un pourra réessayer plus tard.")}
@@ -6199,7 +6255,7 @@ const E=Math.round(p.energy),cap=enCap(),ef=effOf(p),tot=ACTIONS[when]||0;
 function tribesMoved(){const cur={};alive().forEach(p=>cur[p.id]=S.merged?'M':tk(p));const prev=S.tmap;S.tmap=cur;if(!prev)return true;return alive().some(p=>prev[p.id]!=null&&prev[p.id]!==cur[p.id])}
 
 /* mini faces before names in lists */
-function listFaces(root){try{if(!INGAME||!S||!root)return;root.querySelectorAll('li, .tally > div').forEach(li=>{if(li.querySelector('svg')||li.closest('.feed')||li.closest('.wrow')||li.closest('.tips'))return;const pn=li.querySelector('.pn[data-pid]');if(!pn)return;const p=P(+pn.dataset.pid);if(!p)return;const s=document.createElement('span');s.className='lface';s.innerHTML=face(p,20,p.alive?'':'gone');pn.before(s)})}catch(e){}}
+function listFaces(root){try{if(!INGAME||!S||!root)return;root.querySelectorAll('li, .tally > div').forEach(li=>{if(li.querySelector('svg')||li.closest('.feed')||li.closest('.wrow')||li.closest('.tips'))return;const pn=li.querySelector('.pn[data-pid]');if(!pn)return;const p=P(+pn.dataset.pid);if(!p)return;const s=document.createElement('span');s.className='lface';s.dataset.pid=p.id;s.setAttribute('role','button');s.innerHTML=face(p,20,p.alive?'':'gone');pn.before(s)})}catch(e){}}
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')&&n.classList.contains('gm'))listFaces(n)}))}).observe(document.body,{childList:true})}catch(e){}
 /* first-camp guide */
 const COACH_KEY='aventuriers-coach';
@@ -6314,11 +6370,16 @@ function sc2(x,y){if(y==null||Math.round(x)!==Math.round(y))return String(Math.r
 function tieWin(sc,A,B){if(A!==B)return A>B?'A':'B';const best=t=>tribeMembers(t).filter(p=>sc[p.id]!=null).map(p=>sc[p.id]).sort((a,b)=>b-a);const a=best('A'),b=best('B');for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]??-1,y=b[i]??-1;if(x!==y)return x>y?'A':'B'}return W('A')>=W('B')?'A':'B'}
 /* 4. compact individual results; your line opens your score detail */
 const scoreRows=(sc,ps,winId)=>{const bb=breakBox();const inner=bb?bb.replace(/^<details[^>]*><summary>[\s\S]*?<\/summary>/,'').replace(/<\/details>$/,''):'';
-  return youRank(sc,ps)+`<ol class="crank">${ps.map((p,i)=>`<li class="res crow ${p.id===winId?'win':''} ${p.human?'me':''}" data-pid="${p.id}"><span class="crk">${sc[p.id]!=null?i+1:'–'}</span><b>${esc(p.name)}</b><span class="crs">${esc(sportName(p.sport))}</span><span class="num">${sc[p.id]!=null?sc[p.id]:'—'}</span>${p.human&&inner?`<button type="button" class="mplus crplus" aria-label="${L("Score detail","Détail du score")}">+</button><div class="minfo crinfo" hidden>${inner}</div>`:''}</li>`).join('')}</ol>`};
+  // « ⭐ vous : 5e sur 5 » seulement quand le classement est long (sinon il fait doublon avec la liste)
+  return (ps.length>10?youRank(sc,ps):'')+`<ol class="crank">${ps.map((p,i)=>`<li class="res crow ${p.id===winId?'win':''} ${p.human?'me':''}" data-pid="${p.id}"><span class="crk">${sc[p.id]!=null?i+1:'–'}</span><b>${esc(p.name)}</b><span class="crs">${esc(sportName(p.sport))}</span><span class="num">${sc[p.id]!=null?sc[p.id]:'—'}</span>${p.human&&inner?`<button type="button" class="mplus crplus" aria-label="${L("Score detail","Détail du score")}">+</button><div class="minfo crinfo" hidden>${inner}</div>`:''}</li>`).join('')}</ol>`};
 /* 2. history: compact, names in tribe colours */
 // après l'affichage
 function screenConseilFlame(html){try{const w=$app.querySelector('.wrap');if(!w)return;
   const hp=w.querySelector('.ctp.histd');if(hp&&!hp.dataset.col){hp.dataset.col='1';colorTribes(hp);colorNames(hp)}
+  // Nouvelles : noms et tribus en couleur ; « Précédemment… » sans les lignes déjà affichées au-dessus
+  const np=w.querySelector('.ctp.news');if(np&&!np.dataset.col){np.dataset.col='1';colorTribes(np);colorNames(np)}
+  w.querySelectorAll('.prevbox').forEach(pb=>{const box=pb.parentElement;if(!box)return;const autre=[...box.children].filter(x=>x!==pb).map(x=>x.textContent.replace(/\s+/g,' ')).join(' ');
+    pb.querySelectorAll('li').forEach(li=>{const t=li.textContent.replace(/\s+/g,' ').trim();if(t&&autre.includes(t))li.remove()});if(!pb.querySelector('li'))pb.remove()});
   const sd=w.querySelector('.sbar .sbday');const ct=conseilTonight();if(sd&&ct&&!w.querySelector('.cst')){sd.insertAdjacentHTML('beforebegin',`<span class="sbi cst" role="button" tabindex="0" data-tip="${esc(ct)}">🔥</span>`)}
 }catch(e){}}
 
@@ -6345,8 +6406,8 @@ function sbAnim(w){const bar=w.querySelector('.sbar');if(!bar){return}
 function undoBar(text){return new Promise(res=>{try{if(AUTO||SIMR||!document.body){res(false);return}document.querySelectorAll('.vundo').forEach(x=>x.remove());const d=document.createElement('div');d.className='vundo';d.setAttribute('role','status');
   d.innerHTML=`<span>${text}</span><button type="button" class="btn ghost">${L("Undo","Annuler")}</button><i class="vprog"></i>`;document.body.appendChild(d);let done=false;const fin=v=>{if(done)return;done=true;clearTimeout(tm);d.remove();res(v)};
   d.querySelector('button').onclick=()=>fin(true);const tm=setTimeout(()=>fin(false),2000)}catch(e){res(false)}})}
-// Affiche un écran de choix ; pour un choix important (data-undo), propose « Annuler » pendant 2 secondes
-async function ask(html){if(!/data-undo/.test(html)||AUTO)return askOnce(html);
+// Affiche un écran de choix ; pour un choix important (marqueur <i hidden data-undo>, pas le bouton ↩️ du camp), propose « Annuler » pendant 2 secondes
+async function ask(html){if(!/data-undo>/.test(html)||AUTO)return askOnce(html);
   for(;;){const r=await askOnce(html);if(['keep','none','go','ok','cast','back'].includes(r))return r;let lbl='';try{const b=document.querySelector(`#app [data-act="${CSS.escape(String(r))}"]`);const bb=b&&(b.querySelector('b')||b);lbl=bb?bb.textContent.replace(/\s+/g,' ').trim():''}catch(e){}
     if(!(await undoBar(`✅ ${esc(lbl||L("Choice made","Choix fait"))}`)))return r}}
 
@@ -6405,7 +6466,7 @@ async function whyLost(e){try{const lg=(S.vlog||[]).slice().reverse().find(x=>x.
 async function dayRecap(p){const t=tk(p),f=((S.feed||{})[t]||[]).filter(e=>e.d===S.day),mine=f.filter(e=>e.id===p.id);
   const sky=S.wxNext&&SKYHINT[S.wxNext.type]?L(...SKYHINT[S.wxNext.type]):'';
   const mineTx=mine.length?groupFeed(mine).replace(/<\/li>/g,' · ').replace(/<[^>]+>/g,'').replace(/\s*·\s*$/,'').replace(new RegExp('^'+p.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s'),''):L("Nothing the tribe noticed.","Rien que la tribu ait remarqué.");
-  const ls=(S.ds&&S.ds.lines||[]).map(String).filter(l=>!/^(Weather|Météo|Tiempo)\s?:/.test(l.replace(/<[^>]+>/g,'')));const pri=[/éliminé|voted out|expulsad/i,/immunité|immunity/i,/confort|reward/i,/Feu sacré|Sacred fire/i,/./];
+  const ls=(S.ds&&S.ds.lines||[]).map(String).filter(lnVis).filter(l=>!/^(Weather|Météo|Tiempo)\s?:/.test(l.replace(/<[^>]+>/g,'')));const pri=[/éliminé|voted out|expulsad/i,/immunité|immunity/i,/confort|reward/i,/Feu sacré|Sacred fire/i,/./];
   let ev='';for(const re of pri){const x=ls.slice().reverse().find(l=>re.test(l));if(x){ev=x;break}}
   if(STORY()==='short'){FLASH=(FLASH?FLASH+'<br>':'')+`🌙 <b>${L("Your day","Votre journée")}</b> · ${esc(mineTx)}${sky?' · 🌅 '+sky:''}`;return}
   const long=STORY()==='long',hl=highlights(p);
@@ -6714,7 +6775,9 @@ window.addEventListener('pagehide',hide);window.addEventListener('pageshow',()=>
 })();
 try{document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ctab="campd"]');if(!b||!S||VIEW==null)return;try{S._campSeen=S._campSeen||{};S._campSeen[tk(P(VIEW))]=b.dataset.sig||campSig(tk(P(VIEW)));b.classList.remove('unread')}catch(_){}})}catch(e){}
 try{document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-strat]');if(!b||b.disabled||!S)return;e.preventDefault();e.stopPropagation();const bar=b.closest('.stratbar'),p=P(+bar.dataset.sp);if(!p||stratOf(p))return;
-  S.strat=S.strat||{};S.strat[p.id]={d:S.day,k:b.dataset.strat};bar.outerHTML=stratBar(p);try{sfx('tap')}catch(_){}},true)}catch(e){}
+  STRAT_PEND={id:p.id,d:S.day,k:b.dataset.strat};bar.outerHTML=stratBar(p);try{sfx('tap')}catch(_){}},true)}catch(e){}
+try{document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-stratok]');if(!b||!S)return;e.preventDefault();e.stopPropagation();const bar=b.closest('.stratbar'),p=P(+bar.dataset.sp);if(!p||stratOf(p)||!STRAT_PEND||STRAT_PEND.id!==p.id)return;
+  S.strat=S.strat||{};S.strat[p.id]={d:S.day,k:STRAT_PEND.k};STRAT_PEND=null;bar.outerHTML=stratBar(p);try{sfx('tap')}catch(_){}},true)}catch(e){}
 try{window.addEventListener('resize',()=>{if(!INGAME)homeSkyFit()})}catch(e){}
 home();
 </script>
