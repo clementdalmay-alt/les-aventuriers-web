@@ -1501,7 +1501,15 @@ body{padding-top:8px}
 #days{accent-color:var(--torch); width:100%}
 .rangeb{display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); margin-top:2px}
 /* Poteaux : l'eau sous les poteaux */
-.posts.water .post{background:linear-gradient(180deg,transparent 62%,rgba(79,163,217,.28) 62%,rgba(79,163,217,.45)); border-radius:12px; padding-bottom:6px}
+.posts.peau .post{background:linear-gradient(180deg,transparent 62%,rgba(79,163,217,.28) 62%,rgba(79,163,217,.45)); border-radius:12px; padding-bottom:6px}
+/* v2.66 : têtes des adversaires */
+.dagr b{display:flex; align-items:center; gap:4px} .dagr b svg{flex:0 0 auto}
+.arcrank li svg{flex:0 0 auto}
+.post .who svg{display:block; margin:0 auto}
+/* action conseillée : l'étoile seule, sans contour orange */
+.choice.reco{border-color:var(--line)!important; box-shadow:none!important}
+/* onglet Nouvelles : sans bande bleue sur le côté */
+.ctp.news .banner,.ctp.news .lastmsg,.ctp.news .secret,details.news .banner,details.news .lastmsg{border-left:0!important}
 /* Accueil compact (commentaire du 3 au soir : « que la page d'accueil tienne sans scroll »).
    Version de secours : supprimer ce fichier rend l'accueil de la v2.63. */
 .hometotem{width:78px}
@@ -1693,7 +1701,8 @@ try{if(STORY()==='short'&&INGAME&&S&&!AUTO){const h1=((html.match(/<h1 class="h"
   if(SIMR&&!AUTO&&INGAME&&S&&!pass){const r=autoAnswer(acts);if(r!=null)return Promise.resolve(r)}
   if(AUTO&&INGAME&&S&&!pass){const r=autoAnswer(acts);if(r!=null)return Promise.resolve(r);if(AUTO.nostop)return Promise.resolve(autoDecide(acts,html));stopAuto(L("a decision is waiting for you.","une décision vous attend."))}
   if(!narr)FF=false;
-  if(FLASH&&INGAME&&S&&!pass&&!/data-noflash/.test(html)){const camp=/class="agroups"/.test(html);const b=camp?`<div class="banner">${FLASH}</div>`:`<details class="flashd"><summary><span class="fl1">📰 ${L("News","Nouvelles")}</span> <span class="muted">· ${String(FLASH).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,48)}…</span></summary><div class="banner">${FLASH}</div></details>`;html=camp?(/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html):(/<\/h1>/.test(html)?html.replace(/(<\/h1>)/,'$1'+b):/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html);FLASH=null}
+  // v2.66 : les Nouvelles ne s'affichent qu'au camp ; ailleurs elles attendent le prochain écran du camp
+  if(FLASH&&INGAME&&S&&!pass&&!/data-noflash/.test(html)&&/class="agroups"/.test(html)){const camp=/class="agroups"/.test(html);const b=camp?`<div class="banner">${FLASH}</div>`:`<details class="flashd"><summary><span class="fl1">📰 ${L("News","Nouvelles")}</span> <span class="muted">· ${String(FLASH).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,48)}…</span></summary><div class="banner">${FLASH}</div></details>`;html=camp?(/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html):(/<\/h1>/.test(html)?html.replace(/(<\/h1>)/,'$1'+b):/<p class="eyebrow">[\s\S]*?<\/p>/.test(html)?html.replace(/(<p class="eyebrow">[\s\S]*?<\/p>)/,'$1'+b):b+html);FLASH=null}
   screen(html);const bs=[...$app.querySelectorAll('[data-act]')];
   return new Promise(res=>{let done=false;const fin=v=>{if(done)return;done=true;bs.forEach(x=>x.disabled=true);res(v)};
     const pre=html.includes('data-pre="1"');bs.forEach(b=>b.addEventListener('click',()=>{if(pre)PRECHOICE=b.dataset.act;fin(b.dataset.act)}));
@@ -2121,7 +2130,9 @@ function showProfile(id){
   const status=p.alive?L(`In the game · ${tribe}`,`En jeu · ${tribe}`,`En juego · ${tribe}`)+(p.sick?' · '+sickTxt(p):''):p.juror?L("Eliminated · on the jury","Éliminé · membre du jury","Eliminado · en el jurado"):L("Eliminated","Éliminé","Eliminados");
   let rel='';
   if(v==null)rel=`<p class="hint">${L("Open a profile during your own turn to see how you get on with this castaway.","Ouvrez un profil pendant votre propre tour pour voir votre relation avec cet aventurier.","Abre una ficha durante tu propio turno para ver tu relación con este aventurero.")}</p>`;
-  else if(!self){const kn=know(v,p.id);const[them,c1]=theirView(v,p.id),[you,c2]=mood(aff(v,p.id));
+  else if(!self){const kn=know(v,p.id);let[them,c1]=theirView(v,p.id);const[you,c2]=mood(aff(v,p.id));
+    // Difficile et Expert (v2.66) : on ne voit plus ce que l'autre pense de vous dans « Entre vous »
+    if(S&&(S.diff==='hard'||S.diff==='expert')){them=L("Hard to read","Difficile à cerner","Difícil de leer");c1='ok'}
     const h=hist(v,p.id);
     rel=`<details class="statd pdet"><summary>${L("Between you","Entre vous","Entre vosotros")}</summary>
       <div class="kv"><span>${p.g==='f'?L("What she thinks of you","Ce qu'elle pense de vous"):L("What he thinks of you","Ce qu'il pense de vous")}</span><b class="mood ${c1}">${them}</b>
@@ -3139,7 +3150,7 @@ function advisor(p){const mode=DF().adv;if(mode==='off')return'';const t=tk(p),m
   let danger=`<b class="mood ${lvl[0]}">${lvl[1]}</b>`;
   if(mode==='full'&&pv.against)danger+=` · ${L(`about ${pv.against} vote${pv.against>1?'s':''} could go against you`,`environ ${pv.against} vote${pv.against>1?'s':''} pourrai${pv.against>1?'ent':'t'} être contre vous`,`unos ${pv.against} voto${pv.against>1?'s':''} podría${pv.against>1?'n':''} ir contra ti`)}`;
   if(mode==='full'&&pv.top&&+pv.top[0]!==p.id)danger+=` · ${L("the tribe leans towards","la tribu penche pour","la tribu se inclina por")} <b>${esc(P(+pv.top[0]).name)}</b>`;
-  const friends=mates.filter(m=>(perceived(p.id,m.id)??0)>15).length,foes=mates.filter(m=>(perceived(p.id,m.id)??0)<-8).length;
+  const friends=mates.filter(m=>(perceived(p.id,m.id)??0)>8).length,foes=mates.filter(m=>(perceived(p.id,m.id)??0)<=-8).length;// mêmes seuils que l'onglet Avis (mood)
   const al=alliesOf(p.id);
   if(lvl[0]==='bad'){
     if(p.idol)tips.push(L("You hold a collier: this could be the night to play it.","Vous avez un collier : ce pourrait être le soir pour le jouer.","Tienes un collar: quizá sea la noche de jugarlo."));
@@ -3306,7 +3317,9 @@ var HOLDQ=[];
 function flushHold(){if(!HOLDQ.length)return;const q=HOLDQ;HOLDQ=[];q.forEach(([t,b])=>{TQ.push([t,b])});if(TQ.length>4)TQ.splice(0,TQ.length-4);if(!TQ_ON)toastNext()}
 
 /* 8. text length: short really skips narration screens; "Reduce" folds the host back */
-function shortHost(){if(STORY()!=='short')return;$app.querySelectorAll('p.host').forEach(p=>{if(p.dataset.sh)return;const lb=p.querySelector(':scope > .lbl');const full=p.innerHTML;const body=lb?full.replace(lb.outerHTML,''):full;
+function shortHost(){if(STORY()!=='short')return;$app.querySelectorAll('p.host').forEach(p=>{if(p.dataset.sh)return;
+  // v2.66 : on ne replie le texte que s'il ne tient pas sur l'écran
+  try{if(document.documentElement.scrollHeight<=innerHeight+4)return}catch(e){}const lb=p.querySelector(':scope > .lbl');const full=p.innerHTML;const body=lb?full.replace(lb.outerHTML,''):full;
   const txt=body.replace(/<[^>]+>/g,'');const m=txt.match(/^[\s\S]*?[.!?…](\s|$)/);if(!m||m[0].length>=txt.trim().length-3)return;
   let n=0,cut=-1;const want=m[0].trimEnd().length;let inTag=false;for(let i=0;i<body.length;i++){const ch=body[i];if(ch==='<')inTag=true;else if(ch==='>'){inTag=false;continue}if(!inTag){n++;if(n>=want){cut=i+1;break}}}
   if(cut<0)return;p.dataset.sh='1';const short=(lb?lb.outerHTML:'')+body.slice(0,cut)+` <button type="button" class="hmore" aria-label="${L("Read more","Lire la suite")}">…</button>`;
@@ -3475,6 +3488,9 @@ function miniJeu(corps){return new Promise(res=>{const j={fini:false,fin:(sc,ms)
 // Lance un mini-jeu avec le bouton « Simuler » ; le score -1 veut dire « simulé » (abandon).
 // Niveau choisi à l'Entraînement (e, n, h, x), null en partie : les réglages par niveau ci-dessous ne jouent qu'à l'entraînement
 const TLVL=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:null;
+// Têtes des adversaires dans les mini-jeux (v2.66) : le vrai aventurier en partie, sinon un visage stable tiré du nom
+function rivTete(nom,taille){try{const p=INGAME&&S?S.players.find(x=>x.name===nom):null;if(p)return face(p,taille);
+  let h=7;for(const c of String(nom))h=(h*31+c.charCodeAt(0))>>>0;return face({id:-100000-(h%900000),name:String(nom),seed:h%1e9+1,sseed:(h>>>3)%1e9+1,g:h%2?'f':'m',age:22+h%20,build:'mid'},taille)}catch(e){return''}}
 function lancerMiniJeu(g){return withGiveUp((PLAYG[g]||PLAYG.post)())}
 
 function gameFire(){return miniJeu(j=>{
@@ -3527,7 +3543,7 @@ function gameDagger(){return miniJeu(j=>{
   const DLV=(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:(typeof MGLV==='function'?MGLV():'n'),N=({e:8,n:10,h:12,x:14})[DLV]||10,WARM=DLV!=='x',tx=rint(0,N-1),ty=rint(0,N-1);let digs=0;window.__lastDigs=null;
   let RV=[],FIN=false;const SAID=new Set();try{if(typeof INGAME!=='undefined'&&INGAME&&typeof S!=='undefined'&&S&&typeof alive==='function'){FIN=true;window.__dagAI={};RV=alive().filter(p=>!p.human).map(p=>{const sc=aiScore(p,'dagger');window.__dagAI[p.id]=sc;return{n:p.name,k:Math.max(1,Math.round((100-sc)/4)+1)}})}
     else{const pool=shuffle([...AI_NAMES]);RV=[0,1,2].map(i=>({n:pool[i],k:Math.max(1,Math.round(N*rnd(.7,1.7)))}))}}catch(e){RV=[]}
-  const rvRow=()=>RV.length?`<div class="dagrv">${RV.map(r=>{const done=Math.min(digs,r.k),f=digs>=r.k,rem=r.k-digs;return `<span class="dagr ${f?'ok':''}"><b>${esc(r.n)}</b><i>${f?`🗡️ ${L("found in","trouvé en")} ${r.k}`:`${rem<=1?'🔥':rem<=3?'♨️':rem<=6?'🌡️':'❄️'} ${triesTxt(done)}`}</i></span>`}).join('')}</div>`:'';
+  const rvRow=()=>RV.length?`<div class="dagrv">${RV.map(r=>{const done=Math.min(digs,r.k),f=digs>=r.k,rem=r.k-digs;return `<span class="dagr ${f?'ok':''}"><b>${rivTete(r.n,22)}${esc(r.n)}</b><i>${f?`🗡️ ${L("found in","trouvé en")} ${r.k}`:`${rem<=1?'🔥':rem<=3?'♨️':rem<=6?'🌡️':'❄️'} ${triesTxt(done)}`}</i></span>`}).join('')}</div>`:'';
   const say=t=>{const m=el('dagmsg');if(m)m.innerHTML=host(t)};
   const rvUpd=()=>{const b=el('dagrv');if(b)b.innerHTML=rvRow();if(!FIN)return;RV.filter(r=>digs>=r.k&&!SAID.has(r)).sort((a,b)=>a.k-b.k).forEach(r=>{SAID.add(r);const n=SAID.size;if(DAGMSG[n])say(DAGMSG[n](esc(r.n)))})};
   screen(`${eb(gN('dagger'))}<h1 class="h" id="dh">${L("Find the dagger","Trouvez le poignard","Encuentra el puñal")}</h1><p class="muted" id="dt">${L("Tap a square to dig. The fewer squares you dig, the better your score.","Touchez une case pour creuser. Moins vous creusez de cases, meilleur est votre score.","Toca una casilla para cavar. Cuantas menos casillas caves, mejor puntuación.")}</p><p class="lbl">${L("Squares dug","Cases creusées","Casillas cavadas")} : <b class="num" id="dn">0</b></p><div id="dagrv">${rvRow()}</div><div id="dagmsg"></div>
@@ -3928,7 +3944,7 @@ if(AUTO&&AUTO.k==='jury')return Promise.resolve(+(20+Math.random()*60).toFixed(1
 return new Promise(res=>{const STAGE=20;let x=0,v=0,t0=null,done=false,last=null,gust=0,gustDir=0,stage=1;
   const all=[{name:me,t:null,me:true},...rivals];
   screen(`<p class="eyebrow">${L("The posts","Les poteaux")}</p><h1 class="h" id="pst">${L("Stage","Palier")} 1</h1>
-    <div class="posts water">${all.map((r,i)=>`<div class="post ${r.me?'me':''}" id="po${i}"><div class="who">🧍</div><div class="pole"></div><span>${r.name}</span><b class="num" id="pt${i}">${r.t==null&&!r.me?L("to come","à venir"):''}</b></div>`).join('')}</div>
+    <div class="posts peau">${all.map((r,i)=>`<div class="post ${r.me?'me':''}" id="po${i}"><div class="who">${r.me?(INGAME&&S&&S.players.find(x=>x.human)?face(S.players.find(x=>x.human),34):'🧍'):(rivTete(String(r.name).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&'),34)||'🧍')}</div><div class="pole"></div><span>${r.name}</span><b class="num" id="pt${i}">${r.t==null&&!r.me?L("to come","à venir"):''}</b></div>`).join('')}</div>
     <div class="bal"><div class="balz"></div><div class="baln" id="bn"></div></div>
     <p class="fb" id="fb">${L("When you are ready, climb onto the post. Then tap the side opposite to the lean to stay centred: the button to press lights up.","Quand vous êtes prêt, montez sur le poteau. Ensuite, touchez le côté opposé à la pente pour rester au centre : le bouton à toucher s'allume.")}</p>
     <button class="btn" id="pgo" style="padding:18px;width:100%;margin-bottom:8px">🧍 ${L("Climb onto the post","Je monte sur le poteau")}</button>
@@ -4495,7 +4511,7 @@ const TROPEN=new Set();
 function trainScreen(garder){if(garder!==true)TROPEN.clear();const best=bestGet(),lv=tlvGet();const used=new Set([...NJK,'seq','calc','logs','fish','wood','shelter','climb']);
   screen(`${langToggle()}${eb(L("Training","Entraînement"))}<h1 class="h">${L("Practise the challenges","Entraînez-vous aux épreuves")}</h1>
     <p class="hint">${L("Every challenge of the game, on its own, at the level you choose. Your best score is kept for each level.","Toutes les épreuves du jeu, seules, au niveau de votre choix. Votre record est gardé pour chaque niveau.")}</p>
-    ${tfamList().map(([id,ic,n,list],gi)=>{const gs=list.filter(g=>GAMES[g]&&PLAYG[g]);return gs.length?`<details class="achg" data-tr="${id}" ${TROPEN.has(id)?'open':''}><summary>${ic} ${n()} <span class="muted num">${gs.length}</span></summary><div class="choices" style="padding:0 12px 12px">${gs.map(g=>{const b=best[tbk(g,lv)];return `<button class="choice" data-g="${g}"><b>${gN(g)}${typeof FNEW!=='undefined'&&FNEW.includes(g)?` <span class="nbadge">${L("New · to validate","Nouveau · à valider")}</span>`:''}</b><span>${b!=null?`🏅 ${L("Best","Record")} : ${g==='dagger'?triesTxt(b):b}`:L("No record yet","Pas encore de record")}</span></button>`}).join('')}</div></details>`:''}).join('')}
+    ${tfamList().map(([id,ic,n,list],gi)=>{const gs=list.filter(g=>GAMES[g]&&PLAYG[g]);return gs.length?`<details class="achg" data-tr="${id}" ${TROPEN.has(id)?'open':''}><summary>${ic} ${n()} <span class="muted num">${gs.length}</span></summary><div class="choices" style="padding:0 12px 12px">${gs.map(g=>{const b=best[tbk(g,lv)];return `<button class="choice" data-g="${g}"><b>${gN(g)}</b><span>${b!=null?`🏅 ${L("Best","Record")} : ${g==='dagger'?triesTxt(b):b}`:L("No record yet","Pas encore de record")}</span></button>`}).join('')}</div></details>`:''}).join('')}
     <button class="btn ghost" id="back">${L("Back","Retour")}</button>`);
   wireLang(trainScreen);el('back').onclick=home;
   $app.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(TLV_KEY,b.dataset.tl)}catch(e){}trainScreen(true)});
@@ -4822,7 +4838,7 @@ function gameArc(){return miniJeu(j=>{
   const newWind=()=>{w=Math.round((Math.random()*2-1)*WIND);el('awind').textContent=`🌬️ ${L("Wind","Vent","Viento")} ${w<0?'←':w>0?'→':'·'} ${Math.abs(w)}`};
   const hit=(px,py,lab,mine)=>{const g=el('ahits');if(!g)return;g.insertAdjacentHTML('beforeend',`<g class="ahit${mine?' me':''}"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5"/>${lab?`<text x="${(px+7).toFixed(1)}" y="${(py+4).toFixed(1)}">${esc(lab)}</text>`:''}</g>`)};
   const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
-  const rank=()=>{const all=[me,...riv].sort((a,b)=>avg(b.s)-avg(a.s));el('arank').innerHTML=all.map((p,r)=>`<li class="${p.me?'me':''}"><b>${r+1}</b> ${esc(p.n)} <span class="num">${Math.round(avg(p.s))}</span></li>`).join('')};
+  const rank=()=>{const all=[me,...riv].sort((a,b)=>avg(b.s)-avg(a.s));el('arank').innerHTML=all.map((p,r)=>`<li class="${p.me?'me':''}"><b>${r+1}</b> ${p.me?(INGAME&&S&&S.players.find(x=>x.human)?face(S.players.find(x=>x.human),24):''):rivTete(p.n,24)}${esc(p.n)} <span class="num">${Math.round(avg(p.s))}</span></li>`).join('')};
   const loop=()=>{if(j.fini)return;const t=(performance.now()-t0)/1000,ph=(t*SPD)%2,v=12+276*(ph<1?ph:2-ph);
     if(phase===0){x=v;const l=el('avx');if(l){l.setAttribute('x1',x.toFixed(1));l.setAttribute('x2',x.toFixed(1))}}
     else if(phase===1){y=v;const l=el('avy');if(l){l.setAttribute('y1',y.toFixed(1));l.setAttribute('y2',y.toFixed(1))}}
@@ -4917,6 +4933,11 @@ if(TEST_KEEP()&&Array.isArray(elig)&&elig.some(e=>!e.human))elig=elig.filter(e=>
     if(f.arch==='chief'&&aff(a.id,f.id)>0)w+=14;
     return s+w},0))}));
 }
+// Vote (v2.66) : un « + » sur chaque nom montre ce que tu sais de lui ; en Facile, ★ sur le nom conseillé
+// (le plus menaçant hors de tes alliés ; calcul sans hasard, rien ne change dans la partie)
+function voteListe(p,elig){const os=elig.filter(e=>e.id!==p.id);let cons=null;
+  try{if(S.diff==='easy'){const c=os.filter(e=>!allied(p.id,e.id));const l=(c.length?c:os).slice().sort((a,b)=>threat(b)-threat(a));cons=l.length?l[0].id:null}}catch(e){}
+  return infoList(os,p.id,m=>m.id===cons?`<span class="voteco">★ ${L("suggested","conseillé","aconsejado")}</span>`:'')}
 async function humanVote(p,elig,second){
   if(AUTO){const pv=predictVotes(p);if(pv.top&&+pv.top[0]===p.id&&!AUTO.nostop)stopAuto(L("you are in danger at this Conseil.","vous êtes en danger à ce Conseil."));else{const v=aiVotes([p],elig.filter(e=>e.id!==p.id).concat([p]))[0];if(v&&v.to!=null&&v.to!==p.id)return{to:v.to,idol:false}}}
   let idol=false;if(!elig.some(e=>e.id!==p.id))return{to:null,idol};
@@ -4925,7 +4946,7 @@ async function humanVote(p,elig,second){
     <div class="row"><button class="btn" data-act="play">${L("Play it tonight","Le jouer ce soir","Jugarlo esta noche")}</button><button class="btn ghost" data-act="keep">${L("Keep it hidden","Le garder caché","Guardarlo en secreto")}</button></div>`);idol=a==='play'}
   const vx=second?'':voixLigne('avant_conseil',tk(p));
   let to;for(;;){to=+await ask(`${eb('Conseil · '+esc(p.name))}<h1 class="h">${L("Write a name","Écrivez un nom","Escribe un nombre")}</h1>${vx}
-    <div class="pick compact">${elig.filter(e=>e.id!==p.id).map(ppick).join('')}</div>`);if(AUTO||!(await voteUndo(to)))break}
+    ${voteListe(p,elig)}`);if(AUTO||!(await voteUndo(to)))break}
   return{to,idol};
 }
 function revealVotes(order,played,title,flow){if(AUTO)return Promise.resolve();return new Promise(res=>{
@@ -5263,16 +5284,19 @@ if(twOn('amb')&&!S.ambDone)autoStop('amb',L("here are the ambassadors.","voici l
 if(!twOn('amb')||S.ambDone)return;S.ambDone=true;const A=tribeMembers('A'),B=tribeMembers('B');if(A.length<2||B.length<2)return;
   const pickAmb=ms=>ms.slice().sort((a,b)=>(st(b,'soc')+st(b,'strat'))-(st(a,'soc')+st(a,'strat')))[0];const a=pickAmb(A),b=pickAmb(B);const other=x=>x===a?b:a,foes=x=>x===a?B:A,own=x=>x===a?A:B;
   const want=x=>foes(x).filter(f=>f.id!==other(x).id).sort((u,v)=>aff(x.id,u.id)-aff(x.id,v.id))[0];
-  if(!q)await ask(`${eb(L("The ambassadors","Les ambassadeurs"))}<h1 class="h">${esc(a.name)} ${L("and","et")} ${esc(b.name)}</h1>${host(L("Before the merge, each tribe sends an ambassador. Together, in secret, they must agree on one castaway to send home. No Conseil. If they cannot agree, they draw stones, and the loser leaves.","Avant la réunification, chaque tribu envoie un ambassadeur. Ensemble et en secret, ils doivent s'accorder sur un aventurier à éliminer. Pas de Conseil. S'ils ne s'entendent pas, ils tirent aux pierres, et le perdant part."))}<button class="btn" data-act="go">${L("Watch the negotiation","Suivre la négociation")}</button>`);
+  if(!q)await ask(`${eb(L("The ambassadors","Les ambassadeurs"))}<h1 class="h">${esc(a.name)} ${L("and","et")} ${esc(b.name)}</h1><p class="hint">${L("Each tribe sends its castaway strongest in social and strategy.","Chaque tribu envoie l'aventurier le plus fort en social et en stratégie.","Cada tribu envía a quien destaca más en lo social y la estrategia.")}</p>${host(L("Before the merge, each tribe sends an ambassador. Together, in secret, they must agree on one castaway to send home. No Conseil. If they cannot agree, they draw stones, and the loser leaves.","Avant la réunification, chaque tribu envoie un ambassadeur. Ensemble et en secret, ils doivent s'accorder sur un aventurier à éliminer. Pas de Conseil. S'ils ne s'entendent pas, ils tirent aux pierres, et le perdant part."))}<button class="btn" data-act="go">${L("Watch the negotiation","Suivre la négociation")}</button>`);
   let out=null;const hum=[a,b].find(x=>x.human&&!S.skip);
   if(hum&&!AUTO){const o=other(hum),prop=want(o);await passPhone(hum,L("Ambassador","Ambassadeur"));
-    const r=await ask(`${eb(L("Ambassador · ","Ambassadeur · ")+esc(hum.name))}<h1 class="h">${L("The negotiation","La négociation")}</h1><p class="secret">${L(`${esc(o.name)} proposes to eliminate <b>${esc(prop.name)}</b>, from your tribe.`,`${esc(o.name)} propose d'éliminer <b>${esc(prop.name)}</b>, de votre tribu.`)}</p>
+    // v2.66 : « Retour » depuis le choix du nom, et quelques secondes pour annuler le nom choisi
+    for(;;){const r=await ask(`${eb(L("Ambassador · ","Ambassadeur · ")+esc(hum.name))}<h1 class="h">${L("The negotiation","La négociation")}</h1><p class="secret">${L(`${esc(o.name)} proposes to eliminate <b>${esc(prop.name)}</b>, from your tribe.`,`${esc(o.name)} propose d'éliminer <b>${esc(prop.name)}</b>, de votre tribu.`)}</p>
       <div class="choices"><button class="choice" data-act="accept"><b>${L(`Accept: ${esc(prop.name)} leaves`,`Accepter : ${esc(prop.name)} part`)}</b><span>${L("Your tribe will know you gave one of them up.","Votre tribu saura que vous avez lâché l'un des siens.")}</span></button>
       <button class="choice" data-act="counter"><b>${L("Propose someone from their tribe","Proposer quelqu'un de leur tribu")}</b><span>${L("They may accept… or refuse.","Il peut accepter… ou refuser.")}</span></button>
       <button class="choice" data-act="stones"><b>${L("Refuse everything: draw stones","Tout refuser : tirer aux pierres")}</b><span>${L("One of the two ambassadors leaves.","L'un des deux ambassadeurs part.")}</span></button></div>`);
     if(r==='accept'){out=prop;own(hum).forEach(m=>{if(m.id!==prop.id)addAff(m.id,hum.id,-8)})}
-    else if(r==='counter'){const t=P(+await ask(`${eb(L("Ambassador","Ambassadeur"))}<h1 class="h">${L("Who do you propose?","Qui proposez-vous ?")}</h1><div class="pick">${foes(hum).filter(f=>f.id!==o.id).map(ppick).join('')}</div>`));
-      if(Math.random()<clamp(0.3-aff(o.id,t.id)/120,0.1,0.75)){out=t;unlock(hum,'ambassador')}else{FLASH=L(`${esc(o.name)} refuses. You draw stones.`,`${esc(o.name)} refuse. Vous tirez aux pierres.`)}}}
+    else if(r==='counter'){const c=await ask(`${eb(L("Ambassador","Ambassadeur"))}<i hidden data-undo></i><h1 class="h">${L("Who do you propose?","Qui proposez-vous ?")}</h1><div class="pick">${foes(hum).filter(f=>f.id!==o.id).map(ppick).join('')}</div><div class="row"><button class="btn ghost" data-act="back">← ${L("Back","Retour","Volver")}</button></div>`);
+      if(c==='back')continue;const t=P(+c);
+      if(Math.random()<clamp(0.3-aff(o.id,t.id)/120,0.1,0.75)){out=t;unlock(hum,'ambassador')}else{FLASH=L(`${esc(o.name)} refuses. You draw stones.`,`${esc(o.name)} refuse. Vous tirez aux pierres.`)}}
+    break}}
   else if(Math.random()<0.6)out=Math.random()<.5?want(a):want(b);
   if(!out){out=pick([a,b]);lines.push(L(`🪨 The ambassadors could not agree: ${esc(out.name)} drew the black stone.`,`🪨 Les ambassadeurs ne se sont pas entendus : ${esc(out.name)} a tiré la pierre noire.`))}
   else lines.push(L(`🤝 The ambassadors agreed: ${esc(out.name)} leaves the adventure.`,`🤝 Les ambassadeurs se sont mis d'accord : ${esc(out.name)} quitte l'aventure.`));
@@ -5307,6 +5331,8 @@ const linkedOn=k=>!!(S.linked&&!S.linked[k]&&S.linked.pairs);
 function pairRank(sc){return S.linked.pairs.map(pr=>pr.filter(id=>P(id).alive)).filter(pr=>pr.length).map(ids=>({ids,avg:ids.reduce((s,id)=>s+(sc[id]||0),0)/ids.length})).sort((a,b)=>b.avg-a.avg||Math.random()-.5)}
 const pairNames=ids=>ids.map(id=>esc(P(id).name)).join(' & ');
 const pairRows=r=>r.map((x,i)=>`<div class="res ${i===0?'win':''}"><b>🔗 ${pairNames(x.ids)}</b><span class="num">${Math.round(x.avg)}</span>${bar(x.avg)}</div>`).join('');
+// Destins liés (v2.66) : un coquillage différent par paire
+const LF_SYM=['🐚','🦪','🌀','🐌','🪸','⭐','🦀','🐠','🪨','🌊'];
 async function linkFates(q,lines){
 autoStop('linked',L("here are the linked fates.","voici les destins liés."));
 
@@ -5316,7 +5342,7 @@ autoStop('linked',L("here are the linked fates.","voici les destins liés."));
   lines.push(L("<b>Linked fates!</b> The castaways were drawn into pairs for the next confort and immunity challenges.","<b>Destins liés !</b> Les aventuriers ont été tirés au sort par deux pour les prochaines épreuves de confort et d'immunité.","<b>¡Destinos unidos!</b> Los aventureros se han sorteado por parejas para las próximas pruebas de recompensa e inmunidad."));
   if(!q){const pr=ask(`${eb(DAY()+L(" · Linked fates"," · Destins liés"," · Destinos unidos"))}<h1 class="h">${L("Linked fates","Destins liés","Destinos unidos")}</h1>
     ${host(L("Each of you draws a shell from the urn: matching shells make a pair. For the next confort and immunity challenges you play as a pair, on the average of your two scores. You win together, and at the next Conseil you leave together: if one of you is voted out, the partner goes too.","Chacun pioche un coquillage dans l'urne : les coquillages identiques forment les binômes. Pour les prochaines épreuves de confort et d'immunité, vous jouez à deux, sur la moyenne de vos scores. Vous gagnez ensemble, et au prochain Conseil vous partez ensemble : si l'un est éliminé, son binôme part aussi.","Cada uno saca una concha de la urna: las conchas iguales forman las parejas. En las próximas pruebas de recompensa e inmunidad jugáis por parejas, con la media de vuestras puntuaciones. Ganáis juntos, y en el próximo Consejo os vais juntos: si uno es expulsado, su pareja también se va."))}
-    <ul class="lines">${pairs.map((pr,i)=>`<li class="drawli" style="animation-delay:${(0.8+i*1.3).toFixed(1)}s">🐚 ${L("Shell","Coquillage","Concha")} ${i+1} · ${pr.map(id=>`<b>${esc(P(id).name)}</b>`).join(' & ')}</li>`).join('')}</ul>
+    <ul class="lines">${pairs.map((pr,i)=>`<li class="drawli" style="animation-delay:${(0.8+i*1.3).toFixed(1)}s">${LF_SYM[i%LF_SYM.length]} ${L("Shell","Coquillage","Concha")} ${i+1} · ${pr.map(id=>`<b>${esc(P(id).name)}</b>`).join(' & ')}</li>`).join('')}</ul>
     <div class="row"><button class="btn ghost" id="drawall">${L("Show all","Tout révéler","Mostrar todo")}</button><button class="btn" data-act="ok">${L("Continue","Continuer","Continuar")}</button></div>`);
     const b=el('drawall');b.onclick=()=>{try{$app.querySelectorAll('.drawli').forEach(x=>x.style.animationDelay='0s')}catch(e){}b.hidden=true};await pr}
 }
@@ -5924,7 +5950,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.65 · 2026-11-04';
+const APP_VER='2.66 · 2026-11-04';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6020,10 +6046,12 @@ async function fireQuick(p,t){let quick=SET.campmg==='quick'||S.quick;
   if(ok){S.fire[t]=true;credit(p,'fire',1);unlock(p,'fire');tribeMembers(t).forEach(m=>{if(m.id!==p.id)mutual(p.id,m.id,4)});return L("<b>Fire!</b> After a long effort, the flame caught. The tribe cheers.","<b>Le feu !</b> Après un long effort, la flamme a pris. La tribu exulte.")}
   feedAdd(p,'firefail');return L("Plenty of smoke, but no flame. Someone can try again later.","Beaucoup de fumée, mais pas de flamme. Quelqu'un pourra réessayer plus tard.")}
 const CONSO=[["{t} has spoken: {e} leaves the adventure ({s}). You, at least, will sleep well tonight.","La tribu {t} a parlé : {e} quitte l'aventure ({s}). Vous, au moins, vous dormirez bien ce soir."],["While you were enjoying your collar, {t} sent {e} home ({s}).","Pendant que vous profitiez de votre immunité, {t} a renvoyé {e} chez lui ({s})."],["Torch out for {e} at {t}'s Conseil ({s}). One fewer rival on the island.","Flambeau éteint pour {e} au Conseil de {t} ({s}). Un adversaire de moins sur l'île."]];
-function colorTribes(root){try{if(!INGAME||!S||!root)return;const names=['A','B','M'].map(k=>[k,TR[k]&&TR[k].n]).filter(x=>x[1]&&x[1].length>1);if(!names.length)return;
+// v2.66 : les noms d'équipe gardent toujours leur couleur, y compris les anciennes tribus (avant réunification ou redistribution)
+function colorTribes(root){try{if(!INGAME||!S||!root)return;S.trCol=S.trCol||{};['A','B','M'].forEach(k=>{if(TR[k]&&TR[k].n&&TR[k].n.length>1)S.trCol[TR[k].n]=trC(k)});
+  const names=Object.keys(S.trCol).map(n=>[n,n]);if(!names.length)return;
   const re=new RegExp('(^|[^\\p{L}])('+names.map(x=>x[1].replace(/[.*+?^${}()|[\]\\']/g,'\\$&')).join('|')+')(?=$|[^\\p{L}])','gu');
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest('select,option,input,textarea,svg,script,style,.trn,.chead,h1,button.btn,.tribe>header,.host>.lbl'))return NodeFilter.FILTER_REJECT;return re.test(n.nodeValue)?(re.lastIndex=0,NodeFilter.FILTER_ACCEPT):NodeFilter.FILTER_REJECT}});
-  const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{re.lastIndex=0;const html=esc(n.nodeValue).replace(re,(m,a,nm)=>{const k=names.find(x=>x[1]===nm);return a+`<b class="trn" style="color:${trC(k[0])}">${nm}</b>`});const s=document.createElement('span');s.innerHTML=html;n.replaceWith(...s.childNodes)})}catch(e){}}
+  const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{re.lastIndex=0;const html=esc(n.nodeValue).replace(re,(m,a,nm)=>{return a+`<b class="trn" style="color:${S.trCol[nm]}">${nm}</b>`});const s=document.createElement('span');s.innerHTML=html;n.replaceWith(...s.childNodes)})}catch(e){}}
 const kbVis=s=>{try{return [...$app.querySelectorAll(s)].filter(b=>b.offsetParent&&!b.disabled&&!b.classList.contains('giveup'))}catch(e){return[]}};
 function kbTap(b,up){if(!b)return;const o={bubbles:true,cancelable:true,pointerId:1,isPrimary:true,pointerType:'mouse',button:0};let ev;try{ev=new PointerEvent(up?'pointerup':'pointerdown',o)}catch(e){ev=new MouseEvent(up?'mouseup':'mousedown',o)}b.dispatchEvent(ev);if(!up&&typeof b.onclick==='function')b.click()}
 
@@ -6430,7 +6458,7 @@ async function ask(html){if(!/data-undo>/.test(html)||AUTO)return askOnce(html);
 
 /* popup: one short message in the middle, closes by itself */
 function popMsg(html,ms){return new Promise(res=>{try{document.querySelectorAll('.popm').forEach(x=>x.remove());const d=document.createElement('div');d.className='popm';d.setAttribute('role','status');d.innerHTML=`<div class="popc">${html}<i class="pprog"></i></div>`;
-  document.body.appendChild(d);try{colorNames(d);signColor(d)}catch(e){}let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(tm);d.classList.add('out');setTimeout(()=>{try{d.remove()}catch(e){}res()},200)};d.onclick=fin;const tm=setTimeout(fin,ms||3000)}catch(e){res()}})}
+  document.body.appendChild(d);try{colorTribes(d);colorNames(d);signColor(d)}catch(e){}let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(tm);d.classList.add('out');setTimeout(()=>{try{d.remove()}catch(e){}res()},200)};d.onclick=fin;const tm=setTimeout(fin,ms||3000)}catch(e){res()}})}
 let POPBUSY=false;async function popFlush(){if(POPBUSY||!S||!S._pop||!S._pop.length)return;POPBUSY=true;try{while(S._pop&&S._pop.length){const m=S._pop.shift();await popMsg(m)}}finally{POPBUSY=false}}
 function fireRows(cands,own,viewer){const ps=cands.map(c=>({c,v:perfOf(c)})).sort((a,b)=>a.v-b.v);const vs=ps.map(x=>x.v),lo=Math.min(...vs),hi=Math.max(...vs);
   const th=own?cands.map(c=>threat(c)):[];const tAvg=th.length?th.reduce((s,x)=>s+x,0)/th.length:0;
