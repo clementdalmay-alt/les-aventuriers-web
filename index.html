@@ -1546,6 +1546,12 @@ h1 .dico .qh,h2 .dico .qh,.eico .dico .qh,.ecard .dico .qh{display:inline}
 @keyframes icoWv{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 @keyframes icoWd{to{stroke-dashoffset:-30}}
 @media (prefers-reduced-motion:reduce){.dico *{animation:none!important}}
+/* v2.69 : codes de test rangés par section ; planche des icônes (code ICONES) */
+.testcodes .tsec > summary .muted{font-weight:600;font-size:.85rem}
+.ticos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ticos .ecard{padding:12px 4px;gap:4px}
+.ticos .eico{font-size:2.6rem}
+.ticos .ecard b{font-size:.9rem;color:var(--muted)}
 </style>
 
 <div id="app"></div>
@@ -5982,7 +5988,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.68 · 2026-11-04';
+const APP_VER='2.69 · 2026-11-04';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -5995,7 +6001,7 @@ function codeScreen(){const rec=codesGet();
   const pb=el('cpaste');if(pb)pb.onclick=async()=>{try{const t=await navigator.clipboard.readText();const m=String(t||'').match(/[A-Z]{2}-\d{2}[FM]-\d{1,2}-[A-Z]{3}-[0-9A-Z]+(~[A-Za-z0-9_-]+)?/i);el('code').value=m?m[0]:String(t||'').trim()}catch(e){toast(L("Paste","Coller"),L("Allow clipboard access, or paste by hand.","Autorisez le presse-papiers, ou collez à la main."))}};
   $app.querySelectorAll('[data-rc]').forEach(b=>b.onclick=()=>{const x=rec[+b.dataset.rc];if(x)go(x.c)})
 try{const e=el('err');if(!e)return;const d=document.createElement('details');d.className='statd testcodes';
-  d.innerHTML=`<summary>🧪 ${L("See the test codes","Voir les codes de test")}</summary><p class="hint">${L("Each code starts a game and plays it for you up to the moment to test.","Chaque code lance une partie et la joue pour vous jusqu'au moment à tester.")}</p><div class="choices">${TEST_LIST().map(([c,n])=>`<button class="choice" data-tcode="${c}"><b>TEST-${c}</b><span class="muted">${n}</span></button>`).join('')}</div>`;
+  d.innerHTML=`<summary>🧪 ${L("See the test codes","Voir les codes de test")}</summary><p class="hint">${L("Each code starts a game and plays it for you up to the moment to test.","Chaque code lance une partie et la joue pour vous jusqu'au moment à tester.")}</p>${(()=>{const L=Object.fromEntries(TEST_LIST());return TEST_SECTIONS().map(([lab,cs])=>`<details class="tsec"><summary>${lab} <span class="muted">${cs.length}</span></summary><div class="choices">${cs.map(c=>`<button class="choice" data-tcode="${c}"><b>TEST-${c}</b><span class="muted">${L[c]||''}</span></button>`).join('')}</div></details>`).join('')})()}`;
   e.after(d);d.querySelectorAll('[data-tcode]').forEach(b=>b.onclick=()=>{if(!startTest(b.dataset.tcode)){e.textContent=L("This test could not start.","Ce test n'a pas pu démarrer.");e.hidden=false}})}catch(_){}}
 function coach(){try{if(!INGAME||!S||!humansAlive().length||AUTO)return;if(localStorage.getItem(COACH_KEY))return;const w=$app.querySelector('.wrap');if(!w||!w.querySelector(':scope > .agroups'))return;
   const steps=[['.sbar',L("Your status bar: energy, motivation and actions left. Below, the camp resources. Tap an icon for its detail.","Ta barre d'état : énergie, motivation et actions restantes. Dessous, les ressources du camp. Touche une icône pour son détail.")],
@@ -6757,7 +6763,7 @@ function autoAnswer(acts){if(!acts.length)return null;const has=a=>acts.includes
   if(acts.every(a=>['go','ok','next','cast'].includes(a)))return acts.find(a=>a!=='cast');return null}
 function stopAuto(reason){
 if(AUTO&&AUTO.k==='jury'&&!(S&&S._finals)&&reason===L("the final is here.","la finale est arrivée."))return;
-if(!AUTO)return;const lg=AUTO.log,dec=AUTO.dec||[];if(AUTO.nostop&&lg.length>=2)humansAlive().forEach(h=>unlock(h,'nostop'));AUTO=null;FF=false;
+if(!AUTO)return;const lg=AUTO.log,dec=AUTO.dec||[];if(AUTO.nostop&&lg.length>=2)humansAlive().forEach(h=>unlock(h,'nostop'));const af=AUTO.after;AUTO=null;FF=false;testAfter(af);
   FLASH=(FLASH?FLASH+'<br>':'')+`${reason?`<b>⏸️ ${cap1(reason)}</b>`:''}${lg.length?`<ul class="lines">${lg.map(x=>`<li><b>${L("Day","Jour")} ${x.d}</b> · ${x.lines.join(' ')}</li>`).join('')}</ul>`:''}${dec.length?`<p><b>🤖 ${L("Decisions taken for you","Décisions prises pour vous")}</b></p><ul class="lines">${dec.map(x=>`<li><b>${L("Day","Jour")} ${x.d}</b> · ${esc(x.q)} → ${esc(x.a)}</li>`).join('')}</ul>`:''}`}
 
 /* test codes: jump straight to a moment of the game (typed in Challenge code) */
@@ -6765,11 +6771,11 @@ const TESTS={GUIDE:{until:2,guide:1},CAMP:{until:2},CONFORT:{k:'confort'},J5:{un
 function startTest(kind,tries){
 const t=TESTS[kind];
 let ok=(()=>{
-if(kind==='FORCE'){INGAME=false;trainScreen();const d=document.querySelector('details[data-tr="st_str"]');if(d){d.open=true;TROPEN.add('st_str');try{d.scrollIntoView({block:'start'})}catch(e){}}return true}
+if(TEST_SPECIAL[kind])return TEST_SPECIAL[kind]();
 tries=tries||0;const t=TESTS[kind];if(!t)return false;if(t.guide)try{localStorage.removeItem('aventuriers-coach')}catch(e){};const code='FJ-16'+(Math.random()<.5?'F':'M')+'-12-RAN-'+Math.floor(Math.random()*1e7).toString(36).toUpperCase();if(!startFromCode(code))return false;if(t.tw)S.tw[t.tw]=true;
-  AUTO={k:t.k||'test',until:t.until||null,log:[],dec:[],nostop:true};
+  AUTO={k:t.k||'test',until:t.until||null,log:[],dec:[],nostop:true,after:t.after||null};if(t.untilT){let d=2;while(d<(S.totalDays||40)&&!String(dayType(d)).includes('T'))d++;AUTO.until=d}
   const kick=()=>{try{if(!AUTO)return;const acts=[...$app.querySelectorAll('[data-act]')].map(y=>y.dataset.act);if(!acts.length)return;const b=$app.querySelector('[data-act="done"],[data-act="simrest"]')||[...$app.querySelectorAll('[data-act]')].find(x=>x.dataset.act===(autoAnswer(acts)||autoDecide(acts,$app.innerHTML)));b&&b.click()}catch(e){}};
-  setTimeout(kick,60);const watch=()=>{if(AUTO){setTimeout(watch,200);return}if(S&&!humansAlive().length&&!S._finals&&tries<6){INGAME=false;startTest(kind,tries+1)}};setTimeout(watch,200);return true})();
+  setTimeout(kick,60);const watch=()=>{if(AUTO){setTimeout(watch,200);return}testClicks();if(S&&!humansAlive().length&&!S._finals&&tries<6){INGAME=false;startTest(kind,tries+1)}};setTimeout(watch,200);return true})();
 try{if(ok&&t&&S){
   if(t.only){S.tw={};S.tw[t.only]=true;if(t.only==='duel')setupDuel(true)}
   if(t.food)['A','B'].forEach(x=>{S.food[x]=Math.max(S.food[x]||0,t.food)});
@@ -6779,17 +6785,44 @@ Object.assign(TESTS,{
   AMBASSADEURS:{k:'amb',only:'amb'},VOTENOIR:{k:'black',only:'black'},DESTINS:{k:'linked',only:'linked'},TOTEM:{k:'totem',only:'totem'},
   JUGEMENT:{k:'judge',only:'judge'},MALUS:{k:'malus',only:'malus'},DUEL:{k:'duel',only:'duel'},NUIT:{k:'surp_night',only:'night'},
   VISAGE:{k:'surp_open',only:'open'},ECHANGE:{k:'surp_exch',only:'exch'},REDISTRIB:{k:'swap',only:'swap'},
-  POTEAUX:{k:'end'},POIGNARDS:{k:'dagger'},LETTRES:{k:'letters'},NEGO:{until:2,food:3}});
+  POTEAUX:{k:'end'},POIGNARDS:{k:'dagger'},LETTRES:{k:'letters'},NEGO:{until:2,food:3},
+  FEUCAMP:{until:2,after:'feucamp'},EPUISE:{until:2,after:'epuise'},STRATEGIE:{until:2,after:'strat'},CONSEILSOIR:{untilT:1}});
 const TEST_LIST=()=>[['GUIDE',L("Coach and tutorial at camp","Coach et tutoriel au camp")],['CAMP',L("First camp, day 2","Premier camp, jour 2")],['NEGO',L("Camp with rations: Negotiate, strategy of the day","Camp avec des rations : Négocier, stratégie du jour")],
   ['CONFORT',L("A confort challenge after the merge","Une épreuve de confort après la réunification")],['LETTRES',L("Letters from home (personal letter)","Lettres de la famille (lettre personnelle)")],['J5',L("Day 5","Jour 5")],['CONSEIL',L("First Conseil","Premier Conseil")],
   ['FEU',L("Sacred fire","Feu sacré")],['REUNIF',L("The merge","La réunification")],['POIGNARDS',L("The daggers (4 left)","Les poignards (4 restants)")],['POTEAUX',L("The final posts","Les poteaux de la finale")],['FINALE',L("The final and the jury","La finale et le jury")],
   ['AMBASSADEURS',L("Ambassadors","Les ambassadeurs")],['VOTENOIR',L("Black vote","Vote noir")],['DESTINS',L("Linked fates","Destins liés")],['TOTEM',L("Cursed totem","Totem maudit")],['JUGEMENT',L("Judgement island","L'île du jugement")],
   ['MALUS',L("Penalty for the last","Malus au dernier")],['DUEL',L("Exiles' duel","Duel des bannis")],['NUIT',L("Night challenge","Épreuve de nuit")],['VISAGE',L("Open vote","Vote à visage découvert")],['ECHANGE',L("The exchange","L'échange")],
-  ['REDISTRIB',L("Tribe swap","Redistribution")],['FORCE',L("Training: the Strength challenges","Entraînement : les épreuves de Force")]];
+  ['REDISTRIB',L("Tribe swap","Redistribution")],['FORCE',L("Training: the Strength challenges","Entraînement : les épreuves de Force")],
+  ['STRATEGIE',L("Strategy of the day (camp, day 2)","Stratégie du jour (camp, jour 2)")],['EPUISE',L("Camp with your energy at 0 (exhausted)","Camp avec votre énergie à 0 (épuisé)")],['FEUCAMP',L("Making fire at camp (in-game mini-game)","Faire le feu au camp (mini-jeu en partie)")],['CONSEILSOIR',L("Camp on a Conseil evening","Camp un soir de Conseil")],
+  ['ARC',L("Archery (Training)","Le tir à l'arc (Entraînement)")],['ICONES',L("The 30 drawn icons and their animations","Les 30 icônes dessinées et leurs animations")],['HISTOIRE',L("Story mode, chapter 1","Mode histoire, chapitre 1")],['DEFI',L("Daily challenge","Défi du jour")]];
+/* v2.69 : codes de test rangés par section (liste repliée dans « Voir les codes de test ») */
+const TEST_SECTIONS=()=>[[L("Start and camp","Début et camp"),['GUIDE','CAMP','NEGO','J5','STRATEGIE','EPUISE','FEUCAMP','CONSEILSOIR','HISTOIRE','DEFI']],
+  [L("Challenges","Épreuves"),['CONFORT','FORCE','ARC']],[L("Conseil","Conseil"),['CONSEIL','LETTRES','FEU','REUNIF']],
+  [L("Final","Finale"),['POIGNARDS','POTEAUX','FINALE']],
+  [L("Twists","Rebondissements"),['AMBASSADEURS','VOTENOIR','DESTINS','TOTEM','JUGEMENT','MALUS','DUEL','NUIT','VISAGE','ECHANGE','REDISTRIB']],
+  [L("Display","Affichage"),['ICONES']]];
+/* codes qui ne lancent pas une partie automatique */
+const TEST_SPECIAL={
+  FORCE:()=>{INGAME=false;trainScreen();const d=document.querySelector('details[data-tr="st_str"]');if(d){d.open=true;TROPEN.add('st_str');try{d.scrollIntoView({block:'start'})}catch(e){}}return true},
+  ARC:()=>{INGAME=false;trainScreen();trainGame('arc');return true},
+  HISTOIRE:()=>{INGAME=false;storyStart(0);return true},
+  DEFI:()=>{INGAME=false;startDaily();return true},
+  ICONES:()=>{INGAME=false;screen(`${eb(L("Review","Revue"))}<h1 class="h">${L("Drawn icons","Icônes dessinées")}</h1><p class="hint">${L("Numbers match the plate approved on 4 November.","Les numéros sont ceux de la planche validée le 4 novembre.")}</p>
+    <div class="ticos">${Object.keys(ICO_EMO).map((e,i)=>`<div class="ecard"><span class="eico">${e}</span><b>${i+1}</b></div>`).join('')}</div>
+    <button class="btn ghost" id="back">${L("Back","Retour")}</button>`);el('back').onclick=home;return true}};
+/* après l'arrêt d'un code : préparer l'écran du camp */
+let TEST_CLICK=null,TEST_SCROLL=null;
+function testAfter(k){try{if(!k||!S)return;const h=humansAlive()[0];if(!h)return;
+  if(k==='epuise')h.energy=0;
+  if(k==='feucamp'){const t=tk(h);S.fire[t]=false;S.wood=S.wood||{A:0,B:0,M:0};S.wood[t]=Math.max(S.wood[t]||0,3);TEST_CLICK=['fire','mgplay']}
+  if(k==='strat'){if(S.strat)delete S.strat[h.id];STRAT_PEND=null;TEST_SCROLL='.stratbar'}}catch(e){}}
+function testClicks(n){n=n||0;try{if(TEST_SCROLL){const x=$app.querySelector(TEST_SCROLL);if(x){try{x.scrollIntoView({block:'center'})}catch(e){}TEST_SCROLL=null}}
+  if(TEST_CLICK&&TEST_CLICK.length){const b=$app.querySelector(`[data-act="${TEST_CLICK[0]}"]`);if(b){TEST_CLICK.shift();b.click()}}}catch(e){}
+  if(((TEST_CLICK&&TEST_CLICK.length)||TEST_SCROLL)&&n<40)setTimeout(()=>testClicks(n+1),250);else{TEST_CLICK=null;TEST_SCROLL=null}}
 const autoStop=(k,msg)=>{if(AUTO&&AUTO.k===k){stopAuto(msg);return true}return false};
 
 const TEST_ALIAS={AMBASSADEUR:'AMBASSADEURS',AMBASSADOR:'AMBASSADEURS',POIGNARD:'POIGNARDS',DAGUE:'POIGNARDS',DAGUES:'POIGNARDS',LETTRE:'LETTRES',REDISTRIBUTION:'REDISTRIB',SWAP:'REDISTRIB',DESTIN:'DESTINS',DESTINSLIES:'DESTINS',VOTESNOIRS:'VOTENOIR',NOIR:'VOTENOIR',NEGOCIER:'NEGO',NEGOCIATION:'NEGO',POTEAU:'POTEAUX',POSTS:'POTEAUX',JUGE:'JUGEMENT',ILEDUJUGEMENT:'JUGEMENT',EPREUVEDENUIT:'NUIT',VISAGEDECOUVERT:'VISAGE',VOTEAVISAGEDECOUVERT:'VISAGE',REUNIFICATION:'REUNIF',MERGE:'REUNIF',FINAL:'FINALE',CONFORTS:'CONFORT',FEUSACRE:'FEU',DUELDESBANNIS:'DUEL',TOTEMMAUDIT:'TOTEM',MALUSAUDERNIER:'MALUS',TUTO:'GUIDE',TUTORIEL:'GUIDE',JOUR5:'J5'};
-function testKey(k){k=String(k||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(TESTS[k]||k==='FORCE')return k;if(TEST_ALIAS[k])return TEST_ALIAS[k];if(TESTS[k+'S'])return k+'S';if(k.endsWith('S')&&TESTS[k.slice(0,-1)])return k.slice(0,-1);if(k.endsWith('X')&&TESTS[k.slice(0,-1)])return k.slice(0,-1);return k}
+function testKey(k){k=String(k||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(TESTS[k]||TEST_SPECIAL[k])return k;if(TEST_ALIAS[k])return TEST_ALIAS[k];if(TESTS[k+'S'])return k+'S';if(k.endsWith('S')&&TESTS[k.slice(0,-1)])return k.slice(0,-1);if(k.endsWith('X')&&TESTS[k.slice(0,-1)])return k.slice(0,-1);return k}
 function testMatch(c){const m=String(c||'').trim().match(/^test[\s_\-:]*(.+)$/i);return m?[m[0],testKey(m[1])]:null}
 TESTS.FINALE={k:'jury'};
 const TEST_KEEP=()=>!!(AUTO&&(AUTO.k==='end'||AUTO.k==='jury'||AUTO.k==='dagger'));
