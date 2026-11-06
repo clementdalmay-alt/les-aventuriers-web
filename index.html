@@ -4967,6 +4967,149 @@ GAMES.arc={name:"Archery",nf:"Le tir à l'arc",ne:"Tiro con arco",stat:'agi',rul
 SCORE_RULES.arc=()=>L("Each arrow: 100, 80, 60, 40 or 20 depending on the ring hit, 0 off target. Score = average of the 5 arrows.","Chaque flèche : 100, 80, 60, 40 ou 20 selon l'anneau touché, 0 hors cible. Score = moyenne des 5 flèches.","Cada flecha: 100, 80, 60, 40 o 20 según el anillo alcanzado, 0 fuera de la diana. Puntuación = media de las 5 flechas.");PLAYG.arc=()=>gameArc();FNEW.push('arc');if(!TRAIN.includes('arc'))TRAIN.push('arc');
 
 ['dig'].forEach(k=>[POOL,TRAIN,NJK].forEach(a=>{const i=a.indexOf(k);if(i>=0)a.splice(i,1)}));
+/* ---------- Lot E (v2.79) : 5 nouveaux mini-jeux, à l'Entraînement seulement (hors tirage tant que Clément ne les a pas validés) ----------
+   Labyrinthe à l'aveugle, 3 versions :
+   - blind  « Mémoire puis noir » : le labyrinthe s'affiche quelques secondes puis disparaît ; un mur touché vibre et s'éclaire un instant.
+   - guide  « Tu es le guide » : un coéquipier aux yeux bandés avance case par case quand vous tapez une flèche, avec un temps de retard,
+            et comprend parfois de travers.
+   - torch  « Lampe torche » : tout est noir sauf un halo autour de la bille, qui rétrécit avec le temps.
+   Score des trois : arrivé = 100 − pénalité par mur − lenteur ; pas arrivé = chemin parcouru (comme le labyrinthe de bambou).
+   Bain de boue (remplir le seau), 2 versions qui partagent le même moteur :
+   - mud    « Seul » : tremper l'éponge (maintenir), courir sur la planche (taper en rythme, trop vite = on glisse), essorer (taper vite).
+            Chaque aller-retour fatigue : l'éponge prend moins.
+   - mudr   « Relais » : même geste, mais « Passer le relais » fait entrer un coéquipier frais (2 s perdues, 3 relais au plus).
+   Score = niveau du seau en 40 s (100 = plein). */
+function njMazeRects(M,N,cs,th){const rects=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){const w=M[r][c],x=c*cs,y=r*cs;if(w.t)rects.push([x-th/2,y-th/2,cs+th,th]);if(w.l)rects.push([x-th/2,y-th/2,th,cs+th]);if(r===N-1&&w.b)rects.push([x-th/2,y+cs-th/2,cs+th,th]);if(c===N-1&&w.r)rects.push([x+cs-th/2,y-th/2,th,cs+th])}return rects}
+/* moteur commun de « blind » et « torch » : bille guidée au doigt, comme le labyrinthe de bambou */
+function njDarkMaze(g,mode){return miniJeu(j=>{const XP=TLVL()==='x',N=MD(6,7,8)+(XP?1:0),T=MD(50,55,60),P=MD(3,5,7),SHOW=mode==='blind'?(XP?2.5:MD(5,4,3)):0;const {W:M,dist}=njMazeGen(N);
+  screen(`${eb(gN(g))}<h1 class="h">${mode==='blind'?L("Memorise, then find the canoe","Mémorisez, puis trouvez le canoë","Memoriza y luego encuentra la canoa"):L("Find the canoe in the dark","Trouvez le canoë dans le noir","Encuentra la canoa en la oscuridad")}</h1>
+    <p class="muted">${mode==='blind'?L("The maze will disappear. A wall you touch lights up for a moment.","Le labyrinthe va disparaître. Un mur touché s'éclaire un instant.","El laberinto va a desaparecer. Un muro tocado se ilumina un instante."):L("Your light shrinks. Slide your finger anywhere on the board.","Votre halo rétrécit. Glissez le doigt n'importe où sur le plateau.","Tu halo se encoge. Desliza el dedo por cualquier parte del tablero.")}</p>
+    <div class="nj-hud"><span>⏱ <b id="njt">${T}</b> s</span><span>💥 <b id="njh">0</b></span></div><div class="nj-bar"><i id="njb"></i></div>
+    <canvas class="nj-cv" id="njc"></canvas><p class="nj-fb" id="njf">${mode==='blind'?L("Memorise","Mémorisez","Memoriza"):' '}</p>`);
+  const {cv,ctx,W:CW}=njCv('njc',1);const cs=CW/N,th=Math.max(3,cs*.12),rad=cs*.24,rects=njMazeRects(M,N,cs,th),lit=rects.map(()=>0);
+  const touch=(x,y,k)=>{const [rx,ry,rw,rh]=rects[k],nx=clamp(x,rx,rx+rw),ny=clamp(y,ry,ry+rh);return(x-nx)**2+(y-ny)**2<rad*rad};
+  const hit=(x,y)=>{let h=false;for(let k=0;k<rects.length;k++)if(touch(x,y,k)){h=true;lit[k]=1}return h};
+  let bx=cs/2,by=cs/2,hits=0,lastHit=-1e9,flash=0,last=null;const tShow=performance.now();let t0=null;
+  const move=(dx,dy)=>{if(t0==null)return;const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/(rad/3))||1,sx=dx/steps,sy=dy/steps;let blk=0;
+    for(let i=0;i<steps;i++){if(!hit(bx+sx,by))bx+=sx;else blk+=Math.abs(sx);if(!hit(bx,by+sy))by+=sy;else blk+=Math.abs(sy)}
+    const now=performance.now();if(blk>Math.max(2,.35*(Math.abs(dx)+Math.abs(dy)))&&now-lastHit>450){lastHit=now;hits++;flash=1;el('njh').textContent=hits;njBuzz(30)}};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}last=njPt(cv,e)});
+  cv.addEventListener('pointermove',e=>{if(!last||j.fini)return;const p=njPt(cv,e);move(p.x-last.x,p.y-last.y);last=p});
+  ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>last=null));
+  const fin=reached=>{if(j.fini)return;j.fini=true;const t=(performance.now()-t0)/1000;let sc;
+    if(reached)sc=100-hits*P-Math.max(0,t-T*.45)*.8;else{const r=clamp(Math.floor(by/cs),0,N-1),c=clamp(Math.floor(bx/cs),0,N-1);sc=(1-dist[r][c]/dist[0][0])*55-hits*P/2}
+    sc=Math.round(clamp(sc));const f=el('njf');if(f){f.className='nj-fb '+(reached?'good':'bad');f.textContent=reached?L("Made it!","Arrivé !","¡Llegaste!"):L("Time is up.","Temps écoulé.","Se acabó el tiempo.")}j.fin(sc,900)};
+  const C={sand:njCol('--parch','#ead8a9'),wall:njCol('--wood','#6e4b2c'),ball:njCol('--torch','#f39a2b'),bad:njCol('--bad','#ef6b5b'),sky:njCol('--sky','#4fa3d9'),night:njCol('--night','#0b1c1f')};
+  const R0=cs*MD(2.4,2,1.7),R1=cs*(XP?.65:MD(1.1,.9,.75));
+  njLoop(cv,dt=>{const now=performance.now();
+    if(t0==null){const s=(now-tShow)/1000;if(s>=SHOW){t0=now;const f=el('njf');if(f)f.textContent=' '}else{const f=el('njf');if(f)f.textContent=L("Memorise","Mémorisez","Memoriza")+' · '+Math.ceil(SHOW-s)}}
+    const t=t0==null?0:(now-t0)/1000,left=Math.max(0,T-t);if(!j.fini){el('njt').textContent=Math.ceil(left);const b=el('njb');b.style.width=left/T*100+'%';b.classList.toggle('low',left<10)}
+    if(!j.fini&&t0!=null&&left<=0)fin(false);if(!j.fini&&Math.floor(by/cs)===N-1&&Math.floor(bx/cs)===N-1)fin(true);flash=Math.max(0,flash-dt*3);
+    for(let k=0;k<lit.length;k++)if(lit[k]>0)lit[k]=Math.max(0,lit[k]-dt*.9);
+    ctx.fillStyle=C.sand;ctx.fillRect(0,0,CW,CW);ctx.fillStyle=C.sky;ctx.globalAlpha=.55;ctx.fillRect((N-1)*cs,(N-1)*cs,cs,cs);ctx.globalAlpha=1;njEmoji(ctx,'🛶',(N-.5)*cs,(N-.5)*cs,cs*.55);
+    ctx.fillStyle=C.wall;
+    if(mode==='blind'){const fade=t0==null?1:Math.max(0,1-t/0.6);rects.forEach(([x,y,w,h],k)=>{const a=Math.max(fade,lit[k]);if(a>0){ctx.globalAlpha=a;ctx.fillRect(x,y,w,h)}});ctx.globalAlpha=1}
+    else rects.forEach(([x,y,w,h])=>ctx.fillRect(x,y,w,h));
+    ctx.beginPath();ctx.arc(bx,by,rad,0,7);ctx.fillStyle=flash>0?C.bad:C.ball;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=C.wall;ctx.stroke();
+    if(mode==='torch'){const R=R0+(R1-R0)*Math.min(1,t/T),gr=ctx.createRadialGradient(bx,by,R*.55,bx,by,R);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,C.night);
+      ctx.fillStyle=gr;ctx.fillRect(0,0,CW,CW);ctx.globalAlpha=.55;njEmoji(ctx,'🛶',(N-.5)*cs,(N-.5)*cs,cs*.55);ctx.globalAlpha=1}})})}
+function gameBlind(){return njDarkMaze('blind','blind')}
+function gameTorch(){return njDarkMaze('torch','torch')}
+
+/* « Tu es le guide » : grille de cases, flèches, coéquipier aux yeux bandés */
+function guidePartner(){try{if(INGAME&&S){const me=window.__mgP||S.players.find(p=>p.human&&p.alive);const l=S.players.filter(p=>p.alive&&!p.human&&me&&p.tribe===me.tribe);if(l.length){const p=pick(l);return{n:p.name,f:face(p,40),err:clamp(.24-st(p,'mind')/500,.04,.2),lag:clamp(.95-st(p,'trust')/250,.4,.85)}}}}catch(e){}
+  const n=String(pick([...AI_NAMES]));return{n,f:rivTete(n,40),err:null,lag:null}}
+function gameGuide(){return miniJeu(j=>{const XP=TLVL()==='x',N=MD(5,6,7)+(XP?1:0),T=MD(45,50,55),P=MD(3,5,7);const {W:M,dist}=njMazeGen(N);const pa=guidePartner();
+  const ERR=pa.err!=null?pa.err:(XP?.24:MD(.06,.12,.18)),LAG=pa.lag!=null?pa.lag:(XP?.9:MD(.45,.65,.8));
+  const AR=['↑','→','↓','←'],DV=[[-1,0,'t'],[0,1,'r'],[1,0,'b'],[0,-1,'l']];
+  screen(`${eb(gN('guide'))}<h1 class="h">${L("Guide your teammate","Guidez votre coéquipier","Guía a tu compañero")}</h1>
+    <p class="muted guidewho">${pa.f}<span><b>${esc(pa.n)}</b> · ${L("is blindfolded. Tap an arrow, wait until they move.","a les yeux bandés. Tapez une flèche, attendez qu'il bouge.","tiene los ojos vendados. Toca una flecha y espera a que se mueva.")}</span></p>
+    <div class="nj-hud"><span>⏱ <b id="njt">${T}</b> s</span><span>💥 <b id="njh">0</b></span></div><div class="nj-bar"><i id="njb"></i></div>
+    <canvas class="nj-cv" id="njc"></canvas><p class="nj-fb" id="njf"> </p>
+    <div class="arrows">${AR.map((a,k)=>`<button class="btn arrow" data-k="${k}">${a}</button>`).join('')}</div>`);
+  const {cv,ctx,W:CW}=njCv('njc',1,300);const cs=Math.min(CW,300)/N,ox=(CW-cs*N)/2,th=Math.max(3,cs*.1),rects=njMazeRects(M,N,cs,th);
+  let r=0,c=0,px=0,py=0,hits=0,busy=false,flash=0,bub='',bubT=0;const t0=performance.now();
+  const fin=reached=>{if(j.fini)return;j.fini=true;const t=(performance.now()-t0)/1000;let sc;
+    if(reached)sc=100-hits*P-Math.max(0,t-T*.4)*.8;else sc=(1-dist[r][c]/dist[0][0])*55-hits*P/2;
+    sc=Math.round(clamp(sc));const f=el('njf');if(f){f.className='nj-fb '+(reached?'good':'bad');f.textContent=reached?L("Made it!","Arrivé !","¡Llegaste!"):L("Time is up.","Temps écoulé.","Se acabó el tiempo.")}j.fin(sc,900)};
+  const order=k=>{if(j.fini||busy)return;busy=true;$app.querySelectorAll('.arrow').forEach(b=>b.classList.add('wait'));
+    setTimeout(()=>{if(j.fini)return;let d=k;if(Math.random()<ERR){d=pick([0,1,2,3].filter(x=>x!==k));bub='?';bubT=.9}
+      const [dr,dc,w]=DV[d];if(M[r][c][w]){hits++;flash=1;njBuzz(40);el('njh').textContent=hits;const f=el('njf');if(f)f.textContent=L("Ouch, a wall!","Aïe, un mur !","¡Ay, un muro!")}
+      else{r+=dr;c+=dc;const f=el('njf');if(f)f.textContent=bub?L("Misheard…","Il a mal compris…","Ha entendido mal…"):' '}
+      busy=false;$app.querySelectorAll('.arrow').forEach(b=>b.classList.remove('wait'));if(r===N-1&&c===N-1)fin(true)},LAG*1000)};
+  $app.querySelectorAll('.arrow').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();order(+b.dataset.k)}));
+  const C={sand:njCol('--parch','#ead8a9'),wall:njCol('--wood','#6e4b2c'),me:njCol('--torch','#f39a2b'),bad:njCol('--bad','#ef6b5b'),sky:njCol('--sky','#4fa3d9'),ink:'#2a1c0d'};
+  njLoop(cv,dt=>{const t=(performance.now()-t0)/1000,left=Math.max(0,T-t);if(!j.fini){el('njt').textContent=Math.ceil(left);const b=el('njb');b.style.width=left/T*100+'%';b.classList.toggle('low',left<10)}
+    if(!j.fini&&left<=0)fin(false);flash=Math.max(0,flash-dt*3);bubT-=dt;if(bubT<=0)bub='';
+    const tx=c*cs+cs/2,ty=r*cs+cs/2,k=Math.min(1,dt*12);px+=(tx-px)*k;py+=(ty-py)*k;if(t<.05){px=tx;py=ty}
+    ctx.clearRect(0,0,CW,cs*N+2);ctx.save();ctx.translate(ox,0);ctx.fillStyle=C.sand;ctx.fillRect(0,0,cs*N,cs*N);
+    ctx.fillStyle=C.sky;ctx.globalAlpha=.55;ctx.fillRect((N-1)*cs,(N-1)*cs,cs,cs);ctx.globalAlpha=1;njEmoji(ctx,'🛶',(N-.5)*cs,(N-.5)*cs,cs*.5);
+    ctx.fillStyle=C.wall;rects.forEach(([x,y,w,h])=>ctx.fillRect(x,y,w,h));
+    const R=cs*.3;ctx.beginPath();ctx.arc(px,py,R,0,7);ctx.fillStyle=flash>0?C.bad:C.me;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=C.ink;ctx.stroke();
+    ctx.fillStyle=C.ink;ctx.fillRect(px-R*.95,py-R*.35,R*1.9,R*.42);ctx.fillStyle='#fff';ctx.font=`800 ${Math.round(R*.9)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    if(bub){ctx.fillStyle=C.ink;ctx.fillText(bub,px+R,py-R*1.2)}
+    ctx.restore()})})}
+
+/* Bain de boue : tremper, courir, essorer ; en relais, un coéquipier frais remplace le coureur fatigué */
+function njMud(g,relay){return miniJeu(j=>{const XP=TLVL()==='x',T=40,TG=XP?40:MD(26,32,36),DRIP=XP?.14:MD(.06,.09,.12),FAT=.15,BAL=XP?.11:MD(.16,.13,.11);
+  let team=[{n:L("You","Vous","Tú"),f:''}];
+  try{if(relay){if(INGAME&&S){const me=window.__mgP||S.players.find(p=>p.human&&p.alive);team=[{n:me?me.name:L("You","Vous","Tú"),f:me?face(me,28):''},...S.players.filter(p=>p.alive&&!p.human&&me&&p.tribe===me.tribe).slice(0,3).map(p=>({n:p.name,f:face(p,28)}))]}
+    if(team.length<4)shuffle([...AI_NAMES]).slice(0,4-team.length).forEach(n=>team.push({n:String(n),f:rivTete(n,28)}))}}catch(e){}
+  screen(`${eb(gN(g))}<h1 class="h">${L("Fill the bucket with mud","Remplissez le seau de boue","Llena el cubo de barro")}</h1>
+    <p class="muted">${L("Hold to soak, tap steadily to run, tap fast to squeeze.","Maintenez pour tremper, tapez en rythme pour courir, tapez vite pour essorer.","Mantén para empapar, toca con ritmo para correr, toca rápido para escurrir.")}${relay?' '+L("Pass the relay when the sponge holds less.","Passez le relais quand l'éponge prend moins.","Pasa el relevo cuando la esponja coja menos."):''}</p>
+    <div class="nj-hud"><span>⏱ <b id="njt">${T}</b> s</span><span>🪣 <b id="njk">0</b> %</span><span id="mudwho">${team[0].f}${esc(team[0].n)}</span></div>
+    <canvas class="nj-cv" id="njc"></canvas><p class="nj-fb" id="njf"> </p>
+    <div class="row"><button class="nj-hold" id="njd" style="flex:2">${L("Soak (hold)","Tremper (maintenir)","Empapar (mantener)")}</button>${relay?`<button class="btn ghost" id="mudrel" style="flex:1">🔁 ${L("Relay","Relais","Relevo")}</button>`:''}</div>`);
+  const {cv,ctx,W,H}=njCv('njc',.62,260);const t0=performance.now();
+  let ph='soak',cont=0,bucket=0,x=0,fat=0,runner=0,hold=false,over=0,wob=0,lastTap=0,back=0,pause=0,msg='',msgT=0,drops=[];
+  const cap=()=>10*Math.max(.45,1-FAT*fat),btn=el('njd');
+  const label=()=>{if(!btn)return;btn.textContent=ph==='soak'?L("Soak (hold)","Tremper (maintenir)","Empapar (mantener)"):ph==='run'?L("Run (tap steadily)","Courir (taper en rythme)","Correr (tocar con ritmo)"):ph==='squeeze'?L("Squeeze (tap fast)","Essorer (taper vite)","Escurrir (tocar rápido)"):L("Back to the mud…","Retour à la boue…","Vuelta al barro…");btn.classList.toggle('wait',ph==='back')};
+  const say=s=>{msg=s;msgT=1.4;const f=el('njf');if(f)f.textContent=s};
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();if(j.fini||pause>0)return;try{btn.setPointerCapture(e.pointerId)}catch(_){}const now=performance.now();
+    if(ph==='soak'){hold=true;return}
+    if(ph==='run'){const gap=now-lastTap;lastTap=now;x=Math.min(1,x+.1001);wob+=gap<150?.09:gap<260?.035:.015;if(wob>BAL*3.2){wob=0;const l=cont*.4;cont-=l;njBuzz(60);say(L("Slipped! The sponge lost some mud.","Glissade ! L'éponge a perdu de la boue.","¡Resbalón! La esponja ha perdido barro."))}if(x>=1){ph='squeeze';label()}return}
+    if(ph==='squeeze'){const q=Math.min(cont,cap()*.16*(1-FAT*fat*.5));cont-=q;bucket+=q*.92;for(let i=0;i<3;i++)drops.push({x:W*.8+rnd(-8,8),y:H*.28,v:rnd(60,120)});
+      if(cont<cap()*.05){cont=0;ph='back';back=.8;fat++;label()}}});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>btn.addEventListener(t,()=>{if(ph==='soak'&&hold){hold=false;over=0;if(cont>.5){ph='run';x=0;wob=0;lastTap=performance.now();label()}}}));
+  btn.addEventListener('contextmenu',e=>e.preventDefault());
+  const rel=el('mudrel');if(rel&&relay)rel.addEventListener('click',()=>{if(j.fini||ph!=='soak'||hold||runner>=team.length-1||pause>0)return;runner++;fat=0;pause=2;
+    const w=el('mudwho');if(w)w.innerHTML=team[runner].f+esc(team[runner].n);say(L("Relay passed: a fresh teammate goes.","Relais passé : un coéquipier frais part.","Relevo pasado: sale un compañero fresco."));if(runner>=team.length-1)rel.disabled=true});
+  const C={mud:'#6b4a2e',mud2:'#4e3520',sand:njCol('--parch','#ead8a9'),wood:njCol('--wood','#6e4b2c'),wood3:njCol('--wood-3','#b88a57'),me:njCol('--torch','#f39a2b'),bad:njCol('--bad','#ef6b5b'),line:njCol('--line','#2c4a47'),ink:'#2a1c0d'};
+  njLoop(cv,dt=>{if(j.fini)return;const t=(performance.now()-t0)/1000;if(t>=T){j.fini=true;j.fin(Math.round(clamp(bucket/TG*100)),600);return}
+    if(pause>0)pause-=dt;
+    if(ph==='soak'&&hold&&pause<=0){cont=Math.min(cap()*1.0,cont+cap()/1.5*dt);if(cont>=cap()){over+=dt;if(over>.5){over=0;cont*=.7;njBuzz(50);say(L("Too heavy, it drips!","Trop lourde, ça coule !","¡Demasiado pesada, gotea!"))}}}
+    if(ph==='run'){cont=Math.max(0,cont-cont*DRIP*dt);wob=Math.max(0,wob-dt*.35)}
+    if(ph==='back'){back-=dt;x=Math.max(0,back/.8);if(back<=0){ph='soak';x=0;label();say(' ')}}
+    msgT-=dt;
+    el('njt').textContent=Math.ceil(T-t);el('njk').textContent=Math.round(clamp(bucket/TG*100));
+    /* décor : bain de boue à gauche, planche, seau gradué à droite */
+    ctx.fillStyle=C.sand;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=C.mud2;ctx.beginPath();ctx.ellipse(W*.16,H*.72,W*.15,H*.17,0,0,7);ctx.fill();ctx.fillStyle=C.mud;ctx.beginPath();ctx.ellipse(W*.16,H*.7,W*.13,H*.13,0,0,7);ctx.fill();
+    ctx.fillStyle=C.wood;ctx.fillRect(W*.27,H*.74,W*.44,8);
+    const bx=W*.74,bw=W*.16,bt=H*.3,bh=H*.55;ctx.fillStyle='rgba(0,0,0,.08)';ctx.fillRect(bx,bt,bw,bh);const lv=Math.min(1,bucket/TG);ctx.fillStyle=C.mud;ctx.fillRect(bx,bt+bh*(1-lv),bw,bh*lv);
+    ctx.strokeStyle=C.ink;ctx.lineWidth=2.5;ctx.strokeRect(bx,bt,bw,bh);ctx.globalAlpha=.4;[.25,.5,.75].forEach(f=>{ctx.beginPath();ctx.moveTo(bx,bt+bh*f);ctx.lineTo(bx+bw*.3,bt+bh*f);ctx.stroke()});ctx.globalAlpha=1;
+    drops=drops.filter(d=>{d.y+=d.v*dt;if(d.y>bt+bh*(1-lv))return false;ctx.fillStyle=C.mud;ctx.beginPath();ctx.arc(d.x,d.y,3,0,7);ctx.fill();return true});
+    /* éponge : position selon la phase, taille selon ce qu'elle contient, oscillation sur la planche */
+    const sx=ph==='soak'?W*.16:ph==='squeeze'?W*.82:W*(.22+x*.5),sy=ph==='soak'?H*.62:ph==='squeeze'?H*.2:H*.62-Math.sin(t*14)*2,ang=ph==='run'?Math.sin(t*9)*wob*2.2:0,f=cont/10;
+    ctx.save();ctx.translate(sx,sy);ctx.rotate(ang);ctx.fillStyle=f>0?`rgb(${Math.round(230-120*f)},${Math.round(200-130*f)},${Math.round(90-50*f)})`:'#e6c85a';
+    const sw=26+10*f,sh=18+6*f;ctx.fillRect(-sw/2,-sh/2,sw,sh);ctx.strokeStyle=C.ink;ctx.lineWidth=2;ctx.strokeRect(-sw/2,-sh/2,sw,sh);ctx.restore();
+    /* jauge de l'éponge (zone verte : pleine) et de l'équilibre pendant la course */
+    const gx=8,gy=8,gw=W*.36;ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(gx,gy,gw,10);ctx.fillStyle='#5fbf7a';ctx.globalAlpha=.5;ctx.fillRect(gx+gw*.8,gy,gw*.2,10);ctx.globalAlpha=1;
+    ctx.fillStyle=C.mud;ctx.fillRect(gx,gy,gw*Math.min(1,cont/10),10);ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;ctx.strokeRect(gx,gy,gw,10);ctx.fillStyle=C.ink;ctx.fillRect(gx+gw*cap()/10-1,gy-3,2,16);
+    if(ph==='run'){const ny=gy+22,lim=BAL*3.2,v=Math.min(1,wob/lim);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(gx,ny,gw,8);ctx.fillStyle=v>.7?C.bad:C.me;ctx.fillRect(gx,ny,gw*v,8);ctx.strokeRect(gx,ny,gw,8)}
+    if(fat>0){ctx.fillStyle=C.ink;ctx.font='700 11px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('😓'.repeat(Math.min(4,fat)),gx,H-18)}})})}
+function gameMud(){return njMud('mud',false)}
+function gameMudRelay(){return njMud('mudr',true)}
+
+/* fiches, règles de score, aides, et place à l'Entraînement (pas dans le tirage) */
+GAMES.blind={name:"Blind Maze",nf:"Le labyrinthe à l'aveugle",ne:"El laberinto a ciegas",stat:'mind',rules:"The maze shows for a few seconds, then disappears. Slide your finger to guide the ball to the canoe. A wall you touch buzzes and lights up for a moment.",rf:"Le labyrinthe s'affiche quelques secondes, puis disparaît. Glissez le doigt pour guider la bille jusqu'au canoë. Un mur touché vibre et s'éclaire un instant.",re:"El laberinto se muestra unos segundos y luego desaparece. Desliza el dedo para guiar la bola hasta la canoa. Un muro tocado vibra y se ilumina un instante."};PLAYG.blind=()=>gameBlind();
+GAMES.guide={name:"The Guide",nf:"Le guide",ne:"El guía",stat:'trust',rules:"Your blindfolded teammate crosses the maze one square at a time. Tap an arrow to tell them where to go: they react with a delay and sometimes mishear.",rf:"Votre coéquipier, les yeux bandés, traverse le labyrinthe case par case. Tapez une flèche pour lui dire où aller : il réagit avec un temps de retard et comprend parfois de travers.",re:"Tu compañero, con los ojos vendados, cruza el laberinto casilla a casilla. Toca una flecha para decirle adónde ir: reacciona con retraso y a veces entiende mal."};PLAYG.guide=()=>gameGuide();
+GAMES.torch={name:"Torchlight Maze",nf:"Le labyrinthe à la lampe",ne:"El laberinto con linterna",stat:'agi',rules:"Everything is dark except a small light around the ball, and it shrinks over time. Slide your finger to reach the canoe.",rf:"Tout est noir sauf un petit halo autour de la bille, qui rétrécit avec le temps. Glissez le doigt pour rejoindre le canoë.",re:"Todo está oscuro salvo un pequeño halo alrededor de la bola, que se encoge con el tiempo. Desliza el dedo para llegar a la canoa."};PLAYG.torch=()=>gameTorch();
+GAMES.mud={name:"Mud Bath",nf:"Le bain de boue",ne:"El baño de barro",stat:'end',rules:"Hold to soak the sponge in the mud, tap steadily to cross the plank (too fast and you slip), then tap fast to squeeze it into the bucket. Each trip tires you: the sponge holds less.",rf:"Maintenez pour tremper l'éponge dans la boue, tapez en rythme pour traverser la planche (trop vite, on glisse), puis tapez vite pour l'essorer dans le seau. Chaque aller-retour fatigue : l'éponge prend moins.",re:"Mantén pulsado para empapar la esponja en el barro, toca con ritmo para cruzar la tabla (demasiado rápido y resbalas) y luego toca rápido para escurrirla en el cubo. Cada viaje cansa: la esponja coge menos."};PLAYG.mud=()=>gameMud();
+GAMES.mudr={name:"Mud Bath Relay",nf:"Le bain de boue en relais",ne:"El baño de barro por relevos",stat:'end',rules:"Same moves as the mud bath, as a team: when the runner is tired, pass the relay to a fresh teammate. It costs 2 seconds; three relays at most.",rf:"Mêmes gestes que le bain de boue, en équipe : quand le coureur est fatigué, passez le relais à un coéquipier frais. Cela coûte 2 secondes ; trois relais au plus.",re:"Los mismos gestos que el baño de barro, en equipo: cuando el corredor esté cansado, pasa el relevo a un compañero fresco. Cuesta 2 segundos; tres relevos como máximo."};PLAYG.mudr=()=>gameMudRelay();
+['blind','guide','torch','mud','mudr'].forEach(k=>{FNEW.push(k);if(!TRAIN.includes(k))TRAIN.push(k)});
+SCORE_RULES.blind=()=>L("Made it: 100, minus points per wall touched and if you are slow. Not there: based on the way covered (55 at most).","Arrivé : 100, moins des points par mur touché et si vous êtes lent. Pas arrivé : selon le chemin parcouru (55 au plus).","Llegada: 100, menos puntos por muro tocado y si vas lento. Sin llegar: según el camino recorrido (55 como máximo).");SCORE_RULES.guide=()=>L("Made it: 100, minus points per wall bumped and if you are slow. Not there: based on the way covered (55 at most).","Arrivé : 100, moins des points par mur heurté et si vous êtes lent. Pas arrivé : selon le chemin parcouru (55 au plus).","Llegada: 100, menos puntos por muro golpeado y si vas lento. Sin llegar: según el camino recorrido (55 como máximo).");SCORE_RULES.torch=()=>L("Made it: 100, minus points per wall touched and if you are slow. Not there: based on the way covered (55 at most).","Arrivé : 100, moins des points par mur touché et si vous êtes lent. Pas arrivé : selon le chemin parcouru (55 au plus).","Llegada: 100, menos puntos por muro tocado y si vas lento. Sin llegar: según el camino recorrido (55 como máximo).");SCORE_RULES.mud=()=>L("Bucket level after 40 seconds: 100 = full bucket.","Niveau du seau au bout de 40 secondes : 100 = seau plein.","Nivel del cubo a los 40 segundos: 100 = cubo lleno.");SCORE_RULES.mudr=()=>L("Bucket level after 40 seconds: 100 = full bucket.","Niveau du seau au bout de 40 secondes : 100 = seau plein.","Nivel del cubo a los 40 segundos: 100 = cubo lleno.");
+MGH.blind=()=>L("Look at the path to the canoe first, not the whole maze.","Regardez d'abord le chemin du canoë, pas tout le labyrinthe.","Mira primero el camino hasta la canoa, no todo el laberinto.");MGH.guide=()=>L("One arrow at a time: wait until they have moved before the next.","Une flèche à la fois : attendez qu'il ait bougé avant la suivante.","Una flecha cada vez: espera a que se mueva antes de la siguiente.");MGH.torch=()=>L("Move fast at the start, while the light is still big.","Avancez vite au début, quand le halo est encore grand.","Avanza rápido al principio, cuando el halo aún es grande.");MGH.mud=()=>L("Let go as soon as the gauge is green, and run without rushing.","Lâchez dès que la jauge est dans le vert, et courez sans vous presser.","Suelta en cuanto el indicador esté en verde y corre sin prisas.");MGH.mudr=()=>L("Pass the relay when the black mark on the gauge has moved well back.","Passez le relais quand le trait noir de la jauge a bien reculé.","Pasa el relevo cuando la marca negra del indicador haya retrocedido bastante.");
 /* ==================== Conseil : votes, alliances, sortie du jeu, jury ==================== */
 const aff=(a,b)=>S.aff[a][b];
 const addAff=(a,b,v)=>{S.aff[a][b]=clamp(S.aff[a][b]+v,-100,100)};
@@ -6066,7 +6209,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.78 · 2026-11-05';
+const APP_VER='2.79 · 2026-11-05';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
