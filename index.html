@@ -1705,6 +1705,30 @@ body:has(.setupgo){padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .pcard ul.impact > li:has(> .ik).iopen > div > .muted{display:block}
 .tabbody label.field.sstack{display:grid !important;grid-template-columns:minmax(0,1fr) !important}
 .tabbody label.field.sti2.sstack > .lbl{display:flex}
+/* Lot G3 (v2.85) : création plus courte, Comment jouer en écran. */
+/* Onglets de la création sur une ligne basse : icône à côté du nom */
+.stabs button{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:6px 2px}
+.stabs button span{font-size:1rem;line-height:1}
+/* Fiche en 5 étapes : libellés sans numéro, une ligne */
+.psteps button{font-size:.78rem;padding:8px 2px}
+/* Plus de règles */
+details.morer{margin:0 !important}
+details.morer > .field,details.morer > .twchecks,details.morer > p{margin-left:14px;margin-right:14px}
+details.morer[open]{display:grid;gap:12px}
+/* Comment jouer en écran : Retour fixé en bas */
+.wrap.howw{min-height:calc(100dvh - 24px - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.wrap.howw > .stickb{align-self:end}
+.wrap.howw .homegb{display:grid;gap:10px;padding:0}
+.wrap.howw .homegb details{margin:0 !important}
+body:has(.wrap.howw){padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.pcard[data-step="4"] [data-st]:not([data-st="4"]),.pcard[data-step="5"] [data-st]:not([data-st="5"]){display:none !important}
+.pcard[data-step="4"] > ul.impact:not(:has(> li[data-st="4"])),.pcard[data-step="5"] > ul.impact:not(:has(> li[data-st="5"])){display:none}
+/* onglets à la largeur de leur nom (« Aventuriers » plus large que « Île »), jamais coupés */
+.stabs{display:flex !important;gap:6px}
+.stabs button{flex:1 1 auto;min-width:0;padding:6px 8px}
+/* liste sur la ligne de son libellé : le ⓘ passe au bout de la ligne */
+.tabbody label.field.sti2:not(.sstack):has(> select):not(.two label) > .lbl{display:contents}
+.tabbody label.field.sti2:not(.sstack):has(> select):not(.two label) > .lbl > .sib{order:3;margin-left:0}
 </style>
 
 <div id="app"></div>
@@ -6029,8 +6053,14 @@ try{let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{
 function homeModesSheet(){try{const d=[...$app.querySelectorAll('details.homeg')].find(x=>x.querySelector('#new'));if(!d||d.dataset.sheet)return;d.dataset.sheet='1';
   const sm=d.querySelector('summary'),gb=d.querySelector('.homegb');if(!sm||!gb)return;sm.setAttribute('aria-haspopup','dialog');
   sm.addEventListener('click',e=>{e.preventDefault();d.open=false;homeSheet(sm.textContent.trim(),gb,d,true)})}catch(e){}}
-// Panneau commun de l'accueil (Autres modes, Comment jouer — v2.83) : le contenu `gb` est déplacé dans le panneau puis remis dans `home` à la fermeture.
+// Panneau de l'accueil (Autres modes ; Comment jouer de la v2.83 à la v2.84) : le contenu `gb` est déplacé dans le panneau puis remis dans `home` à la fermeture.
 // closeOnBtn : un bouton du contenu ferme le panneau (Autres modes) ; sinon il reste ouvert (Comment jouer : thèmes, familles) sauf si l'écran change.
+// v2.85 (lot G3) : « Comment jouer » est un écran comme Aventuriers, Succès et Réglages (barre du bas = écrans avec « Retour ») ;
+// son contenu (préparé par homeTidy) y est déplacé ; une seule famille ouverte à la fois.
+function howScreen(title,gb){screen(`<div class="wrap howw"><h1 class="h">${title}</h1><div class="howb"></div><div class="row stickb"><button class="btn ghost" id="back">‹ ${L("Back","Retour","Volver")}</button></div></div>`);
+  const b=$app.querySelector('.howb');if(!b)return;b.appendChild(gb);
+  const fam=[...gb.querySelectorAll('details')].filter(d=>!d.parentElement.closest('details'));fam.forEach(d=>d.addEventListener('toggle',()=>{if(d.open)fam.forEach(o=>{if(o!==d)o.open=false})}));
+  $id('back').onclick=()=>home()}
 function homeSheet(title,gb,home,closeOnBtn,cls){
     const ov=document.createElement('div');ov.className='ovl modesv'+(cls?' '+cls:'');ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
     ov.innerHTML=`<div class="sheet"><h2 class="h">${title}</h2><div class="modesb"></div><button class="btn ghost" data-m="close">${L("Close","Fermer","Cerrar")}</button></div>`;
@@ -6097,13 +6127,17 @@ const blankPlayer=()=>({city:pickCity(),build:'mid',seed:rint(1,1e9),sseed:rint(
 // v2.83 (lot G2) : création de partie sans défilement, appliqué après chaque dessin de l'écran (draw) :
 // 1) une explication (p.hint) placée juste après un choix passe derrière un ⓘ sur le libellé de ce choix ;
 // 2) « Couleurs des tribus » se replie sur une ligne (les deux couleurs choisies + « + ») ;
-// 3) Vous / Joueurs : chaque fiche en 3 étapes Identité · Profil · Stats ; à plusieurs, chaque joueur sur une ligne, un seul déplié.
+// 3) Vous / Joueurs : chaque fiche en 5 étapes Visage · Origine · Caractère · Vie · Stats (v2.85 ; 3 étapes en v2.83) ; à plusieurs, chaque joueur sur une ligne, un seul déplié.
 // SETUPF garde l'étape, le joueur déplié et les ⓘ ouverts d'un dessin à l'autre ; il est remis à zéro à chaque ouverture de l'écran.
-let SETUPF={step:{},pon:0,open:new Set()};
+let SETUPF={step:{},pon:0,open:new Set()};const NSTEP=5;
 function setupFold(tab,mode){try{const tb=$app.querySelector('.tabbody');if(!tb)return;const mk=(lbl,key)=>{const b=document.createElement('button');b.type='button';b.className='ibtn sib';b.dataset.sk=key;b.setAttribute('aria-label',L("Details","Détails"));b.textContent='ⓘ';if(lbl.querySelector(':scope > .sib'))return;lbl.appendChild(b)};
   let n=0;tb.querySelectorAll('p.hint').forEach(h=>{const f=h.previousElementSibling;if(!f||!f.matches('.field, label.field')||h.id==='err')return;const l=f.querySelector(':scope > .lbl');if(!l)return;
     const key=tab+':'+(n++);h.classList.add('shint');f.classList.add('sti2');mk(l,key);if(SETUPF.open.has(key))h.classList.add('on')});
   tb.querySelectorAll('.field > p.hint:last-child').forEach(h=>{const f=h.parentElement,l=f.querySelector(':scope > .lbl');if(!l||f.matches(':has(> .colpick)'))return;const key=tab+':'+(n++);h.classList.add('shint');f.classList.add('sti2');mk(l,key);if(SETUPF.open.has(key))h.classList.add('on')});
+  // v2.85 : « Second vote » et « Type de partie » (avec ses rebondissements et son explication) repliés dans « Plus de règles »
+  const rv=tb.querySelector('label.field:has(#rv)');if(rv&&!rv.closest('details')){const d=document.createElement('details');d.className='achg morer';if(SETUPF.moreOpen)d.open=true;
+    d.innerHTML=`<summary><span>${L("More rules","Plus de règles","Más reglas")}</span></summary>`;rv.before(d);let x=rv;while(x){const nx=x.nextElementSibling;d.appendChild(x);x=nx;if(x&&!(x.matches('.field:has([data-tm]), .twchecks, p.hint')))break}
+    d.addEventListener('toggle',()=>{SETUPF.moreOpen=d.open})}
   // couleurs des tribus
   const cp=tb.querySelector('.field:has(> .colpick)');if(cp&&!cp.closest('details')){const d=document.createElement('details');d.className='achg colsd';if(SETUPF.colsOpen)d.open=true;
     const l=cp.querySelector(':scope > .lbl');const dots=[...cp.querySelectorAll('.cdot.on')].map(x=>`<i class="cdotm" style="background:${x.style.background}"></i>`).join('');
@@ -6111,12 +6145,12 @@ function setupFold(tab,mode){try{const tb=$app.querySelector('.tabbody');if(!tb)
   // fiches Vous / Joueurs
   const cards=[...tb.querySelectorAll('.pcards > .pcard')];const many=mode==='group'&&cards.length>1;if(SETUPF.pon>=cards.length)SETUPF.pon=0;
   cards.forEach((c,i)=>{const st=SETUPF.step[i]||1;c.dataset.step=st;
-    [...c.children].forEach(x=>{if(x.dataset.st||x.matches('ul.impact'))return;x.dataset.st=x.matches('.top, details.lookd, .two, .field:has(select[id^="u"]), .field:has(#o'+i+')')?'1':x.matches('p.ichoices')?'2':x.matches('details.statd')?'3':'1'});
+    [...c.children].forEach(x=>{if(x.dataset.st||x.matches('ul.impact'))return;x.dataset.st=x.matches('.top, details.lookd, .field:has(select[id^="u"])')?'1':x.matches('.two, .field:has(#o'+i+')')?'2':x.matches('p.ichoices')?'3':x.matches('details.statd')?'5':'1'});
     c.querySelectorAll(':scope > ul.impact > li:has(> .ik)').forEach(li=>{const d=li.querySelector(':scope > div');if(!d||!d.querySelector('.muted')||d.querySelector('.ibtn'))return;const b=document.createElement('button');b.type='button';b.className='ibtn lib';b.setAttribute('aria-label',L("Details","Détails"));b.textContent='ⓘ';d.querySelector('b').after(b);b.onclick=e=>{e.preventDefault();li.classList.toggle('iopen')}});
-    c.querySelectorAll(':scope > ul.impact > li').forEach(li=>{li.dataset.st=li.querySelector('[data-dice], #b'+i)?'3':li.querySelector('#a'+i)?'1':'2'});
+    c.querySelectorAll(':scope > ul.impact > li').forEach(li=>{li.dataset.st=li.querySelector('[data-dice], #b'+i)?'5':li.querySelector('#a'+i)?'2':li.querySelector('#j'+i+', #f'+i+', #k'+i)?'4':'3'});
     const bar=document.createElement('div');bar.className='seg psteps';bar.setAttribute('role','tablist');
-    bar.innerHTML=[L("Identity","Identité","Identidad"),L("Profile","Profil","Perfil"),L("Stats","Stats","Estadísticas")].map((t,k)=>`<button type="button" role="tab" data-pst="${k+1}" class="${st===k+1?'on':''}" aria-selected="${st===k+1}">${k+1} · ${t}</button>`).join('');
-    const nx=document.createElement('button');nx.type='button';nx.className='btn ghost pnext';nx.dataset.pnx='1';nx.textContent=L("Next","Suivant","Siguiente")+' ›';if(st===3)nx.hidden=true;
+    bar.innerHTML=[L("Face","Visage","Rostro"),L("From","Origine","Origen"),L("Character","Caractère","Carácter"),L("Life","Vie","Vida"),L("Stats","Stats","Estadísticas")].map((t,k)=>`<button type="button" role="tab" data-pst="${k+1}" class="${st===k+1?'on':''}" aria-selected="${st===k+1}">${t}</button>`).join('');
+    const nx=document.createElement('button');nx.type='button';nx.className='btn ghost pnext';nx.dataset.pnx='1';nx.textContent=L("Next","Suivant","Siguiente")+' ›';if(st===NSTEP)nx.hidden=true;
     c.prepend(bar);c.appendChild(nx);
     if(many){const nm=(c.querySelector('input.name')||{}).value||(c.querySelector('input.name')||{}).placeholder||'';const fc=c.querySelector('.prev svg');
       const row=document.createElement('button');row.type='button';row.className='prow';row.dataset.pon=i;row.setAttribute('aria-expanded',String(i===SETUPF.pon));
@@ -6124,7 +6158,7 @@ function setupFold(tab,mode){try{const tb=$app.querySelector('.tabbody');if(!tb)
   if(!tb.dataset.sfw){tb.dataset.sfw='1';tb.addEventListener('click',e=>{const ib=e.target.closest('.sib[data-sk]');if(ib){e.preventDefault();e.stopPropagation();const f=ib.closest('.sti2'),h=f&&(f.querySelector(':scope > p.shint')||f.nextElementSibling);if(h){h.classList.toggle('on');h.classList.contains('on')?SETUPF.open.add(ib.dataset.sk):SETUPF.open.delete(ib.dataset.sk)}return}
     const pc=e.target.closest('.pcard'),idx=pc?[...pc.parentElement.children].indexOf(pc):-1;
     const ps=e.target.closest('[data-pst]'),pn=e.target.closest('[data-pnx]'),pr=e.target.closest('[data-pon]');
-    if(ps||pn){const v=ps?+ps.dataset.pst:Math.min(3,(+pc.dataset.step||1)+1);SETUPF.step[idx]=v;pc.dataset.step=v;pc.querySelectorAll('[data-pst]').forEach(b=>{const on=+b.dataset.pst===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});pc.querySelector('.pnext').hidden=v===3;try{pc.scrollIntoView({block:'nearest'})}catch(_){}return}
+    if(ps||pn){const v=ps?+ps.dataset.pst:Math.min(NSTEP,(+pc.dataset.step||1)+1);SETUPF.step[idx]=v;pc.dataset.step=v;pc.querySelectorAll('[data-pst]').forEach(b=>{const on=+b.dataset.pst===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});pc.querySelector('.pnext').hidden=v===NSTEP;try{pc.scrollIntoView({block:'nearest'})}catch(_){}return}
     if(pr){SETUPF.pon=+pr.dataset.pon;pc.parentElement.querySelectorAll(':scope > .pcard').forEach((c,k)=>{const on=k===SETUPF.pon;c.classList.toggle('pon',on);const r=c.querySelector(':scope > .prow');if(r){r.setAttribute('aria-expanded',String(on));r.querySelector('.prowp').textContent=on?'–':'+'}})}},true)}
   // libellé et liste sur une ligne seulement si le choix affiché tient en entier (sinon la liste passe sous le libellé)
   const fit=()=>{const cx=document.createElement('canvas').getContext('2d');tb.querySelectorAll('label.field > select').forEach(sel=>{const f=sel.parentElement;f.classList.remove('sstack');if(!sel.offsetParent||!sel.selectedOptions[0])return;
@@ -6429,7 +6463,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.84 · 2026-11-06';
+const APP_VER='2.85 · 2026-11-06';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6507,7 +6541,7 @@ function homeTidy(){try{const w=$app.querySelector('.wrap');if(!w||INGAME||w.que
   lib.before(bar);[lib,set,ach].forEach(x=>x.hidden=true);
   if(how){how.hidden=true;bar.after(how)}
   $id('hb_lib').onclick=()=>lib.click();$id('hb_ach').onclick=()=>ach.click();$id('hb_set').onclick=()=>set.click();
-  $id('hb_how').setAttribute('aria-haspopup','dialog');$id('hb_how').onclick=()=>{if(!how)return;const gb=how.querySelector('.homegb');if(gb)homeSheet(how.querySelector('summary').textContent.trim(),gb,how,false,'howv')}}catch(e){}}
+  $id('hb_how').onclick=()=>{if(!how)return;const gb=how.querySelector('.homegb');if(gb)howScreen(how.querySelector('summary').innerHTML,gb)}}catch(e){}}
 /* ---------- Lot D (v2.78) : totem de l'accueil en 3D ----------
    Les 5 totems (Classique, le Sage, le Requin, le Volcan, le Corail) gardent leurs couleurs et leur bouche (HTOTEMS).
    Three.js r128 : depuis cdnjs dans l'artifact, depuis le fichier three.min.js de l'appli web (gardé hors-ligne).
