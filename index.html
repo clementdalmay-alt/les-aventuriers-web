@@ -1662,6 +1662,49 @@ body:has(.wrap > details.schapd){padding-bottom:calc(16px + env(safe-area-inset-
 body:has(.wrap > .achgrid){padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .wrap:has(> .achgrid) > .stickb{align-self:end}
 @media (max-width:374px){.achgrid{grid-template-columns:1fr}}
+/* Lot G2 (v2.83) : Comment jouer en panneau, création de partie sans défilement. */
+.ovl.howv .homegb{display:grid;gap:10px;padding:0}
+.ovl.howv details{margin:0 !important}
+/* Création : explications derrière ⓘ */
+.tabbody .shint{display:none}
+.tabbody .shint.on{display:block}
+.sti2 > .lbl{display:flex;align-items:center;gap:6px}
+.sti2 > .lbl > .sib{margin-left:auto;position:relative;width:32px;height:32px;flex:0 0 32px}
+.sti2 > .lbl > .sib::before{content:"";position:absolute;inset:-6px}
+/* Couleurs des tribus repliées */
+details.colsd{margin:0 !important}
+details.colsd > summary .cdots{display:inline-flex;gap:6px;margin-left:auto}
+details.colsd .cdotm{width:18px;height:18px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px var(--line)}
+details.colsd > summary::after{margin-left:8px !important}
+details.colsd > .field{margin:0 14px}
+/* Vous / Joueurs en 3 étapes */
+.psteps{margin:0 0 4px}
+.psteps button{font-size:.84rem;padding:8px 4px;white-space:nowrap;min-width:0}
+.pcard[data-step="1"] [data-st]:not([data-st="1"]),.pcard[data-step="2"] [data-st]:not([data-st="2"]),.pcard[data-step="3"] [data-st]:not([data-st="3"]){display:none !important}
+.pcard[data-step="1"] > ul.impact:not(:has(> li[data-st="1"])),.pcard[data-step="2"] > ul.impact:not(:has(> li[data-st="2"])),.pcard[data-step="3"] > ul.impact:not(:has(> li[data-st="3"])){display:none}
+.pcard > .pnext[hidden]{display:none}
+/* À plusieurs : un joueur par ligne, un seul déplié */
+.prow{appearance:none;display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 4px;background:transparent;border:0;color:var(--sand);font:inherit;text-align:left;cursor:pointer}
+.prow b{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prowf svg{width:40px !important;height:40px !important;display:block}
+.prowp{font-size:1.3rem;color:var(--torch);line-height:1}
+.pcard.pmany:not(.pon) > :not(.prow){display:none !important}
+.pcard.pmany:not(.pon){padding-top:4px;padding-bottom:4px}
+/* Création : pas de marge vide de 48 px sous la barre Retour / Commencer */
+body:has(.setupgo){padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.tabbody .field > p.shint{display:none}
+.tabbody .field > p.shint.on{display:block}
+/* Création : libellé et liste sur une ligne (une ligne quand c'est possible) */
+.tabbody label.field:has(> select):not(.two label),.tabbody .isel > label.field:not(.two label){display:grid;grid-template-columns:minmax(0,30%) minmax(0,1fr);align-items:center;column-gap:10px}
+.tabbody label.field:has(> select) > .lbl,.tabbody .isel > label.field > .lbl{white-space:normal;line-height:1.2}
+.tabbody .sti2:is(label):has(> select):not(.two label){grid-template-columns:minmax(0,30%) minmax(0,1fr) auto}
+.tabbody .sti2:is(label):has(> select) > .lbl > .sib{order:3}
+/* Profil : « Liens » sur une ligne, explication derrière ⓘ ; intertitre « Vos choix » retiré (l'étape porte déjà le nom) */
+.pcard[data-step] > p.ichoices{display:none !important}
+.pcard ul.impact > li:has(> .ik) > div > .muted{display:none}
+.pcard ul.impact > li:has(> .ik).iopen > div > .muted{display:block}
+.tabbody label.field.sstack{display:grid !important;grid-template-columns:minmax(0,1fr) !important}
+.tabbody label.field.sti2.sstack > .lbl{display:flex}
 </style>
 
 <div id="app"></div>
@@ -5985,13 +6028,16 @@ try{let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{
 // Les boutons sont déplacés dans le panneau (leurs actions restent branchées) puis remis à leur place à la fermeture.
 function homeModesSheet(){try{const d=[...$app.querySelectorAll('details.homeg')].find(x=>x.querySelector('#new'));if(!d||d.dataset.sheet)return;d.dataset.sheet='1';
   const sm=d.querySelector('summary'),gb=d.querySelector('.homegb');if(!sm||!gb)return;sm.setAttribute('aria-haspopup','dialog');
-  sm.addEventListener('click',e=>{e.preventDefault();d.open=false;
-    const ov=document.createElement('div');ov.className='ovl modesv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
-    ov.innerHTML=`<div class="sheet"><h2 class="h">${sm.textContent.trim()}</h2><div class="modesb"></div><button class="btn ghost" data-m="close">${L("Close","Fermer","Cerrar")}</button></div>`;
+  sm.addEventListener('click',e=>{e.preventDefault();d.open=false;homeSheet(sm.textContent.trim(),gb,d,true)})}catch(e){}}
+// Panneau commun de l'accueil (Autres modes, Comment jouer — v2.83) : le contenu `gb` est déplacé dans le panneau puis remis dans `home` à la fermeture.
+// closeOnBtn : un bouton du contenu ferme le panneau (Autres modes) ; sinon il reste ouvert (Comment jouer : thèmes, familles) sauf si l'écran change.
+function homeSheet(title,gb,home,closeOnBtn,cls){
+    const ov=document.createElement('div');ov.className='ovl modesv'+(cls?' '+cls:'');ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+    ov.innerHTML=`<div class="sheet"><h2 class="h">${title}</h2><div class="modesb"></div><button class="btn ghost" data-m="close">${L("Close","Fermer","Cerrar")}</button></div>`;
     ov.querySelector('.modesb').appendChild(gb);
-    const close=()=>{document.removeEventListener('keydown',k);if(d.isConnected)d.appendChild(gb);ov.remove()};const k=e=>{if(e.key==='Escape')close()};
-    ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-m="close"]'))return close();if(e.target.closest('button'))setTimeout(()=>{if(!$app.querySelector('.wrap.homew'))ov.remove();else close()},0)});
-    document.addEventListener('keydown',k);document.body.appendChild(ov);try{ov.querySelector('button').focus({preventScroll:true})}catch(_){}})}catch(e){}}
+    const close=()=>{document.removeEventListener('keydown',k);if(home&&home.isConnected)home.appendChild(gb);ov.remove()};const k=e=>{if(e.key==='Escape')close()};
+    ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-m="close"]'))return close();if(e.target.closest('button'))setTimeout(()=>{if(!$app.querySelector('.wrap.homew'))ov.remove();else if(closeOnBtn)close()},0)});
+    document.addEventListener('keydown',k);document.body.appendChild(ov);try{ov.querySelector('button').focus({preventScroll:true})}catch(_){}return ov}
 // accueil : l'écran lui-même (les ajouts sont faits par home, juste au-dessus)
 function homeMain(){INGAME=false;try{musicSet('off');setPhase(null)}catch(e){}
   const saves=Object.values(allSaves()).filter(g=>g&&g.players&&g.gid).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
@@ -6048,7 +6094,44 @@ function loadScreen(){
   $app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(b.dataset.armed){deleteSave(b.dataset.del);loadScreen()}else{b.dataset.armed='1';b.textContent=L("Tap again to delete","Touchez encore pour supprimer","Toca otra vez para borrar")}});
 }
 const blankPlayer=()=>({city:pickCity(),build:'mid',seed:rint(1,1e9),sseed:rint(1,1e9),g:pick(['f','m']),name:'',age:rint(22,45),arch:'strategic',sport:pick(SPORTS).n,job:pick(JOBS),fam:'Single',kids:0});
-function setupScreen(modeArg,sopt={}){return new Promise(res=>{
+// v2.83 (lot G2) : création de partie sans défilement, appliqué après chaque dessin de l'écran (draw) :
+// 1) une explication (p.hint) placée juste après un choix passe derrière un ⓘ sur le libellé de ce choix ;
+// 2) « Couleurs des tribus » se replie sur une ligne (les deux couleurs choisies + « + ») ;
+// 3) Vous / Joueurs : chaque fiche en 3 étapes Identité · Profil · Stats ; à plusieurs, chaque joueur sur une ligne, un seul déplié.
+// SETUPF garde l'étape, le joueur déplié et les ⓘ ouverts d'un dessin à l'autre ; il est remis à zéro à chaque ouverture de l'écran.
+let SETUPF={step:{},pon:0,open:new Set()};
+function setupFold(tab,mode){try{const tb=$app.querySelector('.tabbody');if(!tb)return;const mk=(lbl,key)=>{const b=document.createElement('button');b.type='button';b.className='ibtn sib';b.dataset.sk=key;b.setAttribute('aria-label',L("Details","Détails"));b.textContent='ⓘ';if(lbl.querySelector(':scope > .sib'))return;lbl.appendChild(b)};
+  let n=0;tb.querySelectorAll('p.hint').forEach(h=>{const f=h.previousElementSibling;if(!f||!f.matches('.field, label.field')||h.id==='err')return;const l=f.querySelector(':scope > .lbl');if(!l)return;
+    const key=tab+':'+(n++);h.classList.add('shint');f.classList.add('sti2');mk(l,key);if(SETUPF.open.has(key))h.classList.add('on')});
+  tb.querySelectorAll('.field > p.hint:last-child').forEach(h=>{const f=h.parentElement,l=f.querySelector(':scope > .lbl');if(!l||f.matches(':has(> .colpick)'))return;const key=tab+':'+(n++);h.classList.add('shint');f.classList.add('sti2');mk(l,key);if(SETUPF.open.has(key))h.classList.add('on')});
+  // couleurs des tribus
+  const cp=tb.querySelector('.field:has(> .colpick)');if(cp&&!cp.closest('details')){const d=document.createElement('details');d.className='achg colsd';if(SETUPF.colsOpen)d.open=true;
+    const l=cp.querySelector(':scope > .lbl');const dots=[...cp.querySelectorAll('.cdot.on')].map(x=>`<i class="cdotm" style="background:${x.style.background}"></i>`).join('');
+    d.innerHTML=`<summary><span>${l?l.innerHTML:''}</span><span class="cdots">${dots}</span></summary>`;cp.before(d);d.appendChild(cp);if(l)l.hidden=true;d.addEventListener('toggle',()=>{SETUPF.colsOpen=d.open})}
+  // fiches Vous / Joueurs
+  const cards=[...tb.querySelectorAll('.pcards > .pcard')];const many=mode==='group'&&cards.length>1;if(SETUPF.pon>=cards.length)SETUPF.pon=0;
+  cards.forEach((c,i)=>{const st=SETUPF.step[i]||1;c.dataset.step=st;
+    [...c.children].forEach(x=>{if(x.dataset.st||x.matches('ul.impact'))return;x.dataset.st=x.matches('.top, details.lookd, .two, .field:has(select[id^="u"]), .field:has(#o'+i+')')?'1':x.matches('p.ichoices')?'2':x.matches('details.statd')?'3':'1'});
+    c.querySelectorAll(':scope > ul.impact > li:has(> .ik)').forEach(li=>{const d=li.querySelector(':scope > div');if(!d||!d.querySelector('.muted')||d.querySelector('.ibtn'))return;const b=document.createElement('button');b.type='button';b.className='ibtn lib';b.setAttribute('aria-label',L("Details","Détails"));b.textContent='ⓘ';d.querySelector('b').after(b);b.onclick=e=>{e.preventDefault();li.classList.toggle('iopen')}});
+    c.querySelectorAll(':scope > ul.impact > li').forEach(li=>{li.dataset.st=li.querySelector('[data-dice], #b'+i)?'3':li.querySelector('#a'+i)?'1':'2'});
+    const bar=document.createElement('div');bar.className='seg psteps';bar.setAttribute('role','tablist');
+    bar.innerHTML=[L("Identity","Identité","Identidad"),L("Profile","Profil","Perfil"),L("Stats","Stats","Estadísticas")].map((t,k)=>`<button type="button" role="tab" data-pst="${k+1}" class="${st===k+1?'on':''}" aria-selected="${st===k+1}">${k+1} · ${t}</button>`).join('');
+    const nx=document.createElement('button');nx.type='button';nx.className='btn ghost pnext';nx.dataset.pnx='1';nx.textContent=L("Next","Suivant","Siguiente")+' ›';if(st===3)nx.hidden=true;
+    c.prepend(bar);c.appendChild(nx);
+    if(many){const nm=(c.querySelector('input.name')||{}).value||(c.querySelector('input.name')||{}).placeholder||'';const fc=c.querySelector('.prev svg');
+      const row=document.createElement('button');row.type='button';row.className='prow';row.dataset.pon=i;row.setAttribute('aria-expanded',String(i===SETUPF.pon));
+      row.innerHTML=`<span class="prowf">${fc?fc.outerHTML:''}</span><b>${esc(nm)}</b><span class="prowp">${i===SETUPF.pon?'–':'+'}</span>`;c.prepend(row);c.classList.toggle('pon',i===SETUPF.pon);c.classList.add('pmany')}});
+  if(!tb.dataset.sfw){tb.dataset.sfw='1';tb.addEventListener('click',e=>{const ib=e.target.closest('.sib[data-sk]');if(ib){e.preventDefault();e.stopPropagation();const f=ib.closest('.sti2'),h=f&&(f.querySelector(':scope > p.shint')||f.nextElementSibling);if(h){h.classList.toggle('on');h.classList.contains('on')?SETUPF.open.add(ib.dataset.sk):SETUPF.open.delete(ib.dataset.sk)}return}
+    const pc=e.target.closest('.pcard'),idx=pc?[...pc.parentElement.children].indexOf(pc):-1;
+    const ps=e.target.closest('[data-pst]'),pn=e.target.closest('[data-pnx]'),pr=e.target.closest('[data-pon]');
+    if(ps||pn){const v=ps?+ps.dataset.pst:Math.min(3,(+pc.dataset.step||1)+1);SETUPF.step[idx]=v;pc.dataset.step=v;pc.querySelectorAll('[data-pst]').forEach(b=>{const on=+b.dataset.pst===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});pc.querySelector('.pnext').hidden=v===3;try{pc.scrollIntoView({block:'nearest'})}catch(_){}return}
+    if(pr){SETUPF.pon=+pr.dataset.pon;pc.parentElement.querySelectorAll(':scope > .pcard').forEach((c,k)=>{const on=k===SETUPF.pon;c.classList.toggle('pon',on);const r=c.querySelector(':scope > .prow');if(r){r.setAttribute('aria-expanded',String(on));r.querySelector('.prowp').textContent=on?'–':'+'}})}},true)}
+  // libellé et liste sur une ligne seulement si le choix affiché tient en entier (sinon la liste passe sous le libellé)
+  const fit=()=>{const cx=document.createElement('canvas').getContext('2d');tb.querySelectorAll('label.field > select').forEach(sel=>{const f=sel.parentElement;f.classList.remove('sstack');if(!sel.offsetParent||!sel.selectedOptions[0])return;
+    cx.font=getComputedStyle(sel).font;if(cx.measureText(sel.selectedOptions[0].text).width>sel.clientWidth-44)f.classList.add('sstack')})};
+  fit();tb.querySelectorAll('[data-pst], [data-pnx], [data-pon]').forEach(b=>b.addEventListener('click',()=>setTimeout(fit,0)));tb.querySelectorAll('label.field > select').forEach(sel=>sel.addEventListener('change',fit));
+  tb.querySelectorAll('.pcard input.name').forEach(inp=>inp.addEventListener('input',()=>{const r=inp.closest('.pcard').querySelector(':scope > .prow b');if(r)r.textContent=inp.value||inp.placeholder}))}catch(e){}}
+function setupScreen(modeArg,sopt={}){SETUPF={step:{},pon:0,open:new Set()};return new Promise(res=>{
   const last=(()=>{try{return JSON.parse(localStorage.getItem('aventuriers-last')||'{}')||{}}catch(e){return{}}})();
   let cm=sopt.allstars?'mine':'surprise',fill='surprise',pv=[];
   let obj=last.obj&&typeof last.obj.idol==='number'?{...last.obj}:{...OBJP.classic},cols=Array.isArray(last.cols)&&last.cols.length===2?last.cols.slice():['red','yellow'],paceSel=+(last.pace||SET.pace||7),rvr=last.rv||'all',duelOn=!!last.duel,step=1,mode=modeArg||(last.mode==='group'?'group':'solo'),ps=[blankPlayer()],openB=new Set(),tmode=null,tab=1,loc=last.loc||'random',form=last.form||'random',days=last.days||24,diff=last.diff||'normal',size=last.size||20,drawn=false,tw={linked:false,black:false,swap:false,rnd:false,...(last.tw||{})};if(mode==='group')ps.push(blankPlayer());const picked=new Set(),lib=libGet();if(sopt.allstars){const fs=lib.filter(c=>c.g==='f'),ms=lib.filter(c=>c.g!=='f');const half=Math.min(10,Math.max(5,Math.max(fs.length,ms.length)+1));size=half*2;[...fs.slice(0,half-1),...ms.slice(0,half-1)].forEach(c=>picked.add(c.cid));tab=4}tmode=tw.rnd?'rnd':Object.keys(TWISTS).some(k=>tw[k])?'custom':'classic';
@@ -6107,6 +6190,7 @@ function setupScreen(modeArg,sopt={}){return new Promise(res=>{
       `)}
       <p class="err" id="err" hidden></p>
       <div class="row setupgo"><button class="btn ghost" id="prev">‹ ${L("Back","Retour","Volver")}</button><button class="btn" id="go">${L("Start the game","Commencer la partie","Empezar la partida")}</button></div>`);
+    setupFold(tab,mode);
     drawn=true;try{window.scrollTo(0,y)}catch(e){}
     wireLang(()=>{read();draw()});
     $app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{read();tab=+b.dataset.tab;drawn=false;draw()});
@@ -6345,7 +6429,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.82 · 2026-11-06';
+const APP_VER='2.83 · 2026-11-06';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6419,11 +6503,11 @@ function homeTidy(){try{const w=$app.querySelector('.wrap');if(!w||INGAME||w.que
   const lib=$id('lib'),set=$id('settings'),ach=$id('ach');if(!lib||!set||!ach)return;
   const bar=document.createElement('nav');bar.className='hbar';bar.setAttribute('aria-label',L("Menu","Menu"));
   const nA=Object.keys(achGet()).length,tA=ACHS().length;
-  bar.innerHTML=`<button type="button" id="hb_lib"><span aria-hidden="true">👥</span>${L("Castaways","Aventuriers","Aventureros")}</button><button type="button" id="hb_ach"><span aria-hidden="true">🏅</span>${L("Achievements","Succès","Logros")} ${nA}/${tA}</button><button type="button" id="hb_how" aria-expanded="false"><span aria-hidden="true">📖</span>${L("How to play","Comment jouer","Cómo jugar")}</button><button type="button" id="hb_set"><span aria-hidden="true">⚙️</span>${L("Settings","Réglages","Ajustes")}</button>`;
+  bar.innerHTML=`<button type="button" id="hb_lib"><span aria-hidden="true">👥</span>${L("Castaways","Aventuriers","Aventureros")}</button><button type="button" id="hb_ach"><span aria-hidden="true">🏅</span>${L("Achievements","Succès","Logros")} ${nA}/${tA}</button><button type="button" id="hb_how"><span aria-hidden="true">📖</span>${L("How to play","Comment jouer","Cómo jugar")}</button><button type="button" id="hb_set"><span aria-hidden="true">⚙️</span>${L("Settings","Réglages","Ajustes")}</button>`;
   lib.before(bar);[lib,set,ach].forEach(x=>x.hidden=true);
   if(how){how.hidden=true;bar.after(how)}
   $id('hb_lib').onclick=()=>lib.click();$id('hb_ach').onclick=()=>ach.click();$id('hb_set').onclick=()=>set.click();
-  $id('hb_how').onclick=()=>{if(!how)return;const on=how.hidden;how.hidden=!on;how.open=on;$id('hb_how').setAttribute('aria-expanded',String(on));if(on)try{how.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}}}catch(e){}}
+  $id('hb_how').setAttribute('aria-haspopup','dialog');$id('hb_how').onclick=()=>{if(!how)return;const gb=how.querySelector('.homegb');if(gb)homeSheet(how.querySelector('summary').textContent.trim(),gb,how,false,'howv')}}catch(e){}}
 /* ---------- Lot D (v2.78) : totem de l'accueil en 3D ----------
    Les 5 totems (Classique, le Sage, le Requin, le Volcan, le Corail) gardent leurs couleurs et leur bouche (HTOTEMS).
    Three.js r128 : depuis cdnjs dans l'artifact, depuis le fichier three.min.js de l'appli web (gardé hors-ligne).
