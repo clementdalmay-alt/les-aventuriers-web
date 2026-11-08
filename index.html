@@ -3844,7 +3844,7 @@ function gameFire(){return miniJeu(j=>{
     <p class="fb" id="fb"> </p>
     <button class="btn" id="blow" hidden style="padding:22px;font-size:1.3rem">💨 ${L("Blow","Souffler","Soplar")}</button>`);
   const bd=el('bd'),stk=el('stk'),gb=el('gb'),tm=el('tm'),emb=el('emb'),fb=el('fb');
-  let phase=1,heat=0,down=false,lastX=0,t0=performance.now(),last=t0,t1=0,air=0,prog=0,t2s=0,lastHeat=0,moved=false;
+  let phase=1,heat=0,down=false,lastX=0,t0=performance.now(),last=t0,t1=0,air=0,prog=0,t2s=0,lastHeat=0,moved=false;const fcF=mgFrameClock(t0);
   // Souffle : zone à tenir 40-80 % ; à l'entraînement Facile 35-85, Difficile 46-74, Expert 54-70 (jauge bien plus petite)
   const ZB=({e:[35,85],h:[46,74],x:[54,70]})[TLVL()]||[40,80];{const gz=el('gz');if(gz){gz.style.left=ZB[0]+'%';gz.style.width=(ZB[1]-ZB[0])+'%'}}
   const end=(score,msg)=>{j.fini=true;el('ft').textContent=msg;el('blow').hidden=true;j.fin(Math.round(clamp(score)),1500)};
@@ -3853,7 +3853,7 @@ function gameFire(){return miniJeu(j=>{
   const up=()=>{down=false};bd.addEventListener('pointerup',up);bd.addEventListener('pointercancel',up);
   const puff=()=>{if(phase===2&&!j.fini)air=Math.min(100,air+10)};el('blow').addEventListener('pointerdown',e=>{e.preventDefault();puff()});
   const kb=e=>{if(j.fini){document.removeEventListener('keydown',kb);return}if(e.key===' '||e.key==='Enter'){e.preventDefault();puff()}};try{document.addEventListener('keydown',kb)}catch(_){}
-  const loop=t=>{if(j.fini)return;const dt=Math.min(.05,(t-last)/1000);last=t;
+  const loop=()=>{if(j.fini)return;const t=fcF();const dt=Math.min(.05,(t-last)/1000);last=t;
     if(phase===1){
       heat=Math.max(0,heat-25*dt);const left=20-(t-t0)/1000;tm.textContent=nf(Math.max(0,left).toFixed(1))+' s';gb.style.width=heat+'%';el('gv').textContent=Math.round(heat)+' %';bd.style.setProperty('--heat',heat);el('smk').style.opacity=Math.min(.8,heat/110);
       fb.textContent=!moved?L("Start rubbing!","Commencez à frotter !","¡Empieza a frotar!"):heat<lastHeat-0.2?L("Faster! It is cooling down.","Plus vite ! Ça refroidit.","¡Más rápido! Se está enfriando."):heat>70?L("Almost there, keep going!","Presque, continuez !","¡Casi, sigue!"):L("Good, keep rubbing.","Bien, continuez à frotter.","Bien, sigue frotando.");lastHeat=heat;
@@ -3910,17 +3910,17 @@ function gamePost(cap){return miniJeu(j=>{
   screen(`${eb(gN('post'))}<p class="muted" id="st">${L("Press and hold inside the ring to step onto the post.","Appuyez dans l'anneau et maintenez pour monter sur le poteau.","Mantén el dedo dentro del anillo para subir al poste.")}</p>
     <div class="arena" id="ar"><div class="ring" id="ring"></div><div class="clock" id="clk">0.0s</div></div>`);
   const ar=el('ar'),ring=el('ring'),clk=el('clk'),st=el('st');
-  let x=ar.clientWidth/2,y=ar.clientHeight/2,ang=rnd(0,6.28),r=50,started=false,t0=0,last=0,px=-999,py=-999,down=false,outSince=null;
+  let x=ar.clientWidth/2,y=ar.clientHeight/2,ang=rnd(0,6.28),r=50,started=false,t0=0,last=0,px=-999,py=-999,down=false,outSince=null,fcB=null;
   const draw=()=>{ring.style.left=x+'px';ring.style.top=y+'px';ring.style.width=ring.style.height=(r*2)+'px'};draw();
   const posOf=e=>{const b=ar.getBoundingClientRect();px=e.clientX-b.left;py=e.clientY-b.top};
   const inside=()=>Math.hypot(px-x,py-y)<=r;
   const finish=(sec,msg)=>{if(j.fini)return;j.fini=true;st.textContent=msg;ring.classList.remove('held');j.fin(sec,1100)};
   ar.addEventListener('pointerdown',e=>{if(j.fini)return;posOf(e);down=true;try{ar.setPointerCapture(e.pointerId)}catch(_){}
-    if(!started&&inside()){started=true;t0=last=performance.now();st.textContent=L("Stay in the ring!","Restez dans l'anneau !","¡Quédate en el anillo!");ring.classList.add('held');requestAnimationFrame(loop)}});
+    if(!started&&inside()){started=true;t0=last=performance.now();fcB=mgFrameClock(t0);st.textContent=L("Stay in the ring!","Restez dans l'anneau !","¡Quédate en el anillo!");ring.classList.add('held');requestAnimationFrame(loop)}});
   ar.addEventListener('pointermove',e=>{if(down)posOf(e)});
-  const up=()=>{down=false;if(started&&!j.fini)finish((performance.now()-t0)/1000,L("You stepped off the post.","Vous avez quitté le poteau.","Has bajado del poste."))};
+  const up=()=>{down=false;if(started&&!j.fini)finish(((fcB?fcB():performance.now())-t0)/1000,L("You stepped off the post.","Vous avez quitté le poteau.","Has bajado del poste."))};
   ar.addEventListener('pointerup',up);ar.addEventListener('pointercancel',up);
-  const loop=t=>{if(j.fini)return;const dt=Math.min(.05,(t-last)/1000);last=t;const e_=(t-t0)/1000;
+  const loop=()=>{if(j.fini)return;const t=fcB();const dt=Math.min(.05,(t-last)/1000);last=t;const e_=(t-t0)/1000;
     const v=Math.min(240,45+e_*7);ang+=rnd(-2.2,2.2)*dt*2;x+=Math.cos(ang)*v*dt;y+=Math.sin(ang)*v*dt;r=Math.max(26,50-e_*.6);
     const W=ar.clientWidth,H=ar.clientHeight;
     if(x<r){x=r;ang=Math.PI-ang}if(x>W-r){x=W-r;ang=Math.PI-ang}if(y<r+40){y=r+40;ang=-ang}if(y>H-r){y=H-r;ang=-ang}
@@ -3984,9 +3984,9 @@ function gameBamboo(){return miniJeu(j=>{
   const stop=()=>{if(!filling)return;filling=false;const pts=level>100?0:Math.max(0,100-Math.abs(level-target)*4);total+=pts;try{window.__rounds.push(Math.round(pts))}catch(_){}
     el('fb').textContent=level>100?L("It overflowed!","Ça déborde !","¡Se ha desbordado!"):pts>85?L("Right on the line!","Pile sur le trait !","¡Justo en la línea!"):pts>50?L("Close.","Pas loin.","Cerca."):L("Way off.","Loin du compte.","Muy lejos.");
     round++;if(round>=5){j.fini=true;j.fin(Math.round(total/5),900)}else setTimeout(setup,900)};
-  const loop=t=>{if(!filling||j.fini)return;const dt=(t-last)/1000;last=t;level+=speed*dt;el('wt').style.height=Math.min(100,level)+'%';if(level>100){stop();return}requestAnimationFrame(loop)};
-  const btn=el('pour');let t0=0;btn.style.touchAction='none';btn.addEventListener('contextmenu',e=>e.preventDefault());
-  btn.addEventListener('pointerdown',e=>{e.preventDefault();if(j.fini||filling)return;if(level>0)return;try{btn.setPointerCapture(e.pointerId)}catch(_){}filling=true;t0=last=performance.now();requestAnimationFrame(loop)});
+  const loop=()=>{if(!filling||j.fini)return;const t=fcW();const dt=(t-last)/1000;last=t;level+=speed*dt;el('wt').style.height=Math.min(100,level)+'%';if(level>100){stop();return}requestAnimationFrame(loop)};
+  const btn=el('pour');let t0=0,fcW=null;btn.style.touchAction='none';btn.addEventListener('contextmenu',e=>e.preventDefault());
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();if(j.fini||filling)return;if(level>0)return;try{btn.setPointerCapture(e.pointerId)}catch(_){}filling=true;t0=last=performance.now();fcW=mgFrameClock(t0);requestAnimationFrame(loop)});
   const rel=()=>{if(!filling)return;if(performance.now()-t0<150&&level<3){filling=false;level=0;el('wt').style.height='0%';el('fb').textContent=L("Hold the button down to pour.","Gardez le doigt appuyé pour verser.");return}stop()};
   btn.addEventListener('pointerup',rel);btn.addEventListener('pointercancel',rel);btn.addEventListener('lostpointercapture',rel);
   setup();
@@ -4278,11 +4278,15 @@ function postTrain(){const lv=TLVL()||(typeof MGLV==='function'?MGLV():'n'),R=({
   const pool=INGAME&&S?shuffle(alive().filter(p=>!p.human).map(p=>p.name)):[];const noms=(pool.length>=3?pool:shuffle([...AI_NAMES])).slice(0,3);
   const riv=noms.map(n=>({name:esc(String(n)),t:+rnd(R[0],R[1]).toFixed(1)}));
   return gamePosts(L("You","Vous","Tú"),riv,30).then(s=>Math.round(clamp(s/30*100)))}
+/* v2.93 : horloge d'image d'un mini-jeu. Une seule source (performance.now, jamais le temps passé par requestAnimationFrame,
+   qui peut venir d'une autre horloge sur certains téléphones) ; elle avance image par image, au plus 0,25 s par image :
+   une pause du téléphone ou une vidéo par-dessus n'ajoute pas de temps. mgFrameClock(t0)() rend le temps courant (ms). */
+function mgFrameClock(start){let v=start,p=start;return ()=>{const n=performance.now();v+=Math.max(0,Math.min(250,n-p));p=n;return v}}
 function gamePosts(me,rivals,cap){
 if(AUTO&&AUTO.k==='jury')return Promise.resolve(+(20+Math.random()*60).toFixed(1));
 // v2.67 (validé le 4/11) : paliers de 12 s ; la zone verte rétrécit à chaque palier et sortir de la zone, c'est tomber.
 // La force du vent et des secousses suit toujours l'ancien rythme (paliers de 20 s), pour ne pas déséquilibrer la finale.
-return new Promise(res=>{const STAGE=12,FSTAGE=20,LIM=s=>Math.max(.55,1-(s-1)*.1);let x=0,v=0,t0=null,done=false,last=null,gust=0,gustDir=0,stage=1;
+return new Promise(res=>{const STAGE=12,FSTAGE=20,LIM=s=>Math.max(.55,1-(s-1)*.1);let x=0,v=0,t0=null,done=false,last=null,gust=0,gustDir=0,stage=1,fc=null;
   const all=[{name:me,t:null,me:true},...rivals];
   screen(`<p class="eyebrow">${L("The posts","Les poteaux")}</p><h1 class="h" id="pst">${L("Stage","Palier")} 1</h1>
     <div class="posts peau">${all.map((r,i)=>`<div class="post ${r.me?'me':''}" id="po${i}"><div class="who">${r.me?(INGAME&&S&&S.players.find(x=>x.human)?face(S.players.find(x=>x.human),34):'🧍'):(rivTete(String(r.name).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&'),34)||'🧍')}</div><div class="pole"></div><span>${r.name}</span><b class="num" id="pt${i}">${r.t==null&&!r.me?L("to come","à venir"):''}</b></div>`).join('')}</div>
@@ -4292,8 +4296,8 @@ return new Promise(res=>{const STAGE=12,FSTAGE=20,LIM=s=>Math.max(.55,1-(s-1)*.1
     <div class="row"><button class="btn" data-s="-1" style="padding:24px">◀ ${L("Left","Gauche","Izquierda")}</button><button class="btn" data-s="1" style="padding:24px">${L("Right","Droite","Derecha")} ▶</button></div>
     <p class="lbl" style="text-align:center"><span class="num" id="ptm">0,0 s</span></p>`);
   const fb=s=>{const f=el('fb');if(f)f.textContent=s};
-  const finish=sec=>{if(done)return;done=true;const me0=el('po0');if(me0&&sec!=null)me0.classList.add('fell');setTimeout(()=>res(+sec.toFixed(1)),1300)};
-  const tick=now=>{if(done)return;if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;const e=(now-t0)/1000;
+  const finish=sec=>{if(done)return;done=true;const me0=el('po0');if(me0&&sec!=null)me0.classList.add('fell');setTimeout(()=>res(+Math.min(240,sec).toFixed(1)),1300)};
+  const tick=()=>{if(done)return;const now=fc();if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;const e=Math.min(240,(now-t0)/1000);
     const ns=1+Math.floor(e/STAGE);if(ns!==stage){stage=ns;const h=el('pst');if(h)h.textContent=L("Stage","Palier")+' '+stage;fb(L(`Stage ${stage}: a smaller step!`,`Palier ${stage} : une marche plus petite !`))}
     const fst=1+Math.floor(e/FSTAGE),force=(0.55+fst*0.28)*(e<3?0.35:1);{const z=$app.querySelector('.balz');if(z){const w=LIM(stage)*46;z.style.left=(50-w)+'%';z.style.right=(50-w)+'%'}}$app.querySelectorAll('[data-s]').forEach(b=>b.classList.toggle('phot',Math.abs(x)>0.15&&+b.dataset.s===(x>0?-1:1)));v+=(Math.random()-.5)*force*dt*9+x*force*dt*1.6;
     if(fst>=3&&now>gust){gust=now+rnd(2500,4500);gustDir=Math.random()<.5?-1:1;fb(L("Gust of wind!","Rafale de vent !"))}
@@ -4306,7 +4310,7 @@ return new Promise(res=>{const STAGE=12,FSTAGE=20,LIM=s=>Math.max(.55,1-(s-1)*.1
     if(!cap&&rivals.length&&rivals.every(r=>r.t!=null&&e>r.t)){fb(L("Last one standing! You win the posts.","Dernier debout ! Vous remportez les poteaux."));const b=el('pt0');if(b)b.textContent=nf(e.toFixed(1))+' s';done=true;setTimeout(()=>res(+e.toFixed(1)),1300);return}
     if(e>=240){finish(e);return}
     requestAnimationFrame(tick)};
-  const go=()=>{if(t0!=null||done)return;t0=performance.now();requestAnimationFrame(tick);const g=el('pgo');if(g)g.remove();fb(L("Hold on! The first 3 seconds are calmer.","Tenez bon ! Les 3 premières secondes sont plus calmes."))};
+  const go=()=>{if(t0!=null||done)return;t0=performance.now();fc=mgFrameClock(t0);requestAnimationFrame(tick);const g=el('pgo');if(g)g.remove();fb(L("Hold on! The first 3 seconds are calmer.","Tenez bon ! Les 3 premières secondes sont plus calmes."))};
   {const g=el('pgo');if(g)g.addEventListener('pointerdown',ev=>{ev.preventDefault();go()})}
   $app.querySelectorAll('[data-s]').forEach(b=>{b.style.touchAction='none';b.addEventListener('pointerdown',ev=>{ev.preventDefault();if(done)return;if(t0==null){go();return}v+=(+b.dataset.s)*0.55})});
 })}
@@ -4397,7 +4401,7 @@ function gameShelter(){return miniJeu(j=>{const LV=MGLV(),N=MD(10,12,14);
     if(bi<0||bd>Math.min(TOL,(bi>0?beats[bi]-beats[bi-1]:999)*0.5)){off++;el('fb').textContent=L("Off the beat! The knot slips.","Hors rythme ! Le nœud se desserre.","¡Fuera de ritmo! El nudo se afloja.");return}
     used.add(bi);count++;const sc=bd<PERF?100:bd<PERF*2?70:40;score+=sc;el('fb').textContent=`${sc===100?L("Perfect","Parfait","Perfecto"):sc===70?L("Good","Bien","Bien"):L("Just","Juste","Justo")} · ${L("knots","nœuds","nudos")} : ${count}/${N}`};
   el('tie').addEventListener('pointerdown',e=>{e.preventDefault();lastPd=performance.now();_tieF()});el('tie').onclick=()=>{if(performance.now()-lastPd<600)return;_tieF()};
-  const loop=t=>{if(j.fini)return;const s=el('sh');const i=beats.findIndex(b=>b>=t);
+  const loop=()=>{if(j.fini)return;const t=performance.now();const s=el('sh');const i=beats.findIndex(b=>b>=t);
     try{const r=$app.querySelector('.rhythm .mgring');const cur=i<0?N-1:i-1;if(cur>ticked){ticked=cur;if(cur>=0){try{sfx('tap')}catch(_){}if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}}
       for(let q=0;q<N;q++){if(q>=missed&&!used.has(q)&&t>beats[q]+Math.min(TOL,(q>0?beats[q]-beats[q-1]:999)*0.5)){missed=q+1;el('fb').textContent=`${L("Missed","Raté","Fallo")} · ${L("knots","nœuds","nudos")} : ${count}/${N}`}}
       if(s)s.classList.toggle('quick',i>=0&&!!quick[i])}catch(_){}
@@ -4956,14 +4960,14 @@ function gameSpear(){return miniJeu(j=>{
   screen(`${eb(gN('spear'))}<h1 class="h">${L("Throw","Lancer","Lanzar")} <span id="rd">1</span>/5</h1>
     <div class="lagoon" id="lg"><div class="aim"></div><div class="target" id="tg"></div><div class="hit" id="hit" hidden></div></div>
     <p class="fb" id="fb"> </p><button class="btn" id="th" style="padding:26px">${L("Throw","Lancer","Lanzar")}</button>`);
-  let round=0,total=0,ph=Math.random()*6.28,run=true,last=performance.now(),x=50;window.__rounds=[];
-  const loop=t=>{if(!run)return;const dt=(t-last)/1000;last=t;ph+=dt*(1.6+round*0.55);x=50+44*Math.sin(ph);el('tg').style.left=x+'%';requestAnimationFrame(loop)};requestAnimationFrame(loop);
+  let round=0,total=0,ph=Math.random()*6.28,run=true,last=performance.now(),x=50,fcS=mgFrameClock(last);window.__rounds=[];
+  const loop=()=>{if(!run)return;const t=fcS();const dt=(t-last)/1000;last=t;ph+=dt*(1.6+round*0.55);x=50+44*Math.sin(ph);el('tg').style.left=x+'%';requestAnimationFrame(loop)};requestAnimationFrame(loop);
   const fire=()=>{if(!run)return;run=false;const d=Math.abs(x-50);const pts=d<3?100:Math.max(0,100-(d-3)*3.7);total+=pts;try{window.__rounds.push(Math.round(pts))}catch(_){}
     let rp=4.7;try{const lg=el('lg'),tg=el('tg');if(lg&&tg&&lg.clientWidth)rp=(tg.offsetWidth/2+1.5)/lg.clientWidth*100}catch(_){}
     const q=d<=rp*.3?3:d<=rp*.7?2:d<=rp?1:0;
     const hit=el('hit');if(hit){hit.hidden=false;hit.className='hit '+(q>=2?'good':q===1?'mid':'bad')}
     el('fb').textContent=q===3?L("Bullseye!","En plein cœur !","¡En el centro!"):q===2?L("Good hit.","Bien touché.","Buen tiro."):q===1?L("Grazed it.","Effleurée.","Rozada."):L("Missed.","Raté.","Fallado.");
-    round++;setTimeout(()=>{if(round<5){el('rd').textContent=round+1;el('fb').textContent=' ';const h2=el('hit');if(h2)h2.hidden=true;run=true;last=performance.now();ph=Math.random()*6.28;requestAnimationFrame(loop)}else j.fin(Math.round(total/5))},900)};
+    round++;setTimeout(()=>{if(round<5){el('rd').textContent=round+1;el('fb').textContent=' ';const h2=el('hit');if(h2)h2.hidden=true;run=true;last=performance.now();fcS=mgFrameClock(last);ph=Math.random()*6.28;requestAnimationFrame(loop)}else j.fin(Math.round(total/5))},900)};
   const th=el('th');th.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();fire()});th.onclick=fire;
 })}
 /* one-line reminder shown during each game */
@@ -5450,12 +5454,13 @@ async function humanVote(p,elig,second){
     ${voteListe(p,elig)}`);if(AUTO||!(await voteUndo(to)))break}
   return{to,idol};
 }
-function revealVotes(order,played,title,flow){if(AUTO)return Promise.resolve();return new Promise(res=>{
+/* v2.93 : nxLbl = libellé du bouton de fin (vote du jury : « Continuer » ; sans lui, le libellé d'égalité s'affichait toujours) */
+function revealVotes(order,played,title,flow,nxLbl){if(AUTO)return Promise.resolve();return new Promise(res=>{
   let i=0;const tally={};
   screen(`${eb(title)}${soloHead()}<h1 class="h">${L("Reading the votes","Le dépouillement","El recuento")}</h1>
     ${[...played].map(id=>{const by=COLL_BY[id]!=null?COLL_BY[id]:id;return fireActive(id)?(by===id?`<p class="secret">🔥 ${L(`<b>${esc(P(id).name)}</b> uses the Sacred fire to save themselves. Votes against ${esc(P(id).name)} will not count.`,`<b>${esc(P(id).name)}</b> utilise le Feu sacré pour se sauver ${P(id).g==='f'?'elle-même':'lui-même'}. Les votes contre ${esc(P(id).name)} ne compteront pas.`)}</p>`:`<p class="secret">🔥 ${L(`<b>${esc(P(by).name)}</b> uses the Sacred fire to save <b>${esc(P(id).name)}</b>. Votes against ${esc(P(id).name)} will not count.`,`<b>${esc(P(by).name)}</b> utilise le Feu sacré pour sauver <b>${esc(P(id).name)}</b>. Les votes contre ${esc(P(id).name)} ne compteront pas.`)}</p>`):by===id?`<p class="secret">${L(`<b>${esc(P(id).name)}</b> plays the hidden immunity collar. Votes against ${esc(P(id).name)} will not count.`,`<b>${esc(P(id).name)}</b> joue le collier caché. Les votes contre ${esc(P(id).name)} ne compteront pas.`,`<b>${esc(P(id).name)}</b> juega el collar escondido. Los votos contra ${esc(P(id).name)} no contarán.`)}</p>`:`<p class="secret">${L(`<b>${esc(P(by).name)}</b> plays the hidden immunity collar… for <b>${esc(P(id).name)}</b>! Votes against ${esc(P(id).name)} will not count.`,`<b>${esc(P(by).name)}</b> joue le collier caché… pour <b>${esc(P(id).name)}</b> ! Les votes contre ${esc(P(id).name)} ne compteront pas.`)}</p>`}).join('')}
     <div class="card-slot" id="slot"><p class="muted">${L(`${order.length} votes in the urn.`,`${order.length} bulletins dans l'urne.`,`${order.length} votos en la urna.`)}</p></div><div class="tally" id="tal"></div>
-    <div class="row"><button class="btn ghost" id="all">${L("Skip to the result","Aller au résultat","Ir al resultado")}</button><button class="btn" id="nx" hidden>${flow?L("Hear the verdict","Entendre le verdict","Escuchar el veredicto"):'⚖️ '+L("Tie: what next","Égalité : la suite","Empate: ¿y ahora?")}</button></div>`);
+    <div class="row"><button class="btn ghost" id="all">${L("Skip to the result","Aller au résultat","Ir al resultado")}</button><button class="btn" id="nx" hidden>${nxLbl||(flow?L("Hear the verdict","Entendre le verdict","Escuchar el veredicto"):'⚖️ '+L("Tie: what next","Égalité : la suite","Empate: ¿y ahora?"))}</button></div>`);
   let timer=null;
   const step=()=>{if(i>=order.length)return;
     const v=order[i++],t=P(v.to),ok=!played.has(v.to);sfx('vote');if(t&&t.human)try{if(SET.vib&&navigator.vibrate)navigator.vibrate([50,40,50])}catch(_){};
@@ -5980,7 +5985,7 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
   const c0=votes.filter(v=>v.to===finals[0].id).length,c1=votes.length-c0;
   const winner=c0>c1?finals[0]:c1>c0?finals[1]:w,runner=finals.find(f=>f.id!==winner.id);
   let order=shuffle(votes);const li=order.map(v=>v.to).lastIndexOf(winner.id);if(li>=0){const[v]=order.splice(li,1);order.push(v)}
-  await revealVotes(order,new Set(),L("Jury vote","Vote du jury","Voto del jurado"));
+  await revealVotes(order,new Set(),L("Jury vote","Vote du jury","Voto del jurado"),false,L("Continue","Continuer","Continuar"));
   if(c0===c1&&!AUTO&&!SIMR)await ask(`${eb(L("The final","La finale"))}<h1 class="h">⚖️ ${L("Tie","Égalité")} ${c0}–${c1}</h1><p class="jtie">${L(`The jury is split. As announced, ${esc(w.name)}, winner of the final posts, takes the tie.`,`Le jury est partagé. Comme annoncé, ${esc(w.name)}, vainqueur des poteaux, remporte l'égalité.`)}</p><button class="btn" data-act="ok">${L("Continue","Continuer","Continuar")}</button>`);
   (S._pitch||[]).forEach(([f,j])=>{if(votes.some(v=>v.from===j&&v.to===f))unlock(P(f),'jurypitch')});S._pitch=[];
   await juryReasons(votes);
@@ -6571,7 +6576,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.92 · 2026-11-07';
+const APP_VER='2.93 · 2026-11-07';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
