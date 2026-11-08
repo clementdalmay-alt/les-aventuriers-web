@@ -1256,9 +1256,6 @@ h2.h{font-size:1.45rem}
 .whyr b{display:block}.whyr .muted{display:block;font-size:.9rem;margin-top:2px}
 .day3{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .day3 li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.98rem}
-.discover{border:2px solid var(--torch);border-radius:14px;padding:10px 12px;display:grid;gap:6px;background:var(--panel)}
-.discover .lbl{margin:0;color:var(--torch)}.discover .dsc{margin:0;font-size:.92rem;color:var(--muted)}
-.discover .btn{min-height:48px}
 .sbhelp{display:inline-flex;align-items:center;cursor:pointer;min-height:26px;padding:0 2px;position:relative}
 .sbhelp::after{content:'';position:absolute;inset:-9px}
 .helpq{appearance:none;border:1px solid var(--line);background:var(--panel-2);color:var(--torch);border-radius:999px;width:30px;height:30px;font:800 .95rem/1 var(--f-body);vertical-align:middle;cursor:pointer;position:relative}
@@ -1798,12 +1795,6 @@ details.jqd > summary > b{display:inline-flex; align-items:center; gap:6px; flex
 .bbar:has(> .simrest) .binfo > .sbtn{flex:0 0 52px; width:52px; padding-left:0; padding-right:0; font-size:1.2rem}
 .bbar:has(> .simrest) .binfo > .sbtn .stx{display:none}
 .bbar:has(> .simrest) > .simrest{flex:1 1 auto; width:auto; font-size:.95rem; line-height:1.2}
-/* Stratégie du jour : l'explication derrière ⓘ, au bout de la ligne du titre */
-.stratbar{position:relative}
-.stratbar > .stinfo{position:static}
-.stratbar > .stinfo > summary{position:absolute; top:6px; right:8px; list-style:none; cursor:pointer; color:var(--torch); font-weight:800; min-width:44px; min-height:32px; display:grid; place-items:center}
-.stratbar > .stinfo > summary::-webkit-details-marker{display:none}
-.stratbar > .stinfo > .hint{margin:6px 0 0}
 details.jqd > summary > .jqr{flex-basis:100%}
 details.wboard > summary .lbl{text-align:left; margin:0}
 #app details.elimc > summary > header h3, #app details.elimc > summary > header h3 *{color:var(--ink)!important}
@@ -1811,6 +1802,12 @@ details.wboard > summary .lbl{text-align:left; margin:0}
 #app details.elimc{padding:0}
 #app details.elimc.elimc.elimc > summary{padding:0; display:block; min-height:0}
 #app details.elimc > summary::after{color:var(--ink)!important; position:absolute; right:14px; top:50%; transform:translateY(-50%)}
+/* Lot H2 (v2.91) : Stratégie du jour en étape à part (fenêtre qui monte du bas) ; tuiles du camp sur une ligne qu'on fait glisser */
+.ovl.stratv .sheet{gap:12px}
+.ovl.stratv .stratbar{margin:0; border:0; padding:0; background:transparent}
+#app .ctabs,#app .ctabs.n9{display:flex!important; flex-wrap:nowrap!important; overflow-x:auto!important; scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch; gap:6px!important; padding-bottom:2px}
+#app .ctabs::-webkit-scrollbar{display:none}
+#app .ctabs .ctab{flex:0 0 auto!important; white-space:nowrap!important; scroll-snap-align:start; padding:8px 12px!important}
 </style>
 
 <div id="app"></div>
@@ -2926,9 +2923,20 @@ const stratOf=p=>{try{const s=S.strat&&S.strat[p.id];return s&&s.d===S.day?s.k:n
 // Stratégie du jour : un premier appui montre les effets, « Valider » fixe le choix pour la journée
 let STRAT_PEND=null;
 /* v2.75 : la Stratégie du jour se choisit avant la 1re action de la journée ; ensuite elle est verrouillée */
+/* v2.91 (lot H2, questionnaire du 7/11) : la Stratégie du jour est une étape à part, ouverte au début du premier camp du jour,
+   plus dans la page du camp. STRAT_SEEN (hors de S) : à qui elle a déjà été proposée aujourd'hui. « Passer » = pas de stratégie. */
+let STRAT_SEEN={};
+function stratOpen(p){try{if(!p||!p.human||stratOf(p)||stratLocked(p))return;STRAT_SEEN[p.id]=S.day;document.querySelectorAll('.ovl.stratv').forEach(x=>x.remove());
+  const ov=document.createElement('div');ov.className='ovl stratv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+  ov.innerHTML=`<div class="sheet">${stratBar(p)}<button type="button" class="btn ghost" data-close="1">${L("Skip","Passer","Saltar")}</button></div>`;
+  const onOk=e=>{if(e.target.closest&&e.target.closest('[data-stratok]'))setTimeout(()=>{if(stratOf(p))close()},60)};
+  const close=()=>{document.removeEventListener('click',onOk,true);ov.remove()};
+  document.addEventListener('click',onOk,true);ov.addEventListener('click',e=>{if(e.target.closest('[data-close]'))close()});document.body.appendChild(ov)}catch(e){}}
+function screenStratStep(html){try{if(!INGAME||!S||AUTO||SIMR||FF)return;const w=$app.querySelector('.wrap');if(!w||!w.querySelector('.agroups'))return;
+  const p=CAMPCTX&&CAMPCTX.p||(VIEW!=null?P(VIEW):null);if(!p)return;if(STRAT_SEEN[p.id]===S.day)return;stratOpen(p)}catch(e){}}
 const stratLocked=p=>{try{return !!(S.stratLk&&S.stratLk[p.id]===S.day)}catch(e){return false}};
 function stratBar(p){if(!p||!p.human)return'';const k=stratOf(p);if(!k&&stratLocked(p))return'';const pk=!k&&STRAT_PEND&&STRAT_PEND.id===p.id&&STRAT_PEND.d===S.day?STRAT_PEND.k:null;
-  return `<div class="stratbar${k?'':' fresh'}" data-sp="${p.id}"><p class="lbl">🎭 ${L("Strategy of the day","Stratégie du jour")}</p><div class="stratb">${Object.entries(STRATS).map(([s,x])=>`<button type="button" class="${k===s?'on':pk===s?'on pend':''}" data-strat="${s}" ${k&&k!==s?'disabled':''}>${x[0]} ${x[1]()}</button>`).join('')}</div>${k||pk?`<p class="hint">${k?STRATS[k][2]():STRATS[pk][2]()}</p>`:`<details class="stinfo"><summary aria-label="${L("Strategy of the day","Stratégie du jour")}">ⓘ</summary><p class="hint">${L("Choose before your first action: it lasts all day.","À choisir avant votre première action : elle vaut pour toute la journée.","Elige antes de tu primera acción: vale para todo el día.")}</p></details>`}${pk?`<button type="button" class="btn sbtn stratok" data-stratok="1">✓ ${L("Confirm this choice","Valider ce choix","Confirmar esta elección")}</button>`:''}</div>`}
+  return `<div class="stratbar${k?'':' fresh'}" data-sp="${p.id}"><p class="lbl">🎭 ${L("Strategy of the day","Stratégie du jour")}</p><div class="stratb">${Object.entries(STRATS).map(([s,x])=>`<button type="button" class="${k===s?'on':pk===s?'on pend':''}" data-strat="${s}" ${k&&k!==s?'disabled':''}>${x[0]} ${x[1]()}</button>`).join('')}</div><p class="hint">${k?STRATS[k][2]():pk?STRATS[pk][2]():L("Choose before your first action: it lasts all day.","À choisir avant votre première action : elle vaut pour toute la journée.","Elige antes de tu primera acción: vale para todo el día.")}</p>${pk?`<button type="button" class="btn sbtn stratok" data-stratok="1">✓ ${L("Confirm this choice","Valider ce choix","Confirmar esta elección")}</button>`:''}</div>`}
 
 /* mistrust after a betrayal or a broken promise: 3 days */
 function mistSet(...ids){S.mist=S.mist||{};ids.forEach(id=>{S.mist[id]=S.day+2})}
@@ -6563,7 +6571,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.90 · 2026-11-07';
+const APP_VER='2.91 · 2026-11-07';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6870,7 +6878,7 @@ function tidyTitles(root){try{(root||document).querySelectorAll('.wrap,.sheet').
 function screen(html){
   html=screenPrepareHtml(html);screenKeepHistory(html);
   CAMPCTX=null;$app.innerHTML=`<div class="wrap fade${INGAME&&S?' ingame':''}">${MENUBTN()}${conseilBar(html)}${html}</div>`;try{if(window.__gu&&INGAME){const w=$app.querySelector('.wrap');if(w)w.prepend(window.__gu)}else if(window.__gu&&!INGAME){window.__gu=null}}catch(e){}colorTribes($app);colorNames($app);tidyTitles($app);syncWx();kbHint();window.scrollTo(0,0);orderText();campNews();campTabs();listFaces($app);normSpace($app);clearMenu();fitH1();fitBars();coach()
-  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);
+  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);
 }
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')){const el2=n.querySelector('.sheet')||n;try{const e=el2.querySelector('.eyebrow'),h=el2.querySelector('h1.h,h2.h');if(e&&h&&e.textContent.trim().toLowerCase()===h.textContent.trim().toLowerCase())e.remove()}catch(_){}normSpace(el2);}}))}).observe(document.body,{childList:true})}catch(e){}
 
@@ -7221,10 +7229,7 @@ function helpOpen(){try{const w=$app.querySelector('.wrap');if(!w)return;const [
 // après l'affichage
 function screenCampHelpers(html){try{const w=$app.querySelector('.wrap');if(!w||!INGAME||!S)return;
   S._ui={tab:CTAB_SEL,k:CURGK,open:(OPENG[CURGK]||[]).slice()};
-  if(w.querySelector(':scope > .camp2,:scope > .agroups')&&SET.discover&&S.day<=3&&VIEW!=null&&DF().adv!=='off'&&!DAG4()&&!w.querySelector('.discover')){try{const p=P(VIEW),t=tk(p);const r=recoActs(p,t).filter(([a])=>!blockedWhy(a,p,t))[0];const btn=r&&w.querySelector(`.agroups .choice[data-act="${r[0]}"]`);
-    if(btn){const bc=(btn.querySelector('b')||btn).cloneNode(true);bc.querySelectorAll('.cost,.dinfo,.chance,button,i:not(.ico)').forEach(x=>x.remove());const lbl=bc.textContent.replace('★','').replace(/\s+/g,' ').trim();const d=document.createElement('div');d.className='discover';d.innerHTML=`<p class="lbl">🧭 ${L("Suggested now","Conseillé maintenant")}</p><p class="dsc">${r[1]?String(r[1]):''}</p>`;const b2=document.createElement('button');b2.className='btn';b2.type='button';b2.textContent='👉 '+lbl;b2.onclick=()=>btn.click();d.appendChild(b2);const sb=w.querySelector(':scope > .sbar');if(sb)sb.after(d)}}catch(e){}}
-  /* v2.75 : la Stratégie du jour pas encore choisie passe en tête du camp, au-dessus de « Conseillé maintenant » */
-  try{const sf=w.querySelector('.stratbar.fresh'),sbr=w.querySelector('.sbar');if(sf&&sbr)sbr.after(sf)}catch(_){}
+  /* v2.91 (lot H2) : carte « Conseillé maintenant » retirée ; l'étoile sur la famille de l'action conseillée suffit */
   const sb2=w.querySelector('.sbar .sb2');if(sb2&&!sb2.querySelector('[data-help]'))sb2.insertAdjacentHTML('beforeend',`<span class="sbhelp" data-help="1" role="button" tabindex="0" aria-label="${L("Help","Aide")}">❓</span>`);
   else if(!sb2&&!w.querySelector('.bbar .autob,.bbar [data-act="auto"],.chance')){const h=w.querySelector(':scope > h1.h');if(h&&!h.querySelector('.helpq'))h.insertAdjacentHTML('beforeend',` <button type="button" class="helpq" aria-label="${L("Help on this screen","Aide sur cet écran")}">?</button>`)}
   try{fitBars()}catch(e){}}catch(e){}}
@@ -7243,7 +7248,7 @@ function screenMiniGameHint(html){try{if(!MGHINT||!MGH[MGHINT])return;const w=$a
   const d=document.createElement('p');d.className='mghint';d.textContent='💡 '+MGH[MGHINT]();const e=w.querySelector('.eyebrow');if(e)e.after(d);else w.prepend(d)}catch(e){}}
 /* camp screen: strategy bar, season in the weather tab, alliance levels */
 // avant l'affichage
-function screenPrepareHtml(html){try{if(INGAME&&S&&CAMPCTX&&CAMPCTX.p&&/class="agroups/.test(html)&&!/class="stratbar/.test(html)){html=html.replace(/(<div class="agroups)/,stratBar(CAMPCTX.p)+'$1')}
+function screenPrepareHtml(html){try{/* v2.91 : la Stratégie du jour n'est plus insérée dans le camp (étape à part, screenStratStep) */
   if(INGAME&&S&&S.wseason&&/class="wxd/.test(html))html=html.replace(/(<details class="wxd[^>]*>[\s\S]*?<\/summary>)/,'$1'+seasonLine());
   if(INGAME&&S&&CAMPCTX&&CAMPCTX.p)html=html.replace(/(<summary>(?:Your alliance|Votre alliance)[^<]*<\/summary><div class="chips"[^>]*>)([\s\S]*?)(<\/div><\/details>)/,(m,a,b,c)=>a+alliesOf(CAMPCTX.p.id).map(x=>`<span class="alv ${alCore(CAMPCTX.p.id,x.id)?'core':'circ'}">${chip(x)}<em>${alCore(CAMPCTX.p.id,x.id)?'🔒 '+L("core","noyau dur"):'🤝 '+L("circumstance","circonstance")}</em></span>`).join('')+c)}catch(e){}return html}
 Object.assign(PLAYG,{nut:()=>gameNut(),sand:()=>gameSand(),stump:()=>gameStump(),arm:()=>gameArm()});
@@ -7541,7 +7546,7 @@ let TEST_CLICK=null,TEST_SCROLL=null;
 function testAfter(k){try{if(!k||!S)return;const h=humansAlive()[0];if(!h)return;
   if(k==='epuise')h.energy=0;
   if(k==='feucamp'){const t=tk(h);S.fire[t]=false;S.wood=S.wood||{A:0,B:0,M:0};S.wood[t]=Math.max(S.wood[t]||0,3);TEST_CLICK=['fire','mgplay']}
-  if(k==='strat'){if(S.strat)delete S.strat[h.id];if(S.stratLk)delete S.stratLk[h.id];STRAT_PEND=null;TEST_SCROLL='.stratbar'}}catch(e){}}
+  if(k==='strat'){if(S.strat)delete S.strat[h.id];if(S.stratLk)delete S.stratLk[h.id];STRAT_PEND=null;STRAT_SEEN={};setTimeout(()=>screenStratStep(),400)}}catch(e){}}
 function testClicks(n){n=n||0;try{if(TEST_SCROLL){const x=$app.querySelector(TEST_SCROLL);if(x){try{x.scrollIntoView({block:'center'})}catch(e){}TEST_SCROLL=null}}
   if(TEST_CLICK&&TEST_CLICK.length){const b=$app.querySelector(`[data-act="${TEST_CLICK[0]}"]`);if(b){TEST_CLICK.shift();b.click()}}}catch(e){}
   if(((TEST_CLICK&&TEST_CLICK.length)||TEST_SCROLL)&&n<40)setTimeout(()=>testClicks(n+1),250);else{TEST_CLICK=null;TEST_SCROLL=null}}
