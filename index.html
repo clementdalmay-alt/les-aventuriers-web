@@ -1963,6 +1963,11 @@ body.icoanim .wrap.camp1 .cfam .agroup > .famsheet{animation:famUp .22s ease-out
 .wrap.camp1 .cfam > .agroups > .agroup{flex:1 1 auto;min-width:min-content}
 .wrap.camp1 .cfam .agroup > summary .famlbl{overflow:visible;text-overflow:clip}
 .wrap.camp1 .cfam > .agroups.noico .agroup > summary .famico{display:none}
+/* v2.97 : têtes remises dans l'Historique ; la puce ne reste que sur les lignes sans tête ; messages reçus marqués ✉️ */
+.wrap.camp1 .ctp.histd ul.h1list > li.hasf{padding-left:0}
+.wrap.camp1 .ctp.histd ul.h1list > li.hasf::before{content:none}
+.wrap.camp1 .ctp.histd ul.h1list .lface{display:inline-block;vertical-align:-5px;margin:0 3px 0 1px}
+.wrap.camp1 .ctp.histd ul.h1list .hmsg{color:var(--info)}
 /* v2.96 — lot Camp B : animations du camp vivant (campView). Seulement quand body.icoanim est posé
    (réglage « Transitions d'écran » actif et « réduire les animations » du téléphone inactif) : sinon le dessin reste fixe. */
 @keyframes cvSway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.8deg)}}
@@ -2000,6 +2005,12 @@ body.icoanim .cvivant .cv-rain{animation:cvRain .7s linear infinite}
 body.icoanim .cvivant .cv-gull{animation:cvGull 26s linear infinite}
 body.icoanim .cvivant .cv-flash{animation:cvFlash 6s linear infinite}
 @media (prefers-reduced-motion:reduce){.cvivant *{animation:none!important}}
+/* v2.97 — lot Camp C : « Succès débloqué » en pastille d'une ligne sous la barre du haut (« 🏆 Premier débarquement »), qui se ferme seule après 3 s ou d'un toucher.
+   Le titre « Succès débloqué · Clem » reste lu par les lecteurs d'écran. */
+.toast.tq.tach{display:flex;align-items:center;gap:6px;padding:5px 12px 5px 10px;border-width:1.5px;border-radius:999px;max-width:calc(100% - 48px);min-height:32px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.toast.tq.tach > .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.toast.tq.tach > b{font-size:.88rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.toast.tq.tach::after{content:none!important}
 </style>
 
 <div id="app"></div>
@@ -2793,7 +2804,7 @@ function ACHS(){const a=[];
   return achEs(a)}
 const achGet=()=>{try{return JSON.parse(localStorage.getItem(ACH_KEY)||'{}')||{}}catch(e){return{}}};
 function unlock(p,id){if(!p||!p.human)return;const a=achGet();if(a[id])return;const def=ACHS().find(x=>x.id===id);if(!def)return;
-  a[id]={t:Date.now(),who:p.name};try{localStorage.setItem(ACH_KEY,JSON.stringify(a))}catch(e){}sfx('ach');toast(`${L("Achievement unlocked","Succès débloqué","Logro desbloqueado")} · ${esc(p.name)}`,L(def.en,def.fr,def.es))}
+  a[id]={t:Date.now(),who:p.name};try{localStorage.setItem(ACH_KEY,JSON.stringify(a))}catch(e){}sfx('ach');toast(`${L("Achievement unlocked","Succès débloqué","Logro desbloqueado")} · ${esc(p.name)}`,L(def.en,def.fr,def.es),'tach')}
 
 function markIsland(id){try{const k='aventuriers-islands',o=JSON.parse(localStorage.getItem(k)||'{}');o[id]=1;localStorage.setItem(k,JSON.stringify(o));return Object.keys(o).length}catch(e){return 0}}
 // v2.82 (lot G) : catégories en deux colonnes (une catégorie ouverte prend toute la largeur), Retour fixé en bas
@@ -3887,7 +3898,7 @@ function campNews(){try{const w=$app.querySelector('.wrap');if(!w)return;const s
 var HOLDQ=[];
 /* 10. progress toasts wait for the camp */
 
-function flushHold(){if(!HOLDQ.length)return;const q=HOLDQ;HOLDQ=[];q.forEach(([t,b])=>{TQ.push([t,b])});if(TQ.length>4)TQ.splice(0,TQ.length-4);if(!TQ_ON)toastNext()}
+function flushHold(){if(!HOLDQ.length)return;const q=HOLDQ;HOLDQ=[];q.forEach(x=>{TQ.push(x)});if(TQ.length>4)TQ.splice(0,TQ.length-4);if(!TQ_ON)toastNext()}
 
 /* 8. text length: short really skips narration screens; "Reduce" folds the host back */
 function shortHost(){if(STORY()!=='short')return;$app.querySelectorAll('p.host').forEach(p=>{if(p.dataset.sh)return;
@@ -3927,9 +3938,15 @@ function histSave(){try{if(!S||!S.ds)return;S.histD=S.histD||{};const keep=[],w=
 // Lignes du travail au camp : marquées par tribu ; avant la réunification, chacun ne voit que celles de son camp
 const lnTb=t=>`<i hidden data-tb="${t}"></i>`;
 function lnVis(l){try{const m=/data-tb="(\w+)"/.exec(String(l));if(!m||S.merged)return true;const v=VIEW!=null?P(VIEW):humansAlive()[0];return !v||tk(v)===m[1]}catch(e){return true}}
-function histHtml(){const H=S.histD||{};const days=Object.keys(H).map(Number).filter(d=>H[d]&&H[d].length).sort((a,b)=>b-a);
+/* v2.97 : les messages reçus (ancienne entrée ✉️ Messages du menu) sont dans l'Historique, à leur jour et leur moment, marqués ✉️ */
+function histHtml(){const H=S.histD||{},W=S.histW||{},M={};let mid=null;try{mid=msgViewer()}catch(e){}
+  ((S.msgLog||{})[mid]||[]).forEach(m=>{(M[m.d]=M[m.d]||[]).push(m)});
+  const days=[...new Set([...Object.keys(H).map(Number).filter(d=>H[d]&&H[d].length),...Object.keys(M).map(Number)])].sort((a,b)=>b-a);
   if(!days.length)return `<p class="hint">${L("Important events will gather here day after day.","Les événements importants s'accumulent ici jour après jour.")}</p>`;
-  const W=S.histW||{};return days.map(d=>`<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${H[d].map((l,i)=>[l,(W[d]||[])[i]]).filter(([l])=>lnVis(l)).reverse().map(([l,m])=>`<li${m?` data-w="${m}"`:''}>${l}</li>`).join('')}</ul>`).join('')}
+  const ord={am:0,pm:1,ev:2};
+  return days.map(d=>{const rows=(H[d]||[]).map((l,i)=>[l,(W[d]||[])[i]||'']).filter(([l])=>lnVis(l));const has=rows.some(r=>r[1]);
+    (M[d]||[]).forEach(m=>{const w=has?(m.w||(rows.length?rows[rows.length-1][1]:'am')):'';const li=`<span class="hmsg">✉️ ${m.msg}</span>`;let at=rows.length;if(w)for(let i=rows.length-1;i>=0;i--){if((ord[rows[i][1]]??0)<=(ord[w]??0)){at=i+1;break}if(i===0)at=0}rows.splice(at,0,[li,w])});
+    return `<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${rows.slice().reverse().map(([l,m])=>`<li${m?` data-w="${m}"`:''}>${l}</li>`).join('')}</ul>`}).join('')}
 
 /* 4. "+" next to each castaway: what you know about them */
 // Résultats des dernières épreuves (notes 0-100), dans la liste « Passer du temps avec… »
@@ -5610,11 +5627,12 @@ const alliesOf=id=>alive().filter(o=>o.id!==id&&allied(id,o.id));
 function ally(a,b){S.alliances=S.alliances||{};S.alliances[akey(a,b)]=true;if(originOf(P(a))&&originOf(P(a))===originOf(P(b)))[a,b].forEach(x=>{if(P(x).human)unlock(P(x),'compat')});[a,b].forEach(x=>{if(alliesOf(x).length>=3)unlock(P(x),'allies3')});mutual(a,b,10);motv(P(a),4);motv(P(b),4);logH(a,b,`${P(a).name} and ${P(b).name} formed an alliance.`,`${P(a).name} et ${P(b).name} ont formé une alliance.`,`${P(a).name} y ${P(b).name} formaron una alianza.`)}
 function unally(a,b){if(S.alliances)delete S.alliances[akey(a,b)]}
 const inbox=id=>{S.inbox=S.inbox||{};return S.inbox[id]=S.inbox[id]||[]};
-const tell=(id,msg)=>{if(P(id).human)inbox(id).push({k:'info',msg})};
+/* v2.97 : un message reçu va tout de suite dans l'Historique (S.msgLog), à son jour et son moment ; la boîte reste lue par readInbox */
+const tell=(id,msg)=>{if(!P(id).human)return;inbox(id).push({k:'info',msg});try{S.msgLog=S.msgLog||{};const lg=S.msgLog[id]=S.msgLog[id]||[];lg.push({d:S.day,w:histMoment(S.ds&&S.ds.mk,((S.ds&&S.ds.lines)||[]).length),msg});if(lg.length>80)lg.splice(0,lg.length-80)}catch(e){}};
 function aiAccepts(ai,from){if(aff(ai.id,from.id)<0)return false;return sameOrigin(ai,from)*2-alliesOf(ai.id).length*6+aff(ai.id,from.id)+(st(ai,'trust')-50)/2+(from.arch==='manipulator'?10:0)+(ai.arch==='lone'?-20:0)+(ai.arch==='loyal'?6:0)+archFit(ai,from)*4-(mistrusted(from.id)||mistrusted(ai.id)?10:0)+rnd(-15,15)>12}
 async function readInbox(p){
   const box=inbox(p);if(!box.length)return;S.inbox[p.id]=[];
-  S.msgLog=S.msgLog||{};const lg=S.msgLog[p.id]=S.msgLog[p.id]||[];box.forEach(m=>{if(m.k==='info')lg.push({d:S.day,msg:m.msg});else if(m.k==='offer')lg.push({d:S.day,msg:L(`${esc(P(m.from).name)} proposed an alliance.`,`${esc(P(m.from).name)} vous a proposé une alliance.`)})});if(lg.length>80)lg.splice(0,lg.length-80);
+  S.msgLog=S.msgLog||{};const lg=S.msgLog[p.id]=S.msgLog[p.id]||[];const w=histMoment(S.ds&&S.ds.mk,((S.ds&&S.ds.lines)||[]).length);box.forEach(m=>{if(m.k==='offer')lg.push({d:S.day,w,msg:L(`${esc(P(m.from).name)} proposed an alliance.`,`${esc(P(m.from).name)} vous a proposé une alliance.`)})});if(lg.length>80)lg.splice(0,lg.length-80);
   for(const m of box){
     if(m.k==='offer'){const f=P(m.from);if(!f.alive||allied(p.id,f.id))continue;
       const a=await ask(`${eb(L("Private message","Message privé","Mensaje privado"))}<div class="facebox">${face(f,120)}</div><h1 class="h">${L(`${esc(f.name)} proposes an alliance`,`${esc(f.name)} vous propose une alliance`,`${esc(f.name)} te propone una alianza`)}</h1>
@@ -6665,12 +6683,11 @@ function openMenu(view='main'){
   const item=(k,ic,t,sub)=>`<button class="mitem" data-m="${k}"><span class="mic" aria-hidden="true">${ic}</span><span><b>${t}</b>${sub?`<span class="muted">${sub}</span>`:''}</span></button>`;
   const back=`<button class="btn ghost" data-m="main">‹ ${L("Menu","Menu","Menú")}</button>`;
   const tribes=S&&S.merged?['M']:['A','B'];
-  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent"),L("Read again what you just saw (or swipe from the left edge)","Relire ce que vous venez de voir (ou glissez depuis le bord gauche)")):''}${item('sim','⏭️',L("Simulate…","Simuler…"),L("Let the game play several days for you","Laisser le jeu jouer plusieurs jours à votre place"))}${item('save','💾',L("Save now","Sauvegarder maintenant","Guardar ahora"),lastSaveAt()?L(`Auto-saved at every camp · last: ${lastSaveAt()}`,`Sauvegarde automatique à chaque camp · dernière : ${lastSaveAt()}`,`Guardado automático en cada campamento · último: ${lastSaveAt()}`):L("Resumes from the current step","Reprend à l'étape en cours","Retoma desde el paso actual"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${msgViewer()!=null?item('journal','📓',L("My journal","Mon journal"),L("Your days on the island","Vos journées sur l'île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${msgViewer()!=null?item('rel','🕸️',L("Relationships","Relations"),L("What you know of who gets on with whom","Ce que vous savez des liens entre aventuriers")):''}${msgItem(item)}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
+  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent"),L("Read again what you just saw (or swipe from the left edge)","Relire ce que vous venez de voir (ou glissez depuis le bord gauche)")):''}${item('sim','⏭️',L("Simulate…","Simuler…"),L("Let the game play several days for you","Laisser le jeu jouer plusieurs jours à votre place"))}${item('save','💾',L("Save now","Sauvegarder maintenant","Guardar ahora"),lastSaveAt()?L(`Auto-saved at every camp · last: ${lastSaveAt()}`,`Sauvegarde automatique à chaque camp · dernière : ${lastSaveAt()}`,`Guardado automático en cada campamento · último: ${lastSaveAt()}`):L("Resumes from the current step","Reprend à l'étape en cours","Retoma desde el paso actual"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${msgViewer()!=null?item('journal','📓',L("My journal","Mon journal"),L("Your days on the island","Vos journées sur l'île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${msgViewer()!=null?item('rel','🕸️',L("Relationships","Relations"),L("What you know of who gets on with whom","Ce que vous savez des liens entre aventuriers")):''}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
    :view==='cast'?`<h2 class="h">${L("The castaways","Les aventuriers","Los aventureros")}</h2>${tribes.map(t=>`<p class="lbl" style="margin-top:10px">${trName(t)}</p><div class="chips" style="margin-top:6px">${tribeMembers(t).map(x=>chip(x)).join('')}</div>`).join('')}${S.players.some(x=>!x.alive)?`<p class="lbl" style="margin-top:12px">${L("Out","Éliminés","Eliminados")}</p><div class="chips" style="margin-top:6px">${S.players.filter(x=>!x.alive).map(x=>chip(x,'out')).join('')}</div>`:''}<p class="hint">${L("Tap a name to open their profile.","Touchez un prénom pour ouvrir sa fiche.","Toca un nombre para abrir su ficha.")}</p>${back}`
    :view==='journal'?journalView(back)
    :view==='sim'?simView(back)
    :view==='rel'?relView(back)+(S&&S.code?`<p class="hint" style="margin-top:8px">🎟️ ${L("Challenge code","Code de défi")} : <b class="num">${S.code}</b></p>`:'')
-   :view==='msgs'?msgsView(back)
    :view==='rules'?`<h2 class="h">${L("How to play","Comment jouer","Cómo jugar")}</h2><div class="rules">${howToThemes()}${geekHtml()}</div>${back}`
    :view==='settings'?`<h2 class="h">${L("Settings","Réglages","Ajustes")}</h2><div class="field"><span class="lbl">${L("Language","Langue","Idioma")}</span><div class="flagrow">${LANGV().map(([v,n])=>`<button data-mlang="${v}" class="${LANG===v?'on':''}">${FLAG[v]}<span>${n}</span></button>`).join('')}</div>${INGAME&&S?'':'<!--'}<span class="hint">${L("The new language applies from the next screen.","La nouvelle langue s'applique dès l'écran suivant.","El nuevo idioma se aplica desde la siguiente pantalla.")}</span>${INGAME&&S?'':'-->'}</div>${themeRow('data-mtheme')}${campMgRow()}${musicRow()}${fxRows()}${fdescRow()}${paceSeg()}${storyRow()}${animRows('data-mset')}${extraRows()}${['sound','vib','conf'].map(k=>`<label class="tog"><input type="checkbox" data-mset="${k}" ${SET[k]!==false&&SET[k]?'checked':''}><span><b>${k==='sound'?L("Sounds","Sons","Sonidos"):k==='conf'?L("Confessionals","Confessionnaux"):L("Vibrations","Vibrations","Vibraciones")}</b></span></label>`).join('')}${INGAME&&S?back:`<button class="btn" data-m="close">${L("Done","Terminé","Listo")}</button>`}`
    :`<h2 class="h">${L("Quit the game?","Quitter la partie ?","¿Salir de la partida?")}</h2><p>${L("Anything done since your last save will be lost unless you save now. A save resumes from the current step.","Ce que vous avez fait depuis votre dernière sauvegarde sera perdu si vous ne sauvegardez pas. La sauvegarde reprend à l'étape en cours.","Lo que hayas hecho desde tu última partida guardada se perderá si no guardas ahora. Guardar retoma desde el paso actual.")}</p><div class="mlist"><button class="btn" data-m="savequit">${L("Save and quit","Sauvegarder et quitter","Guardar y salir")}</button><button class="btn ghost" data-m="quitnow">${L("Quit without saving","Quitter sans sauvegarder","Salir sin guardar")}</button><button class="btn ghost" data-m="main">${L("Cancel","Annuler","Cancelar")}</button></div>`;
@@ -6813,7 +6830,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.96 · 2026-11-09';
+const APP_VER='2.97 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6977,8 +6994,8 @@ const CONSO=[["{t} has spoken: {e} leaves the adventure ({s}). You, at least, wi
 function colorTribes(root){try{if(!S||!S.players||!root)return;S.trCol=S.trCol||{};['A','B','M'].forEach(k=>{if(TR[k]&&TR[k].n&&TR[k].n.length>1)S.trCol[TR[k].n]=trC(k)});
   const names=Object.keys(S.trCol).map(n=>[n,n]);if(!names.length)return;
   const re=new RegExp('(^|[^\\p{L}])('+names.map(x=>x[1].replace(/[.*+?^${}()|[\]\\']/g,'\\$&')).join('|')+')(?=$|[^\\p{L}])','gu');
-  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest('select,option,input,textarea,svg,script,style,.trn,.chead,h1,button.btn,.tribe>header,.host>.lbl'))return NodeFilter.FILTER_REJECT;return re.test(n.nodeValue)?(re.lastIndex=0,NodeFilter.FILTER_ACCEPT):NodeFilter.FILTER_REJECT}});
-  const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{re.lastIndex=0;const html=esc(n.nodeValue).replace(re,(m,a,nm)=>{return a+`<b class="trn" style="color:${S.trCol[nm]}">${nm}</b>`});const s=document.createElement('span');s.innerHTML=html;n.replaceWith(...s.childNodes)})}catch(e){}}
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest('select,option,input,textarea,svg,script,style,.trn,.chead,button.btn:not(.ghost),.tribe header,.host>.lbl'))return NodeFilter.FILTER_REJECT;return re.test(n.nodeValue)?(re.lastIndex=0,NodeFilter.FILTER_ACCEPT):NodeFilter.FILTER_REJECT}});
+  const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{re.lastIndex=0;const html=esc(n.nodeValue).replace(re,(m,a,nm)=>{return a+`<b class="trn" style="--tc:${S.trCol[nm]};color:${S.trCol[nm]}">${nm}</b>`});const s=document.createElement('span');s.innerHTML=html;n.replaceWith(...s.childNodes)})}catch(e){}}
 const kbVis=s=>{try{return [...$app.querySelectorAll(s)].filter(b=>b.offsetParent&&!b.disabled&&!b.classList.contains('giveup'))}catch(e){return[]}};
 function kbTap(b,up){if(!b)return;const o={bubbles:true,cancelable:true,pointerId:1,isPrimary:true,pointerType:'mouse',button:0};let ev;try{ev=new PointerEvent(up?'pointerup':'pointerdown',o)}catch(e){ev=new MouseEvent(up?'mouseup':'mousedown',o)}b.dispatchEvent(ev);if(!up&&typeof b.onclick==='function')b.click()}
 
@@ -7030,14 +7047,10 @@ function redoBtn(p,t,left,when){const a=p._lastAct;if(!a||!REDO[a]||left>=ACTION
   if((a==='water'&&HW(t))||(a==='shelter'&&SH(t)>=100)||(a==='fire'&&(S.fire[t]||W(t)<1)))return'';
   p._redoSrc=a;return `<button class="btn ghost redo" data-act="${a}">↻ ${L(...REDO[a])}</button>`}
 const msgViewer=()=>typeof VIEW!=='undefined'&&VIEW!=null?VIEW:(S&&S.humans===1&&humansAlive().length?humansAlive()[0].id:null);
-function msgsView(back){const id=msgViewer(),lg=((S.msgLog||{})[id]||[]).slice().reverse();
-  return `<h2 class="h">${L("Messages","Messages")}</h2>${lg.length?`<ul class="lines">${lg.map(m=>`<li><span class="muted">${L("Day","Jour")} ${m.d}</span> · ${m.msg}</li>`).join('')}</ul>`:`<p class="hint">${L("No messages yet.","Aucun message pour l'instant.")}</p>`}${back}`}
 const ACOST0={...ACOST};ACOST.ally=6;
 
 const tribesLine=()=>S&&!S.merged&&TR.A&&TR.B?`<span class="tribeline">${trName('A')}<span class="muted">vs</span>${trName('B')}</span>`:'';
 const canSeeCamp=t=>!S||S.merged||!humansAlive().length||humansAlive().some(h=>tk(h)===t);
-function msgItem(item){const id=msgViewer();if(id==null)return'';const n=((S.msgLog||{})[id]||[]).length;
-  return n?item('msgs','✉️',L("Messages","Messages","Mensajes")+` <span class="mbadge">${n}</span>`,L("What the others told you","Ce que les autres vous ont dit")):`<button class="mitem off" disabled aria-disabled="true"><span class="mic" aria-hidden="true">✉️</span><span><b>${L("Messages","Messages","Mensajes")}</b><span class="muted">${L("Coming: nobody has written to you yet","À venir : personne ne vous a encore écrit","Próximamente: aún no te ha escrito nadie")}</span></span></button>`}
 async function shareCode(){if(!S)return;const isl=cap1(lx(LOC(S.loc),'island')),c=codeFull();const t=L(`I am playing Les Aventuriers on ${isl}. Try to do better with this code: ${c}`,`Je joue aux Aventuriers sur ${isl}. Essaie de faire mieux avec ce code : ${c}`);
   try{if(navigator.share){await navigator.share({text:t});return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(t);toast(L("Code copied","Code copié"),L("Paste it to a friend.","Collez-le à un ami."))}catch(e){toast(L("Challenge code","Code de défi"),c)}}
@@ -7238,7 +7251,7 @@ const COACH_KEY='aventuriers-coach';
 
 const TQ=[];let TQ_ON=false;
 
-function toastNext(){const it=TQ.shift();if(!it){TQ_ON=false;return}TQ_ON=true;try{const [t,b]=it;const d=document.createElement('div');d.className='toast tq';d.setAttribute('role','status');d.innerHTML=`<span class="lbl">${t}</span><b>${esc(b)}</b>`;colorTribes(d);d.onclick=()=>{d.remove();clearTimeout(d._t);toastNext()};document.body.appendChild(d);d._t=setTimeout(()=>{try{d.classList.add('out')}catch(_){}setTimeout(()=>{try{d.remove()}catch(_){}toastNext()},220)},2500)}catch(e){TQ_ON=false}}
+function toastNext(){const it=TQ.shift();if(!it){TQ_ON=false;return}TQ_ON=true;try{const [t,b,c]=it;const d=document.createElement('div');d.className='toast tq'+(c?' '+c:'');d.setAttribute('role','status');d.innerHTML=`<span class="lbl">${t}</span><b>${c==='tach'?'🏆 ':''}${esc(b)}</b>`;colorTribes(d);d.onclick=()=>{d.remove();clearTimeout(d._t);toastNext()};document.body.appendChild(d);d._t=setTimeout(()=>{try{d.classList.add('out')}catch(_){}setTimeout(()=>{try{d.remove()}catch(_){}toastNext()},220)},c==='tach'?3000:2500)}catch(e){TQ_ON=false}}
 function fitH1(){try{$app.querySelectorAll('.wrap > h1.h').forEach(h=>{h.style.fontSize='';const cs=getComputedStyle(h),fs0=parseFloat(cs.fontSize);let r=parseFloat(cs.lineHeight)/fs0;if(!(r>0))r=1.15;const lines=()=>h.scrollHeight/(parseFloat(h.style.fontSize||fs0)*r);if(lines()<1.5)return;let fs=fs0,n=0;while(lines()>=1.5&&fs>fs0*.72&&n<24){fs-=1;n++;h.style.fontSize=fs+'px'}if(lines()>=1.5)h.style.fontSize=''})}catch(e){}}
 
 function orderText(){try{const w=$app.querySelector('.wrap');if(!w)return;const h=w.querySelector(':scope > h1.h');if(!h)return;const run=[];let x=h.nextElementSibling;
@@ -7409,9 +7422,9 @@ function screenWeatherPopup(html){try{const w=$app.querySelector('.wrap');if(!w)
 }catch(e){}}
 
 /* 2. progress toasts wait for the camp, whatever triggered them; only taps on info icons answer at once */
-function toast(t,b){try{const ev=window.event,info=ev&&ev.target&&ev.target.closest&&ev.target.closest('.sbi,.fatg,.ovl,.gmenu,[data-tip],.mitem');
-  if(INGAME&&S&&!info&&!AUTO&&!document.querySelector('#app .sbar')){HOLDQ.push([t,b]);if(HOLDQ.length>6)HOLDQ.shift();return}
-  TQ.push([t,b]);if(TQ.length>4)TQ.splice(0,TQ.length-4);if(!TQ_ON)toastNext()}catch(e){}}
+function toast(t,b,c){try{const ev=window.event,info=ev&&ev.target&&ev.target.closest&&ev.target.closest('.sbi,.fatg,.ovl,.gmenu,[data-tip],.mitem');
+  if(INGAME&&S&&!info&&!AUTO&&!document.querySelector('#app .sbar')){HOLDQ.push([t,b,c]);if(HOLDQ.length>6)HOLDQ.shift();return}
+  TQ.push([t,b,c]);if(TQ.length>4)TQ.splice(0,TQ.length-4);if(!TQ_ON)toastNext()}catch(e){}}
 /* 4. status bar: shrink further, then drop the day total, then the warning icons */
 function fitBars(){try{$app.querySelectorAll('.sbrow').forEach(r=>{r.style.fontSize='';let fs=parseFloat(getComputedStyle(r).fontSize),n=0;r.querySelectorAll('.sbopt,.sb1 .sbi.warn').forEach(o=>o.style.display='');
   const over=()=>r.scrollWidth>r.clientWidth+1;while(over()&&fs>11&&n<16){fs-=.5;n++;r.style.setProperty('font-size',fs+'px','important')}
@@ -7742,7 +7755,9 @@ function campOneFit(w){try{const sc=w.querySelector(':scope > .cscene'),pn=w.que
    Les parties sans moments enregistrés (avant la v2.95) gardent une page par jour. */
 function campOneHist(w,hp){try{if(!hp)return;const days=[...hp.querySelectorAll(':scope > .hday')];if(!days.length)return;
   const pages=[];days.forEach(h=>{h.hidden=true;const ul=h.nextElementSibling&&h.nextElementSibling.matches('ul')?h.nextElementSibling:null;const d=+(h.textContent.match(/\d+/)||[0])[0];if(!ul)return;
-    const lis=[...ul.querySelectorAll(':scope > li')];const ms=[...new Set(lis.map(li=>li.dataset.w||''))];
+    colorNames(ul);const lis=[...ul.querySelectorAll(':scope > li')];
+    /* têtes devant les noms (remises en v2.97, demande de Clément du 9/11) */
+    lis.forEach(li=>{li.querySelectorAll('.pn[data-pid]').forEach(n=>{if(n.previousElementSibling&&n.previousElementSibling.classList.contains('lface'))return;const p=P(+n.dataset.pid);if(!p)return;const f=document.createElement('span');f.className='lface';f.dataset.pid=p.id;f.setAttribute('role','button');f.innerHTML=face(p,20,p.alive?'':'gone');n.before(f)});if(li.querySelector('.lface'))li.classList.add('hasf')});const ms=[...new Set(lis.map(li=>li.dataset.w||''))];
     if(ms.length<2&&!ms[0]){pages.push({d,m:'',lis});return}
     ms.forEach(m=>pages.push({d,m,lis:lis.filter(li=>(li.dataset.w||'')===m)}))});
   if(!pages.length)return;
