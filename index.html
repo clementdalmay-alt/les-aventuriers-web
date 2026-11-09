@@ -2051,6 +2051,35 @@ ul.lines li.place.pbarl.me{outline:2px solid var(--sky);outline-offset:-2px}
 .career .crg small{font-weight:600;color:var(--muted)}
 .career .crg.win{background:var(--torch-soft);color:var(--torch)}
 .sobj{margin:6px 0}
+/* v2.102 — lot À plusieurs : écrans de partie à plusieurs et création à plusieurs sans défilement */
+/* création à plusieurs : une pastille par joueur, seule la fiche choisie est affichée */
+.pchips{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding:2px;scrollbar-width:none}
+.pchips::-webkit-scrollbar{display:none}
+.pchip{appearance:none;flex:0 0 auto;display:flex;align-items:center;gap:8px;min-height:48px;padding:4px 14px 4px 4px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--sand);font:inherit;cursor:pointer}
+.pchip b{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pchip .prowf svg{width:40px!important;height:40px!important;display:block;border-radius:50%}
+.pchip.on{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch);color:var(--torch)}
+.pcards > .pcard.pmany:not(.pon){display:none!important}
+.pchips{align-items:center;overflow:visible;padding:0;min-width:0;max-width:100%}
+.pchipl{display:flex;gap:8px;overflow-x:auto;flex:1 1 auto;min-width:0;padding:2px;scrollbar-width:none}
+.pchipl::-webkit-scrollbar{display:none}
+.pchip.padd{min-width:48px;justify-content:center;padding:0 14px;font-size:1.3rem;color:var(--torch);border-style:dashed}
+.pchips > .pinfo{flex:0 0 auto}
+.tabbody > p.shint{margin-top:-4px}
+/* écran « à vous de jouer » d'un mini-jeu (à plusieurs) : Essai · C'est parti · ⏭️ sur une ligne, fixés en bas */
+.bbar.mgbar{display:flex;gap:8px;align-items:stretch}
+.bbar.mgbar > .btn{flex:1 1 0;min-width:0;line-height:1.2}
+.bbar.mgbar > .autob{flex:0 0 56px}
+.mgrules .chance,.mgrules > div{margin-top:8px}
+/* liste d'aventuriers trop longue (vote, Feu sacré) : elle défile seule, fondu en bas tant qu'il reste des noms */
+.mlistx.lfit{overflow-y:auto;overscroll-behavior:contain;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}
+.mlistx.lfit.lend{-webkit-mask-image:none;mask-image:none}
+/* boules noires repliées */
+.ballsd summary b.me{color:var(--torch)}
+/* écran du gagnant à plusieurs : évolution de chaque joueur sur une ligne */
+.evom .evch{display:none}
+.evochips{margin:4px 0 8px}
+.evosel[hidden]{display:none}
 </style>
 
 <div id="app"></div>
@@ -3420,13 +3449,15 @@ async function seasonScreen(){let s=seasonGet();
 function seasonRecord(place){const s=seasonGet();if(!S.season||!s||s.games.length>=3)return'';const h=S.players.find(p=>p.human);s.games.push({place,loc:S.loc,name:h?h.name:'',n:S.players.length});seasonSet(s);sobjCheck(s);
   const tot=s.games.reduce((t,g)=>t+placePts(g.place),0);if(s.games.length>=3)S.players.filter(p=>p.human).forEach(p=>unlock(p,'season'));
   return `<section class="pgroup"><p class="lbl">🏆 ${L("Season","Saison")} · ${s.games.length}/3</p><p>${L(`+${placePts(place)} points · total ${tot}`,`+${placePts(place)} points · total ${tot}`)}${s.games.length>=3?' · '+L("Season complete!","Saison terminée !"):''}</p>${sobjLine(seasonGet())}</section>`}
+/* v2.102 (lot À plusieurs) : les répliques du confessionnal sont repliées (« 🎥 Au confessionnal · 2 »), comme le code de défi ;
+   pas de doublon à l'écran : la place est dans l'onglet Classement, les jours tenus dans « Jour 1 → jour N » au-dessus (l'image à partager garde les deux) */
 function seasonRecap(places,winner){let html=(()=>{let html=(()=>{const hs=S.players.filter(p=>p.human);if(!hs.length)return'';const h=hs[0],pl=h.id===winner.id?1:(places.find(x=>x.id===h.id)||{}).place||99;
   const conf=(S.confLog||[]).filter(c=>c.id===h.id).slice(-2);const w=wrec(h.id);
   const facts=[[L("Final place","Classement"),`${pl}${L('','')}/${S.players.length}`],[L("Days on the island","Jours sur l'île"),S.out.find(o=>o.id===h.id)?S.out.find(o=>o.id===h.id).day:S.day],[L("Individual wins","Victoires individuelles"),h.wins||0],[L("Team wins","Victoires collectives"),h.tw||0],[L("Votes received","Votes reçus"),h.vAg||0],[L("Fish caught","Poissons pêchés"),Math.round(w.fish||0)]];
   RECAP={pid:h.id,name:h.name,pl,n:S.players.length,loc:S.loc,isl:lx(LOC(S.loc),'island'),facts,code:codeFull(),winner:winner.name,q:conf.length?conf[conf.length-1].txt:''};
   if(S.fromCode)unlock(h,'code');if(S.allstars&&h.id===winner.id)unlock(h,'allstars');
-  return `${seasonRecord(pl)}<section class="pgroup recap"><p class="lbl">📜 ${L("Your season recap","Récapitulatif de votre saison")} · ${esc(h.name)}</p><div class="kv" style="margin-top:8px">${facts.map(([k,v])=>`<span>${k}</span><b class="num">${v}</b>`).join('')}</div>
-    ${conf.length?`<p class="lbl" style="margin-top:10px">🎥 ${L("In the confessional","Au confessionnal")}</p>${conf.map(c=>`<p class="muted">${L("Day","Jour")} ${c.d} · « ${esc(c.txt)} »</p>`).join('')}`:''}
+  return `${seasonRecord(pl)}<section class="pgroup recap"><p class="lbl">📜 ${L("Your season recap","Récapitulatif de votre saison")} · ${esc(h.name)}</p><div class="kv" style="margin-top:8px">${facts.filter((f,i)=>!(i===0||(i===1&&S.day>=3))).map(([k,v])=>`<span>${k}</span><b class="num">${v}</b>`).join('')}</div>
+    ${conf.length?`<details class="codefold conffold"><summary>🎥 ${L("In the confessional","Au confessionnal")} <span class="muted">· ${conf.length}</span></summary>${conf.map(c=>`<p class="muted">${L("Day","Jour")} ${c.d} · « ${esc(c.txt)} »</p>`).join('')}</details>`:''}
     <details class="codefold"><summary>🎟️ ${L("Challenge code for this island","Code de défi de cette île")}</summary><p class="hint"><b class="num codefull">${esc(codeFull())||'—'}</b></p></details></section>`})();
 try{if(!RECAP)return html;runRecord(RECAP.pl);
   try{RECAP.facts=RECAP.facts.concat([[L("Difficulty","Difficulté"),DIFFN(S.diff||'normal')]])}catch(e){}
@@ -4355,10 +4386,13 @@ async function humanPlay(p,g,kind){
 try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+1}catch(e){}
 
   const bonus=sportBonus(p,g);
-  const _hh=`${eb(kind+' · '+esc(p.name))}${meHead(p)}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>${mgDemo(g)}<!--trynote-->
+  /* v2.102 (lot À plusieurs) : écran « à vous de jouer » (à plusieurs) : schéma et rappel visibles ; règle, récompense, chances et explication de « Passer »
+     dans un seul « Règles » replié ; Essai · C'est parti · ⏭️ fixés en bas */
+  const _hh=`${eb(kind+' · '+esc(p.name))}${meHead(p)}<h1 class="h">${gN(g)}</h1>${mgDemo(g)}<!--trynote-->
+    <details class="statd rulesbox mgrules"><summary>${L("Rules","Règles")}</summary><p>${gR(g)}</p>
     <p class="muted">${L(`This challenge rewards ${statN(GAMES[g].stat)}.`,`Cette épreuve récompense : ${statN(GAMES[g].stat)}.`,`Esta prueba premia: ${statN(GAMES[g].stat)}.`)} ${bonus?L(`Your ${esc(sportName(p.sport))} background gives you ${bonus>0?'+':''}${bonus}%.`,`Votre pratique (${esc(sportName(p.sport))}) vous donne ${bonus>0?'+':''}${bonus} %.`,`Tu práctica de ${esc(sportName(p.sport))} te da ${bonus>0?'+':''}${bonus} %.`):''} ${L(`Energy (${Math.round(p.energy)}) also counts.`,`L'énergie (${Math.round(p.energy)}) compte aussi.`,`La energía (${Math.round(p.energy)}) también cuenta.`)}</p>
-    ${chanceLine(p,g,bonus)}<div class="row"><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><!--try--><button class="btn ghost" data-act="try">🧪 ${L("Trial (does not count)","Essai (ne compte pas)","Prueba (no cuenta)")}</button><button class="btn ghost" data-act="auto">${L("Play it for me","Jouer à ma place","Jugar por mí")}</button></div>
-    <p class="hint">${L("Skipping gives you the score your characteristics would normally earn. During the game, Simulate (tap twice) ends it the same way.","Passer vous donne le score que vos caractéristiques obtiendraient normalement. En cours d'épreuve, Simuler (deux appuis) termine de la même façon.","Saltar te da la puntuación que tus características lograrían normalmente. Abandonar durante la prueba da 0.")}</p>`;let choiceAct=PRECHOICE&&S.humans<=1&&INGAME?PRECHOICE:await ask(_hh);
+    ${chanceLine(p,g,bonus)}<p class="hint">${L("Skipping gives you the score your characteristics would normally earn. During the game, Simulate (tap twice) ends it the same way.","Passer vous donne le score que vos caractéristiques obtiendraient normalement. En cours d'épreuve, Simuler (deux appuis) termine de la même façon.","Saltar te da la puntuación que tus características lograrían normalmente. Abandonar durante la prueba da 0.")}</p></details>
+    <div class="bbar mgbar"><!--try--><button class="btn ghost" data-act="try">🧪 ${L("Trial (does not count)","Essai (ne compte pas)","Prueba (no cuenta)")}</button><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><button class="btn ghost autob" data-act="auto" title="${L("Play it for me","Jouer à ma place","Jugar por mí")}" aria-label="${L("Play it for me","Jouer à ma place","Jugar por mí")}">⏭️<span class="stx"> ${L("Skip","Passer","Saltar")}</span></button></div>`;let choiceAct=PRECHOICE&&S.humans<=1&&INGAME?PRECHOICE:await ask(_hh);
   if(choiceAct==='try'){window.__poison=false;await countdown();const _tr=await lancerMiniJeu(g);window.__poison=false;choiceAct=await ask(mgTryDone(_hh,_tr))}
   PRECHOICE=null;let raw;
   window.__poison=false;
@@ -4582,12 +4616,14 @@ function teamBoard(sc,A,B,win){teamNote(sc,win);const T=TEAMS.get(sc)||{fmt:'cla
   return `<div class="tboard">${html}</div>${used?'':bb}`}
 function paritySit(big,small,diff){const cnt=(xs,g)=>xs.filter(p=>p.g===g).length,out=[];const pool=shuffle(big.slice());
   for(let i=0;i<diff;i++){const rest=pool.filter(p=>!out.includes(p.id));if(!rest.length)break;const sf=cnt(rest,'f')-cnt(small,'f'),sm=cnt(rest,'m')-cnt(small,'m');const g=sf>sm?'f':sm>sf?'m':pick(['f','m']);out.push((rest.find(p=>p.g===g)||rest[0]).id)}return out}
-const ballsHtml=(big,sit,diff)=>{const bigT=tk(big[0]);return `<section class="pgroup"><p class="lbl">⚫ ${L("Black balls","Boules noires")}</p><p class="hint">${L(`${TR[bigT].n} has ${diff} more castaway${diff>1?'s':''}. A black ball sits out, with no penalty. The draw keeps women and men balanced between the tribes.`,`${TR[bigT].n} a ${diff} aventurier${diff>1?'s':''} de plus. Une boule noire reste sur le banc, sans pénalité. Le tirage respecte la parité femmes-hommes entre les tribus.`)}</p>
-  <div class="balls">${big.map((p,i)=>`<div class="ball ${sit.includes(p.id)?'black':''} ${p.human?'me':''}" style="animation-delay:${i*0.25}s"><span class="bb"></span><b>${esc(p.name)}</b></div>`).join('')}</div></section>`};
+/* v2.102 (lot À plusieurs) : boules noires repliées sur une ligne « ⚫ Boules noires · prénoms sur le banc », explication et tirage dans le dépli */
+const ballsHtml=(big,sit,diff)=>{const bigT=tk(big[0]);return `<details class="statd ballsd"><summary>⚫ ${L("Black balls","Boules noires")} <span class="muted">· ${big.filter(p=>sit.includes(p.id)).map(p=>`<b class="${p.human?'me':''}">${esc(p.name)}</b>`).join(', ')}</span></summary><p class="hint">${L(`${TR[bigT].n} has ${diff} more castaway${diff>1?'s':''}. A black ball sits out, with no penalty. The draw keeps women and men balanced between the tribes.`,`${TR[bigT].n} a ${diff} aventurier${diff>1?'s':''} de plus. Une boule noire reste sur le banc, sans pénalité. Le tirage respecte la parité femmes-hommes entre les tribus.`)}</p>
+  <div class="balls">${big.map((p,i)=>`<div class="ball ${sit.includes(p.id)?'black':''} ${p.human?'me':''}" style="animation-delay:${i*0.25}s"><span class="bb"></span><b>${esc(p.name)}</b></div>`).join('')}</div></details>`};
+/* v2.102 : le casse-tête du jour (format Rôles) passe dans « Règles » */
 function teamIntroParts(g){if(!S||S.merged)return null;const A=tribeMembers('A').filter(p=>!away(p)),B=tribeMembers('B').filter(p=>!away(p));if(!A.length||!B.length)return null;
   const big=A.length>B.length?A:B,small=big===A?B:A,diff=big.length-small.length;const fmt=teamFormat(g),pg=fmt==='roles'?pick(['seq','calc','logs']):null,sit=diff>0?paritySit(big,small,diff):[];
   S.tpre={g,d:S.day,fmt,pg,sit};if(fmt==='classic'&&!sit.length)return null;S.fmtSeen=S.fmtSeen||{};S.fmtSeen[fmt]=1;
-  return {fmt,sum:`📋 ${L("Format","Format")} · <b>${FMT_N[fmt]()}</b>`,desc:`<p class="hint">${FMT_D[fmt]()}</p>`,after:`${pg?`<p class="hint">🧩 ${L(`Today's puzzle: ${gN(pg)}.`,`Casse-tête du jour : ${gN(pg)}.`)}</p>`:''}${sit.length?ballsHtml(big,sit,diff):''}`}}
+  return {fmt,sum:`📋 ${L("Format","Format")} · <b>${FMT_N[fmt]()}</b>`,desc:`<p class="hint">${FMT_D[fmt]()}</p>${pg?`<p class="hint">🧩 ${L(`Today's puzzle: ${gN(pg)}.`,`Casse-tête du jour : ${gN(pg)}.`)}</p>`:''}`,after:`${sit.length?ballsHtml(big,sit,diff):''}`}}
 /* v2.90 (lot H) : écran de présentation d'une épreuve : règle, phrase de règle du présentateur (extra) et format dans un seul « Règles » replié */
 function rulesTeam(g,extra){S.rulesSeen=S.rulesSeen||{};S.rulesSeen[g]=1;const t=teamIntroParts(g);
   return `<details class="statd rulesbox"><summary>${L("Rules","Règles")}${t?` <span class="muted">· ${t.sum}</span>`:''}</summary>${extra?`<p>${extra}</p>`:''}<p>${gR(g)}</p>${t?t.desc:''}</details>${t?t.after:''}`}
@@ -6239,8 +6275,8 @@ async function sacredFire(voters,elig,votes,played,q,title,lines){S._fireSaved=n
     if(AUTO)stopAuto(L("here is the Sacred fire.","voici le Feu sacré."));
     if(S.humans>1)await passPhone(h,L("Sacred fire","Feu sacré"));
     const a=await ask(`${eb(title)}<i hidden data-undo></i><h1 class="h">🔥 ${L("The Sacred fire","Le Feu sacré")}</h1>${host(own?L(`The votes are in the urn. ${esc(h.name)}, you hold the Sacred fire: who do you save tonight? You can save yourself.`,`Les votes sont dans l'urne. ${esc(h.name)}, vous détenez le Feu sacré : qui sauvez-vous ce soir ? Vous pouvez vous sauver vous-même.`):L(`The votes are in the urn. ${esc(h.name)}, you came with the Sacred fire: which of them do you save?`,`Les votes sont dans l'urne. ${esc(h.name)}, vous êtes venu${h.g==='f'?'e':''} avec le Feu sacré : lequel d'entre eux sauvez-vous ?`))}
-      <p class="secret">${L("Every vote against the person you save is cancelled: the next most voted leaves.","Tous les votes contre la personne sauvée sont annulés : le suivant le plus voté part.")}</p>
-      ${fireRows(cands,own,h.id)}<div class="row"><button class="btn ghost" data-act="none">${L("Save nobody","Ne sauver personne","No salvar a nadie")}</button></div>`);
+      <details class="statd rulesbox"><summary>${L("Rules","Règles")}</summary><p>${L("Every vote against the person you save is cancelled: the next most voted leaves.","Tous les votes contre la personne sauvée sont annulés : le suivant le plus voté part.")}</p></details>
+      ${fireRows(cands,own,h.id)}<div class="bbar"><button class="btn ghost" data-act="none">${L("Save nobody","Ne sauver personne","No salvar a nadie")}</button></div>`);
     to=a==='none'?null:+a}
   else if(own){if(cands.some(x=>x.id===h.id)&&(nv(h.id)>=2||aiDanger(h)))to=h.id;
     else{const al=cands.filter(x=>x.id!==h.id&&(allied(h.id,x.id)||aff(h.id,x.id)>25)&&nv(x.id)>=1).sort((a,b)=>nv(b.id)-nv(a.id)||aff(h.id,b.id)-aff(h.id,a.id))[0];to=al?al.id:cands.some(x=>x.id===h.id)?h.id:null}}
@@ -6335,6 +6371,8 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
   try{careerEnd(places,winner)}catch(e){}
   clearSave();sfx('win');INGAME=false;
   const hi=Math.max(c0,c1),lo=Math.min(c0,c1);
+  /* v2.102 (lot À plusieurs) : à plusieurs, « Votre saison » montre une pastille par joueur (comme à la création) et l'évolution du joueur choisi
+     (prénom, jours, têtes avant / après, sans la liste des changements) */
   /* v2.90 (lot H) : écran du gagnant en 3 onglets (Vainqueur · Classement · Votre saison), « Rejouer » fixé en bas ;
      classement : podium et place du joueur, le reste replié */
   const hums=S.players.filter(x=>x.human),hid=new Set(hums.map(x=>x.id));const canReplay=!S.story&&!S.daily&&!S.season&&!S.quick&&!!lastSetup();
@@ -6350,11 +6388,11 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
     ${winner.fromLib?'':`<button class="btn ghost" id="libsave">⭐ ${L(`Save ${esc(winner.name)} to my castaways`,`Enregistrer ${esc(winner.name)} dans mes aventuriers`,`Guardar a ${esc(winner.name)} en mis aventureros`)}</button>`}</div>
     <div class="etp" data-etp="fin:rank"><section><ul class="lines" aria-label="${L("Final standings","Classement final","Clasificación final")}" style="margin-top:8px">${top.map(placeLi).join('')}</ul>
     ${rest.length?`<details class="rankmore"><summary>${L("Tout le classement","Tout le classement")} <span class="muted">· ${rest.length}</span></summary><ul class="lines">${rest.map(placeLi).join('')}</ul></details>`:''}</section></div>
-    <div class="etp" data-etp="fin:season">${hums.map(x=>evoBox(x,true)).join('')}
+    <div class="etp${hums.length>1?' evom':''}" data-etp="fin:season">${hums.length>1?`<div class="pchips evochips"><div class="pchipl" role="tablist">${hums.map((x,i)=>`<button type="button" role="tab" class="pchip${i?'':' on'}" data-evo="${i}" aria-selected="${!i}"><span class="prowf">${face(x,40)}</span><b>${esc(x.name)}</b></button>`).join('')}</div></div>${hums.map((x,i)=>`<div class="evosel" data-evi="${i}"${i?' hidden':''}>${evoBox(x,false)}</div>`).join('')}`:hums.map(x=>evoBox(x,true)).join('')}
     ${seasonRecap(places,winner)}</div>
     <div class="row stickb">${canReplay?`<button class="btn ghost" id="tohome">${L("Home","Accueil","Inicio")}</button>`:''}<button class="btn" id="again">${L("Play again","Rejouer","Jugar otra vez")}</button></div>`);
   try{const w=$app.querySelector('.wrap');w.classList.add('hasstick','finw');const se=w.querySelector('.etp[data-etp="fin:season"] > .storyend');if(se)w.querySelector('.etp[data-etp="fin:win"]').prepend(se);const rk=w.querySelector('.etp[data-etp="fin:rank"]');const sd=w.querySelector('.etp[data-etp="fin:season"] details.story');if(sd)rk.appendChild(sd);const rb=w.querySelector('#runsb'),cb=w.querySelector('#card'),sh=w.querySelector('#share');if(rb&&cb)cb.after(rb);if(sh){sh.closest('.row')&&sh.remove();w.querySelector('.stickb').prepend(sh);if(canReplay){const t=sh.textContent.replace(/^\s*📤\s*/u,'');sh.setAttribute('aria-label',t);sh.title=t;sh.innerHTML='<span aria-hidden="true" class="shic">📤</span>'}}}catch(e){}
-  etabsWire('fin');
+  etabsWire('fin');try{$app.querySelectorAll('[data-evo]').forEach(b=>b.onclick=()=>{const k=b.dataset.evo;$app.querySelectorAll('[data-evo]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-selected',String(on))});$app.querySelectorAll('[data-evi]').forEach(x=>x.hidden=x.dataset.evi!==k)})}catch(e){}
   el('again').onclick=canReplay?replaySame:home;if(canReplay)el('tohome').onclick=home;wireRecap();
   if(el('libsave'))el('libsave').onclick=()=>{const b=el('libsave');if(b.disabled)return;libAdd(winner,S.loc,1);b.textContent='✓ '+L("Saved to my castaways","Enregistré dans mes aventuriers","Guardado en mis aventureros");b.disabled=true};
 }
@@ -6599,19 +6637,28 @@ function setupFold(tab,mode){try{const tb=$app.querySelector('.tabbody');if(!tb)
     bar.innerHTML=[L("Face","Visage","Rostro"),L("From","Origine","Origen"),L("Character","Caractère","Carácter"),L("Life","Vie","Vida"),L("Stats","Stats","Estadísticas")].map((t,k)=>`<button type="button" role="tab" data-pst="${k+1}" class="${st===k+1?'on':''}" aria-selected="${st===k+1}">${t}</button>`).join('');
     const nx=document.createElement('button');nx.type='button';nx.className='btn ghost pnext';nx.dataset.pnx='1';nx.textContent=L("Next","Suivant","Siguiente")+' ›';if(st===NSTEP)nx.hidden=true;
     c.prepend(bar);c.appendChild(nx);
-    if(many){const nm=(c.querySelector('input.name')||{}).value||(c.querySelector('input.name')||{}).placeholder||'';const fc=c.querySelector('.prev svg');
-      const row=document.createElement('button');row.type='button';row.className='prow';row.dataset.pon=i;row.setAttribute('aria-expanded',String(i===SETUPF.pon));
-      row.innerHTML=`<span class="prowf">${fc?fc.outerHTML:''}</span><b>${esc(nm)}</b><span class="prowp">${i===SETUPF.pon?'–':'+'}</span>`;c.prepend(row);c.classList.toggle('pon',i===SETUPF.pon);c.classList.add('pmany')}});
+    if(many){c.classList.toggle('pon',i===SETUPF.pon);c.classList.add('pmany')}});
+  /* v2.102 (lot À plusieurs) : à plusieurs, une pastille par joueur (tête + prénom) au-dessus de la fiche ouverte, les autres fiches cachées ;
+     « Nombre de joueurs » remplacé par une pastille « + » (jusqu'à 6 ; × sur la fiche pour retirer), son explication derrière ⓘ au bout de la ligne */
+  if(mode==='group'){const np=$app.querySelector('label.field:has(#np)'),pcs=tb.querySelector('.pcards');if(np)np.hidden=true;
+    if(pcs&&!tb.querySelector('.pchips')){const hm=pcs.previousElementSibling&&pcs.previousElementSibling.matches('p.muted')?pcs.previousElementSibling:null;
+      const bar=document.createElement('div');bar.className='pchips';
+      bar.innerHTML=`<div class="pchipl" role="tablist">${cards.map((c,i)=>{const inp=c.querySelector('input.name')||{},nm=inp.value||inp.placeholder||'',fc=c.querySelector('.prev svg');
+        return `<button type="button" role="tab" class="pchip${i===SETUPF.pon?' on':''}" data-pon="${i}" aria-selected="${i===SETUPF.pon}"><span class="prowf">${fc?fc.outerHTML:''}</span><b>${esc(nm)}</b></button>`}).join('')}</div>${cards.length<6?`<button type="button" class="pchip padd" data-padd="1" aria-label="${L("Add a player","Ajouter un joueur")}" title="${L("Add a player","Ajouter un joueur")}">+</button>`:''}${hm?`<button type="button" class="ibtn pinfo" aria-label="${L("Details","Détails")}">ⓘ</button>`:''}`;
+      pcs.before(bar);
+      if(hm){hm.className='hint shint';bar.after(hm);if(SETUPF.open.has('3:np'))hm.classList.add('on');bar.querySelector('.pinfo').onclick=e=>{e.preventDefault();hm.classList.toggle('on');hm.classList.contains('on')?SETUPF.open.add('3:np'):SETUPF.open.delete('3:np')}}
+      const ad=bar.querySelector('[data-padd]');if(ad)ad.onclick=e=>{e.preventDefault();e.stopPropagation();const sl=document.getElementById('np');if(!sl)return;SETUPF.pon=cards.length;sl.value=String(cards.length+1);sl.dispatchEvent(new Event('change'))}}}
   if(!tb.dataset.sfw){tb.dataset.sfw='1';tb.addEventListener('click',e=>{const ib=e.target.closest('.sib[data-sk]');if(ib){e.preventDefault();e.stopPropagation();const f=ib.closest('.sti2'),h=f&&(f.querySelector(':scope > p.shint')||f.nextElementSibling);if(h){h.classList.toggle('on');h.classList.contains('on')?SETUPF.open.add(ib.dataset.sk):SETUPF.open.delete(ib.dataset.sk)}return}
     const pc=e.target.closest('.pcard'),idx=pc?[...pc.parentElement.children].indexOf(pc):-1;
     const ps=e.target.closest('[data-pst]'),pn=e.target.closest('[data-pnx]'),pr=e.target.closest('[data-pon]');
     if(ps||pn){const v=ps?+ps.dataset.pst:Math.min(NSTEP,(+pc.dataset.step||1)+1);SETUPF.step[idx]=v;pc.dataset.step=v;pc.querySelectorAll('[data-pst]').forEach(b=>{const on=+b.dataset.pst===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});pc.querySelector('.pnext').hidden=v===NSTEP;try{pc.scrollIntoView({block:'nearest'})}catch(_){}return}
-    if(pr){SETUPF.pon=+pr.dataset.pon;pc.parentElement.querySelectorAll(':scope > .pcard').forEach((c,k)=>{const on=k===SETUPF.pon;c.classList.toggle('pon',on);const r=c.querySelector(':scope > .prow');if(r){r.setAttribute('aria-expanded',String(on));r.querySelector('.prowp').textContent=on?'–':'+'}})}},true)}
+    if(pr){SETUPF.pon=+pr.dataset.pon;tb.querySelectorAll('.pcards > .pcard').forEach((c,k)=>c.classList.toggle('pon',k===SETUPF.pon));
+      tb.querySelectorAll('.pchip').forEach(b=>{const on=+b.dataset.pon===SETUPF.pon;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))})}},true)}
   // libellé et liste sur une ligne seulement si le choix affiché tient en entier (sinon la liste passe sous le libellé)
   const fit=()=>{const cx=document.createElement('canvas').getContext('2d');tb.querySelectorAll('label.field > select').forEach(sel=>{const f=sel.parentElement;f.classList.remove('sstack');if(!sel.offsetParent||!sel.selectedOptions[0])return;
     cx.font=getComputedStyle(sel).font;if(cx.measureText(sel.selectedOptions[0].text).width>sel.clientWidth-44)f.classList.add('sstack')})};
   fit();tb.querySelectorAll('[data-pst], [data-pnx], [data-pon]').forEach(b=>b.addEventListener('click',()=>setTimeout(fit,0)));tb.querySelectorAll('label.field > select').forEach(sel=>sel.addEventListener('change',fit));
-  tb.querySelectorAll('.pcard input.name').forEach(inp=>inp.addEventListener('input',()=>{const r=inp.closest('.pcard').querySelector(':scope > .prow b');if(r)r.textContent=inp.value||inp.placeholder}))}catch(e){}}
+  tb.querySelectorAll('.pcard input.name').forEach(inp=>inp.addEventListener('input',()=>{const i=[...tb.querySelectorAll('.pcards > .pcard')].indexOf(inp.closest('.pcard')),r=tb.querySelector(`.pchip[data-pon="${i}"] b`);if(r)r.textContent=inp.value||inp.placeholder}))}catch(e){}}
 function setupScreen(modeArg,sopt={}){SETUPF={step:{},pon:0,open:new Set()};return new Promise(res=>{
   const last=(()=>{try{return JSON.parse(localStorage.getItem('aventuriers-last')||'{}')||{}}catch(e){return{}}})();
   let cm=sopt.allstars?'mine':'surprise',fill='surprise',pv=[];
@@ -6916,7 +6963,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.101 · 2026-11-09';
+const APP_VER='2.102 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7065,7 +7112,7 @@ function fitTitle(){try{const t=$app.querySelector('.title');if(!t)return;t.styl
 
 function evOf(p){let v=(()=>{try{if(!S||p.energy==null||!S.players[p.id]||S.players[p.id].name!==p.name)return 0;const od=p.alive?S.day:((S.out.find(o=>o.id===p.id)||{}).day||S.day);return Math.min(1,Math.max(0,(od-1)/12))}catch(e){return 0}})();
 try{return p&&p.human&&S&&S.storyEv?Math.min(1,Math.max(v,S.storyEv)):v}catch(e){return v}}
-const evoBox=(p,named)=>{if(!S||!p||S.day<3)return'';const d=p.alive?S.day:((S.out.find(o=>o.id===p.id)||{}).day||S.day),ch=evoList(p);return `<div class="evo2"><div class="evo2t">${named?`<b>${esc(p.name)}</b>`:''}<span class="muted">${L("Day 1 → day ","Jour 1 → jour ")+d}${ch.length?' · '+ch.join(' · '):''}</span></div><div class="evo2f">${face({...p,__ev:0},48)}<span class="evarr" aria-hidden="true">→</span>${face({...p,__ev:evOf(p)},48)}</div></div>`};
+const evoBox=(p,named)=>{if(!S||!p||S.day<3)return'';const d=p.alive?S.day:((S.out.find(o=>o.id===p.id)||{}).day||S.day),ch=evoList(p);return `<div class="evo2"><div class="evo2t">${named?`<b>${esc(p.name)}</b>`:''}<span class="muted">${L("Day 1 → day ","Jour 1 → jour ")+d}${ch.length?`<span class="evch"> · ${ch.join(' · ')}</span>`:''}</span></div><div class="evo2f">${face({...p,__ev:0},48)}<span class="evarr" aria-hidden="true">→</span>${face({...p,__ev:evOf(p)},48)}</div></div>`};
 const KIC={water:'💧',fish:'🎣',food:'🧺',wood:'🪵',shelter:'🛖',fire:'🔥',cook:'🍲',watch:'🌙',craft:'🪤',care:'🩹',cheer:'🎶',talk:'💬',search:'🔍'};
 
 
@@ -7219,7 +7266,7 @@ function tidyTitles(root){try{(root||document).querySelectorAll('.wrap,.sheet').
 function screen(html){
   html=screenPrepareHtml(html);screenKeepHistory(html);
   CAMPCTX=null;$app.innerHTML=`<div class="wrap fade${INGAME&&S?' ingame':''}">${MENUBTN()}${conseilBar(html)}${html}</div>`;try{if(window.__gu&&INGAME){const w=$app.querySelector('.wrap');if(w)w.prepend(window.__gu)}else if(window.__gu&&!INGAME){window.__gu=null}}catch(e){}colorTribes($app);colorNames($app);tidyTitles($app);syncWx();kbHint();window.scrollTo(0,0);orderText();campNews();campTabs();listFaces($app);normSpace($app);clearMenu();fitH1();fitBars();coach()
-  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenCampOne(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);
+  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenCampOne(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);screenListFit(html);
 }
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')){const el2=n.querySelector('.sheet')||n;try{const e=el2.querySelector('.eyebrow'),h=el2.querySelector('h1.h,h2.h');if(e&&h&&e.textContent.trim().toLowerCase()===h.textContent.trim().toLowerCase())e.remove()}catch(_){}normSpace(el2);}}))}).observe(document.body,{childList:true})}catch(e){}
 
@@ -7603,6 +7650,13 @@ const $id=id=>document.getElementById(id);
 function lmFix(root){try{(root||$app).querySelectorAll('.lastmsg').forEach(m=>{if(m.querySelector(':scope > .lmt'))return;const ns=[...m.childNodes].filter(n=>!(n.nodeType===1&&n.classList.contains('lmbtns')));if(!ns.length)return;const s=document.createElement('span');s.className='lmt';ns[0].before(s);ns.forEach(n=>s.appendChild(n))})}catch(e){}}
 // après l'affichage
 function screenLastMove(html){lmFix();screenPalms()}
+/* v2.102 (lot À plusieurs) : une liste d'aventuriers à choisir (vote, Feu sacré…) trop longue pour l'écran défile seule, entre le haut de l'écran
+   et la barre du bas (au moins 2 lignes et demie visibles, fondu en bas tant qu'il reste des noms) ; le reste de l'écran ne bouge pas */
+function screenListFit(){const fit=()=>{try{const w=$app.querySelector('.wrap');if(!w||w.classList.contains('camp1'))return;const l=[...w.querySelectorAll('.mlistx')].find(x=>!x.closest('details, .ovl'));if(!l)return;
+    l.classList.remove('lfit','lend');l.style.maxHeight='';const over=document.scrollingElement.scrollHeight-innerHeight;if(over<=1)return;
+    const row=(l.querySelector('.mrow')||{}).offsetHeight||60;l.style.maxHeight=Math.max(Math.round(row*2.5),l.offsetHeight-over)+'px';l.classList.add('lfit');
+    const end=()=>l.classList.toggle('lend',l.scrollTop+l.clientHeight>=l.scrollHeight-2);end();if(!l.dataset.lf){l.dataset.lf='1';l.addEventListener('scroll',end,{passive:true})}}catch(e){}};
+  fit();try{requestAnimationFrame(fit);setTimeout(fit,200)}catch(e){}}
 /* v2.100 (lot I3, point 27) : pluie de palmes quand la tribu du joueur gagne une épreuve, et sur l'écran du gagnant ;
    seulement sous body.icoanim (réglage « Transitions d'écran » et « réduire les animations » du téléphone), retirée après 3 s */
 const palmMark=t=>{try{return humansAlive().some(h=>tk(h)===t)?'<i hidden data-palms></i>':''}catch(e){return''}};
