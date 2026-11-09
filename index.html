@@ -1899,6 +1899,70 @@ body.icoanim .wrap.camp1 .cfam .agroup > .famsheet{animation:famUp .22s ease-out
 .wrap.camp1 .cfam > .agroups.n5{display:flex!important}
 .wrap.camp1 .cfam > .agroups.n5 > .agroup{flex:1 1 auto;min-width:min-content}
 .wrap.camp1 .cfam > .agroups.n5 .agroup > summary{padding:6px 2px!important}
+/* v2.95 — lot Camp A2 : le camp suit la maquette validée « Le camp sur un écran · v2 » (docs/maquettes/camp-un-ecran-v2.png). */
+
+/* tuiles des familles : « 🏝️ Survie » puis « 2 actions ★ » ; à 5 familles, largeur selon le nom et sans icône */
+.wrap.camp1 .cfam > .agroups,.wrap.camp1 .cfam > .agroups.n5{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none!important;gap:6px!important}
+.wrap.camp1 .cfam .agroup > summary,.wrap.camp1 .cfam > .agroups.n5 .agroup > summary{min-height:52px;padding:6px 4px!important;font-size:.9rem;letter-spacing:0;gap:1px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wrap.camp1 .cfam .agroup > summary .famlbl{display:block;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.wrap.camp1 .cfam .agroup > summary .famn{display:block;font-size:.74rem;font-weight:500;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.wrap.camp1 .cfam .agroup > summary .famn #npl{color:inherit}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary .famlbl{font-size:.78rem}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary .famn{font-size:.68rem}
+.wrap.camp1 .cfam .agroup:has(.famn:not(:empty)) > summary{border-color:var(--line)}
+
+/* famille ouverte : le panneau monte du bas jusqu'au haut de l'onglet, au plus ; barre, image et onglets restent visibles */
+.wrap.camp1 .cfam .agroup > .famsheet{max-height:calc(100dvh - var(--bbh,64px) - var(--pnt,240px))!important;border-top:2px solid var(--torch);border-radius:18px 18px 0 0;
+  padding:8px max(12px,env(safe-area-inset-left)) 10px!important}
+.wrap.camp1 > .fambd{top:var(--pnt,0px);bottom:var(--bbh,0px);background:rgba(0,0,0,.5)}
+.wrap.camp1 .famsheet .famhd{top:-8px;margin:0 0 6px}
+.wrap.camp1 .famsheet .famhd > b{color:var(--torch);font-size:1.05rem}
+.wrap.camp1 .famsheet .famx{border:0;padding:6px 4px;color:var(--mute,#97ada2);font-size:.95rem}
+.wrap.camp1 .famsheet > .choices{display:grid;gap:6px}
+
+/* une action = une ligne : icône, nom, ★, « · précision », coût, ⓘ */
+.wrap.camp1 .famsheet .choice{display:flex!important;flex-wrap:nowrap;align-items:center;column-gap:8px;row-gap:2px;min-height:48px;padding:6px 12px!important;margin:0!important;text-align:left}
+.wrap.camp1 .famsheet .choice > b{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;width:auto!important;max-width:none!important;margin:0!important;font-size:.98rem}
+.wrap.camp1 .famsheet .choice.showd{flex-wrap:wrap}
+.wrap.camp1 .famsheet .choice > b::after{content:none!important}
+.wrap.camp1 .famsheet .choice .ct{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrap.camp1 .famsheet .choice .cst{flex:0 0 auto;color:var(--torch)}
+.wrap.camp1 .agroup .famsheet .choice > span.csub{display:block!important;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.82rem;opacity:.72;font-weight:400}
+.wrap.camp1 .famsheet .choice > .csub:not(.cnone)::before{content:'· '}
+.wrap.camp1 .famsheet .choice > .cost,.wrap.camp1 .famsheet .choice > .dinfo{flex:0 0 auto;margin:0!important;position:static!important}
+.wrap.camp1 .famsheet .choice > .cdesc{display:none!important}
+.wrap.camp1 .famsheet .choice.showd > .cdesc{display:block!important;flex:1 0 100%;font-size:.82rem;opacity:.8;white-space:normal}
+.wrap.camp1 .famsheet .choice.reco{border-color:var(--torch)!important}
+.wrap.camp1 .famsheet .choice.off,.wrap.camp1 .famsheet .choice.blocked{opacity:.5}
+:root[data-theme="light"] .wrap.camp1 .famsheet .choice .cst,:root[data-theme="light"] .wrap.camp1 .famsheet .famhd > b{color:#93480a}
+:root[data-theme="light"] .wrap.camp1 .famsheet .choice.reco{border-color:#93480a!important}
+
+/* Historique : « ‹ Jour 2 · Matin ›        2 / 2 », puis des lignes simples */
+.wrap.camp1 .ctp.histd .hnav{justify-content:flex-start;gap:2px;margin:0 0 4px}
+.wrap.camp1 .ctp.histd .hnav .hd{flex:0 1 auto;text-align:left;color:var(--torch);font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap.camp1 .ctp.histd .hnav .hk{margin-left:auto;font-size:.88rem}
+.wrap.camp1 .ctp.histd .hnav button{width:32px;height:44px;border:0;color:var(--torch);font-size:1.3rem;font-weight:800}
+.wrap.camp1 .ctp.histd .hnav button:disabled{opacity:.25}
+.wrap.camp1 .ctp.histd ul.h1list{margin:0;padding:0 0 0 2px;list-style:none}
+.wrap.camp1 .ctp.histd ul.h1list > li{opacity:1;font-weight:400;padding:3px 0 3px 16px;position:relative;display:block;border:0;background:none}
+.wrap.camp1 .ctp.histd ul.h1list > li::before{content:'•';position:absolute;left:2px;top:3px;opacity:.7}
+:root[data-theme="light"] .wrap.camp1 .ctp.histd .hnav .hd,:root[data-theme="light"] .wrap.camp1 .ctp.histd .hnav button{color:#93480a}
+
+.wrap.camp1 .cfam > .agroups.n5{display:flex!important}
+.wrap.camp1 .cfam > .agroups.n5 > .agroup{flex:1 1 auto;min-width:min-content}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary .famico{display:none}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary .famlbl{overflow:visible}
+.wrap.camp1 .famsheet > .choices{padding:0!important;margin:0!important;min-width:0}
+.wrap.camp1 .famsheet .choice{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}
+/* un nom d'action n'est jamais coupé : s'il manque de place, il passe sur 2 lignes */
+.wrap.camp1 .famsheet .choice .ct{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2;overflow-wrap:normal;hyphens:manual}
+.wrap.camp1 .cfam > .agroups.n5{gap:4px!important}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary{padding:6px 2px!important}
+/* tuiles : largeur selon le nom ; s'il manque de place, les icônes se retirent (classe noico, posée par campOneFit) */
+.wrap.camp1 .cfam > .agroups{display:flex!important}
+.wrap.camp1 .cfam > .agroups > .agroup{flex:1 1 auto;min-width:min-content}
+.wrap.camp1 .cfam .agroup > summary .famlbl{overflow:visible;text-overflow:clip}
+.wrap.camp1 .cfam > .agroups.noico .agroup > summary .famico{display:none}
 </style>
 
 <div id="app"></div>
@@ -2812,7 +2876,7 @@ async function run(){
   while(true){
     if(!S.ds||S.ds.day!==S.day){try{histSave()}catch(e){}S.ds={day:S.day,done:[],lines:[]};if(AUTO&&((AUTO.until&&S.day>=AUTO.until)||(AUTO.k==='merge'&&S.merged)))stopAuto()}
     const D=S.ds,lines=D.lines;
-    const st=async(k,fn)=>{if(D.done.includes(k))return;save();scenePhase(k);await fn();D.done.push(k)};
+    const st=async(k,fn)=>{if(D.done.includes(k))return;/* v2.95 : début de chaque étape dans les lignes du jour (moments de l'Historique) */if(!D.mk)D.mk={};if(D.mk[k]==null)D.mk[k]=lines.length;save();scenePhase(k);await fn();D.done.push(k)};
     if(alive().length<=3&&!D.done.length){save();await finale();return}
     const q=S.skip||humansAlive().length===0;
     await st('wx',async()=>{
@@ -3777,13 +3841,15 @@ async function campFin(p,t,when,nextLbl,msg){const left=0;const c=CAMP_LAST;CAMP
   for(;;){const a=await ask(h);if(a==='go')return}}
 
 /* 9. history: the important lines of every day, newest first */
-function histSave(){try{if(!S||!S.ds)return;S.histD=S.histD||{};S.histD[S.ds.day]=(S.ds.lines||[]).filter(l=>!/^(Weather|Météo|Tiempo)\s?:/.test(String(l).replace(/<[^>]+>/g,'')))}catch(e){}}
+/* v2.95 : moment de chaque ligne (am = matin, pm = après-midi, ev = soirée), d'après le début des étapes (S.ds.mk) */
+const histMoment=(mk,i)=>{if(!mk)return '';const at=k=>mk[k]!=null&&i>=mk[k];return at('imm')||at('tc')||at('cons')||at('post')||at('evmsg')||at('ev')||at('night')||at('end')?'ev':at('conf')||at('pm')||at('back')?'pm':'am'};
+function histSave(){try{if(!S||!S.ds)return;S.histD=S.histD||{};const keep=[],w=[];(S.ds.lines||[]).forEach((l,i)=>{if(!/^(Weather|Météo|Tiempo)\s?:/.test(String(l).replace(/<[^>]+>/g,''))){keep.push(l);w.push(histMoment(S.ds.mk,i))}});S.histD[S.ds.day]=keep;if(S.ds.mk){S.histW=S.histW||{};S.histW[S.ds.day]=w}}catch(e){}}
 // Lignes du travail au camp : marquées par tribu ; avant la réunification, chacun ne voit que celles de son camp
 const lnTb=t=>`<i hidden data-tb="${t}"></i>`;
 function lnVis(l){try{const m=/data-tb="(\w+)"/.exec(String(l));if(!m||S.merged)return true;const v=VIEW!=null?P(VIEW):humansAlive()[0];return !v||tk(v)===m[1]}catch(e){return true}}
 function histHtml(){const H=S.histD||{};const days=Object.keys(H).map(Number).filter(d=>H[d]&&H[d].length).sort((a,b)=>b-a);
   if(!days.length)return `<p class="hint">${L("Important events will gather here day after day.","Les événements importants s'accumulent ici jour après jour.")}</p>`;
-  return days.map(d=>`<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${H[d].filter(lnVis).slice().reverse().map(l=>`<li>${l}</li>`).join('')}</ul>`).join('')}
+  const W=S.histW||{};return days.map(d=>`<p class="lbl hday">${L("Day ","Jour ")}${d}</p><ul class="lines hlist">${H[d].map((l,i)=>[l,(W[d]||[])[i]]).filter(([l])=>lnVis(l)).reverse().map(([l,m])=>`<li${m?` data-w="${m}"`:''}>${l}</li>`).join('')}</ul>`).join('')}
 
 /* 4. "+" next to each castaway: what you know about them */
 // Résultats des dernières épreuves (notes 0-100), dans la liste « Passer du temps avec… »
@@ -6667,7 +6733,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.94 · 2026-11-08';
+const APP_VER='2.95 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7589,39 +7655,64 @@ let SB_WHEN='am';const curWhen=()=>SB_WHEN;
 /* hauteur : l'image rétrécit d'abord, puis se cache, pour que le panneau garde au moins 3 lignes */
 function campOneFit(w){try{const sc=w.querySelector(':scope > .cscene'),pn=w.querySelector(':scope > .ctpanel'),bb=w.querySelector(':scope > .bbar');
   if(bb)document.documentElement.style.setProperty('--bbh',Math.round(bb.getBoundingClientRect().height)+'px');
+  const ag=w.querySelector('.cfam > .agroups');if(ag){ag.classList.remove('noico');if(ag.scrollWidth>ag.clientWidth+1)ag.classList.add('noico')}
   if(!sc||!pn)return;sc.hidden=false;const lh=parseFloat(getComputedStyle(pn).lineHeight)||22;
-  if(sc.getBoundingClientRect().height<64||pn.clientHeight<lh*3+24)sc.hidden=true}catch(e){}}
-/* Historique : un jour par page (‹ › ou glisser), têtes devant les noms, une icône par ligne, vos lignes en gras */
+  if(sc.getBoundingClientRect().height<64||pn.clientHeight<lh*3+24)sc.hidden=true}catch(e){}finally{try{const pn=w.querySelector(':scope > .ctpanel');if(pn)document.documentElement.style.setProperty('--pnt',Math.round(pn.getBoundingClientRect().top)+'px')}catch(e){}}}
+/* Historique (v2.95, maquette « Le camp sur un écran · v2 ») : une page par moment (« ‹ Jour 2 · Matin › 2 / 2 »), puis des lignes simples.
+   Les parties sans moments enregistrés (avant la v2.95) gardent une page par jour. */
 function campOneHist(w,hp){try{if(!hp)return;const days=[...hp.querySelectorAll(':scope > .hday')];if(!days.length)return;
-  const pages=days.map(h=>{const ul=h.nextElementSibling&&h.nextElementSibling.matches('ul')?h.nextElementSibling:null;return{h,ul,d:+(h.textContent.match(/\d+/)||[0])[0]}});
-  const me=humansAlive().map(p=>p.name).filter(Boolean),vw=VIEW!=null?P(VIEW):null;
-  pages.forEach(pg=>{if(!pg.ul)return;colorNames(pg.ul);pg.ul.querySelectorAll(':scope > li').forEach(li=>{const t=li.textContent;if(!li.querySelector('.hic')&&!/^\s*(\p{Extended_Pictographic}|<svg)/u.test(li.innerHTML.replace(/^(\s|<(?!svg)[^>]+>)+/,''))){const i=document.createElement('span');i.className='hic';i.setAttribute('aria-hidden','true');i.textContent=histIcon(t);li.prepend(i)}
-      if(vw&&new RegExp('(^|[^\\p{L}])'+vw.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}]|$)','u').test(t))li.classList.add('mine');
-      li.querySelectorAll('.pn[data-pid]').forEach(n=>{if(n.previousElementSibling&&n.previousElementSibling.classList.contains('lface'))return;const p=P(+n.dataset.pid);if(!p)return;const s=document.createElement('span');s.className='lface';s.dataset.pid=p.id;s.setAttribute('role','button');s.innerHTML=face(p,20,p.alive?'':'gone');n.before(s)})})});
+  const pages=[];days.forEach(h=>{h.hidden=true;const ul=h.nextElementSibling&&h.nextElementSibling.matches('ul')?h.nextElementSibling:null;const d=+(h.textContent.match(/\d+/)||[0])[0];if(!ul)return;
+    const lis=[...ul.querySelectorAll(':scope > li')];const ms=[...new Set(lis.map(li=>li.dataset.w||''))];
+    if(ms.length<2&&!ms[0]){pages.push({d,m:'',lis});return}
+    ms.forEach(m=>pages.push({d,m,lis:lis.filter(li=>(li.dataset.w||'')===m)}))});
+  if(!pages.length)return;
+  const list=document.createElement('ul');list.className='lines hlist h1list';
+  days.forEach(h=>{const ul=h.nextElementSibling;if(ul&&ul.matches('ul'))ul.remove();h.remove()});
   if(HISTPAGE==null||HISTPAGE>=pages.length)HISTPAGE=0;
   const nav=document.createElement('div');nav.className='hnav';
-  nav.innerHTML=`<button type="button" class="hprev" aria-label="${L("Previous day","Jour précédent","Día anterior")}">‹</button><b class="hd"></b><span class="hk muted"></span><button type="button" class="hnext" aria-label="${L("Next day","Jour suivant","Día siguiente")}">›</button>`;
-  const res=hp.querySelector(':scope > .hres');(res||days[0]).after?(res?res.after(nav):days[0].before(nav)):0;
-  const show=()=>{pages.forEach((pg,i)=>{const on=i===HISTPAGE;pg.h.hidden=true;if(pg.ul)pg.ul.hidden=!on});const pg=pages[HISTPAGE];
-    nav.querySelector('.hd').textContent=pg.h.textContent.trim();nav.querySelector('.hk').textContent=`${pages.length-HISTPAGE} / ${pages.length}`;
+  nav.innerHTML=`<button type="button" class="hprev" aria-label="${L("Previous day","Jour précédent","Día anterior")}">‹</button><b class="hd"></b><button type="button" class="hnext" aria-label="${L("Next day","Jour suivant","Día siguiente")}">›</button><span class="hk muted"></span>`;
+  const res=hp.querySelector(':scope > .hres');hp.prepend(nav);if(res)nav.after(res);(res||nav).after(list);
+  const show=()=>{const pg=pages[HISTPAGE];list.replaceChildren(...pg.lis);
+    nav.querySelector('.hd').textContent=L("Day ","Jour ")+pg.d+(pg.m?' · '+whenShort(pg.m):'');nav.querySelector('.hk').textContent=`${pages.length-HISTPAGE} / ${pages.length}`;
     nav.querySelector('.hprev').disabled=HISTPAGE>=pages.length-1;nav.querySelector('.hnext').disabled=HISTPAGE<=0;if(res)res.hidden=HISTPAGE!==0};
   nav.querySelector('.hprev').onclick=e=>{e.stopPropagation();if(HISTPAGE<pages.length-1){HISTPAGE++;show()}};nav.querySelector('.hnext').onclick=e=>{e.stopPropagation();if(HISTPAGE>0){HISTPAGE--;show()}};
   let x0=null,y0=null;hp.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY},{passive:true});
   hp.addEventListener('pointerup',e=>{if(x0==null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;if(dx>0&&HISTPAGE<pages.length-1)HISTPAGE++;else if(dx<0&&HISTPAGE>0)HISTPAGE--;else return;show()},{passive:true});
   show()}catch(e){}}
-/* familles d'actions : une seule ouverte, dans un panneau du bas avec « Fermer » ; une famille sans action possible est grisée */
+/* familles d'actions (v2.95, maquette v2) : tuiles courtes « 🏝️ Survie / 2 actions ★ » ; une famille ouverte monte du bas jusqu'au haut de l'onglet
+   (barre, image et onglets restent visibles) ; une action par ligne « 🎣 Pêcher ★ · comme hier ». Une famille sans action possible est grisée. */
+const FAMICO={camp:'🏝️',social:'🤝',strat:'♟️',rest:'😴',night:'🌙'};
+let LASTACT_SEEN={};
+function famShort(g){const k=g.dataset.grp;return k==='camp'?L("Survival","Survie","Supervivencia"):k==='social'?L("Social","Social","Social"):k==='strat'?L("Strategy","Stratégie","Estrategia"):k==='rest'?L("Rest","Repos","Descanso"):k==='night'?L("Night","Nuit","Noche"):''}
+function campOneLine(c,tag){try{if(c.querySelector(':scope > .csub'))return;const b=c.querySelector(':scope > b');if(!b)return;
+  const ct=document.createElement('span');ct.className='ct';[...b.childNodes].filter(n=>!(n.nodeType===1&&n.matches('.ico,.cost,.dinfo'))).forEach(n=>ct.appendChild(n));
+  const ico=b.querySelector(':scope > .ico');if(ico)ico.after(ct);else b.prepend(ct);
+  if(c.classList.contains('reco')){const st=document.createElement('span');st.className='cst';st.setAttribute('aria-hidden','true');st.textContent='★';ct.after(st)}
+  const why=c.querySelector(':scope > span.why'),desc=c.querySelector(':scope > span:not(.why)');if(desc)desc.classList.add('cdesc');
+  const sub=document.createElement('span');sub.className='csub';
+  if(why){sub.textContent=why.textContent.replace(/^\s*[🚫✓]\s*/u,'');why.remove()}else if(tag)sub.textContent=tag;
+  if(!sub.textContent)sub.classList.add('cnone');
+  b.after(sub);const end=[...b.querySelectorAll(':scope > .cost,:scope > .dinfo')];sub.after(...end);if(desc)c.appendChild(desc)}catch(e){}}
 function campOneFamilies(w,ag,bb){try{const gs=[...ag.querySelectorAll(':scope > details.agroup')];if(!gs.length)return;ag.classList.add('n'+gs.length);
   const bd=document.createElement('div');bd.className='fambd';bd.hidden=true;w.appendChild(bd);
   const closeAll=()=>{gs.forEach(g=>g.open=false)};bd.onclick=closeAll;
+  const bar=w.querySelector(':scope > .ctabs');if(bar)bar.addEventListener('click',closeAll,true);
+  /* « comme hier » : la dernière action du joueur, quand elle date de la veille (affichage seulement, hors de S) */
+  let yAct='';try{const vp=VIEW!=null?P(VIEW):null;if(vp&&vp._lastAct){const k=(S.gid||'')+'|'+vp.id,o=LASTACT_SEEN[k];if(!o||o.a!==vp._lastAct)LASTACT_SEEN[k]={a:vp._lastAct,d:S.day};else if(o.d===S.day-1)yAct=o.a}}catch(e){}
   gs.forEach(g=>{const sm=g.querySelector(':scope > summary');if(!sm)return;
-    if(!sm.querySelector('.famlbl')){const tn=[...sm.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());if(tn.length){const sp=document.createElement('span');sp.className='famlbl';tn[0].before(sp);tn.forEach(n=>sp.appendChild(n))}}
     const kids=[...g.children].filter(x=>x!==sm);let sh=g.querySelector(':scope > .famsheet');
     if(!sh){sh=document.createElement('div');sh.className='famsheet';const hd=document.createElement('div');hd.className='famhd';
       const tt=document.createElement('b');tt.innerHTML=sm.innerHTML;tt.querySelectorAll('.recost').forEach(x=>x.remove());const cl=document.createElement('button');cl.type='button';cl.className='famx';cl.textContent=L("Close","Fermer","Cerrar")+' ✕';cl.onclick=e=>{e.preventDefault();e.stopPropagation();g.open=false};
       hd.append(tt,cl);sh.appendChild(hd);kids.forEach(k=>sh.appendChild(k));g.appendChild(sh)}
-    const chs=[...sh.querySelectorAll('.choice')],ok=chs.filter(c=>!c.classList.contains('off')&&!c.disabled&&c.dataset.act);
-    if(chs.length&&!ok.length){g.classList.add('famoff');sm.addEventListener('click',e=>{e.preventDefault();const why=(chs.map(c=>c.title||c.dataset.why||'').find(Boolean))||L("No action possible here for now.","Aucune action possible ici pour le moment.","Ninguna acción posible aquí por ahora.");toast(sm.textContent.replace('★','').trim(),why)})}
-    g.open=false;g.addEventListener('toggle',()=>{if(g.open)gs.forEach(o=>{if(o!==g)o.open=false});bd.hidden=!gs.some(o=>o.open);w.classList.toggle('famopen',!bd.hidden)})})}catch(e){}}
+    const chs=[...sh.querySelectorAll('.choice')],ok=chs.filter(c=>!c.classList.contains('off')&&!c.disabled&&!c.classList.contains('blocked')&&c.dataset.act);
+    chs.forEach(c=>campOneLine(c,yAct&&c.dataset.act===yAct?L("like yesterday","comme hier","como ayer"):''));
+    /* tuile : icône + nom court, puis le nombre d'actions possibles (★ si l'action conseillée est dedans), ou le choix de la nuit */
+    const reco=!!sm.querySelector('.recost'),npl=sm.querySelector('#npl'),n=ok.length,lbl=famShort(g);
+    if(lbl){const l1=document.createElement('span');l1.className='famlbl';const ic=document.createElement('span');ic.className='famico';ic.setAttribute('aria-hidden','true');ic.textContent=(FAMICO[g.dataset.grp]||'')+' ';l1.append(ic,lbl);const l2=document.createElement('span');l2.className='famn';
+      if(npl){npl.classList.remove('muted');l2.appendChild(npl)}else{l2.textContent=L(`${n} ${n>1?'actions':'action'}`,`${n} ${n>1?'actions':'action'}`,`${n} ${n>1?'acciones':'acción'}`)+(reco?' ★':'')}
+      sm.replaceChildren(l1,l2)}
+    if(chs.length&&!ok.length){g.classList.add('famoff');sm.addEventListener('click',e=>{e.preventDefault();const why=(chs.map(c=>c.title||c.dataset.blk||(c.querySelector('.csub')||{}).textContent||'').find(Boolean))||L("No action possible here for now.","Aucune action possible ici pour le moment.","Ninguna acción posible aquí por ahora.");toast(lbl||sm.textContent.trim(),why)})}
+    g.open=false;g.addEventListener('toggle',()=>{if(g.open){gs.forEach(o=>{if(o!==g)o.open=false});campOneFit(w)}bd.hidden=!gs.some(o=>o.open);w.classList.toggle('famopen',!bd.hidden)})})}catch(e){}}
 
 /* heure de la dernière sauvegarde de cette partie (menu ☰) */
 function lastSaveAt(){try{const o=JSON.parse(localStorage.getItem('aventuriers-lastsave')||'null');if(!o||!S||o.gid!==S.gid)return '';const d=new Date(o.t);return `${L("D","J")}${o.d} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}catch(e){return ''}}
