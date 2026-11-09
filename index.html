@@ -2038,6 +2038,11 @@ ul.lines li.place.pbarl.me{outline:2px solid var(--sky);outline-offset:-2px}
 .wrap.finw .row.stickb:has(#tohome) #share .shic{font-size:1.4rem;line-height:1}
 .wrap.camp1 > .sbar .sb1.nosbw .sbw{display:none}
 .wrap.camp1 > .sbar .sb1{min-width:0;overflow:hidden}
+/* v2.100 — lot I3 : pluie de palmes à la victoire (seulement sous body.icoanim) */
+.palmrain{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+.palmrain i{position:absolute;top:-24px;display:block;animation-name:palmFall;animation-timing-function:cubic-bezier(.3,.1,.6,1);animation-fill-mode:both}
+@keyframes palmFall{0%{transform:translate(0,0) rotate(var(--r))}50%{transform:translate(18px,50vh) rotate(calc(var(--r) + 160deg))}100%{transform:translate(-10px,105vh) rotate(calc(var(--r) + 320deg));opacity:.9}}
+@media (prefers-reduced-motion:reduce){.palmrain{display:none}}
 </style>
 
 <div id="app"></div>
@@ -2268,8 +2273,12 @@ function face(p,size=40,extra=''){
     ${AGEF(p)}${MOODSICK(p)}${stub?`<path d="${beardP.full}" ${F} opacity="${stub}"/>`:''}${beard?`<path d="${beardP[beard]}" ${F}/>`:''}
     ${front}${bandana?`<path d="M18.6 25 Q32 14 45.4 25 L45.6 28.2 Q32 19 18.4 28.2Z" fill="${col}"/>`:''}${acc==='cap'?`<path d="M18 26 Q18 10.5 32 10.5 Q46 10.5 46 26 Q32 19.5 18 26Z" fill="${col}"/><path d="M43 23.5 Q52 21.5 57 25.5 Q50 27.5 44.5 26.5Z" fill="${col}" opacity=".8"/>`:''}
     ${EV>.3&&hs!=='bald'?`<path d="M28 13.5 q1 -4 3 -5 M35 13.5 q2 -3 5 -3" stroke="${hc}" stroke-width="1.4" fill="none" opacity="${Math.min(1,EV).toFixed(2)}"/>`:''}
-    <path d="${brows}" stroke="${hc==='#bdb8b0'?'#7a756e':hc}" opacity="${p.age>=55?.6:1}" stroke-width="${p.age>=55?1.3:1.6}" fill="none" stroke-linecap="round"/>
-    <circle cx="27" cy="31" r="1.7" fill="${ink}"/><circle cx="37" cy="31" r="1.7" fill="${ink}"/>
+    <path d="${(()=>{const fx=p.__ev!=null?null:moodFx(p);return fx&&fx.sad?'M24 26.8 L30 25 M34 25 L40 26.8':brows})()}" stroke="${hc==='#bdb8b0'?'#7a756e':hc}" opacity="${p.age>=55?.6:1}" stroke-width="${p.age>=55?1.3:1.6}" fill="none" stroke-linecap="round"/>
+    <circle cx="27" cy="31" r="1.7" fill="${ink}"/><circle cx="37" cy="31" r="1.7" fill="${ink}"/>${(()=>{const fx=p.__ev!=null?null:moodFx(p);if(!fx)return'';let o='';
+      if(fx.tired)o+=`<path d="M24.6 30.2 Q27 28.6 29.4 30.2 L29.4 29 Q27 27.6 24.6 29Z M34.6 30.2 Q37 28.6 39.4 30.2 L39.4 29 Q37 27.6 34.6 29Z" fill="${skin}" stroke="${ink}" stroke-width=".6"/><path d="M25 34 Q27 35.2 29 34 M35 34 Q37 35.2 39 34" stroke="#7a5a6a" stroke-width=".9" fill="none" opacity=".7"/>`;
+      if(fx.drained)o+=`<path d="M46 25 Q48.6 29.4 46 30.6 Q43.4 29.4 46 25Z" fill="#8fd3ff" stroke="${ink}" stroke-width=".7"/>`;
+      if(fx.glow)o+=`<circle cx="27.6" cy="30.4" r=".55" fill="#fff"/><circle cx="37.6" cy="30.4" r=".55" fill="#fff"/>`;
+      return o})()}
     ${p.age>=45?`<path d="M21.5 30 L23 31 M21.5 32.5 L23 32 M42.5 30 L41 31 M42.5 32.5 L41 32" stroke="rgba(0,0,0,.25)" stroke-width=".8"/>`:''}
     ${glasses?`<g stroke="${ink}" stroke-width="1" fill="none"><circle cx="27" cy="31" r="3.8"/><circle cx="37" cy="31" r="3.8"/><path d="M30.8 31 L33.2 31"/></g>`:''}
     <path d="M32 32 Q30.4 35.6 32.6 36.2" stroke="rgba(0,0,0,.28)" fill="none" stroke-width="1.2" stroke-linecap="round"/>
@@ -2752,6 +2761,8 @@ function libEdit(){let c={...blankPlayer(),city:pickCity(),build:'mid'};
 }
 
 /* faces: mouth and tint follow mood, fatigue and sickness (in game only) */
+/* v2.100 (lot I3, point 26) : état visible sur la tête, en partie seulement ; ne change rien au jeu */
+function moodFx(p){try{if(!INGAME||!S||p.energy==null||!S.players[p.id]||S.players[p.id].name!==p.name||!p.alive)return null;const m=p.mot!=null?p.mot:50;return{tired:p.energy<35,drained:p.energy<15||!!p.sick,sad:m<30,glow:m>=80&&p.energy>=60}}catch(e){return null}}
 function MOODM(p){try{if(!INGAME||!S||p.energy==null||!S.players[p.id]||S.players[p.id].name!==p.name||!p.alive)return null;if(p.sick||p.energy<22)return 'frown';const m=p.mot!=null?p.mot:50;if(m>=80&&p.energy>=50)return 'smile';if(m<30)return 'frown';return null}catch(e){return null}}
 function MOODSICK(p){try{if(!INGAME||!S||!S.players[p.id]||S.players[p.id].name!==p.name||!p.alive)return'';return p.sick?'<ellipse cx="32" cy="30" rx="13" ry="15" fill="#7fbf5a" opacity=".2"/>':''}catch(e){return''}}
 
@@ -4378,7 +4389,7 @@ async function confortPhase(q,lines){
     else tribeMembers(win).forEach(p=>p.energy=clamp(p.energy+20));
     lines.push(L(`<b>${TR[win].n}</b> won the confort challenge: ${got.charAt(0).toLowerCase()+got.slice(1)}.`,`<b>${TR[win].n}</b> remporte le confort : ${got.charAt(0).toLowerCase()+got.slice(1)}.`,`<b>${TR[win].n}</b> gana la recompensa: ${got.charAt(0).toLowerCase()+got.slice(1)}.`));
     const fireH=fireAward(sc,win,lines,q);
-    if(!q)await ask(`${eb(L("Confort · Results","Confort · Résultats","Recompensa · Resultados"))}<h1 class="h">${L(`${TR[win].n} wins the reward`,`${TR[win].n} remporte la récompense`,`${TR[win].n} gana la recompensa`)}</h1>
+    if(!q)await ask(`${eb(L("Confort · Results","Confort · Résultats","Recompensa · Resultados"))}${palmMark(win)}<h1 class="h">${L(`${TR[win].n} wins the reward`,`${TR[win].n} remporte la récompense`,`${TR[win].n} gana la recompensa`)}</h1>
       ${teamBoard(sc,A,B,win)}${fireH}
       ${host(L(`${TR[win].n}, you take home: <b>${got.charAt(0).toLowerCase()+got.slice(1)}</b>. Head back to camp: the immunity challenge is later today.`,`${TR[win].n}, vous rapportez au camp : <b>${got.charAt(0).toLowerCase()+got.slice(1)}</b>. Retournez-y, l'épreuve d'immunité aura lieu plus tard.`))}${voixTribu()?voixLigne(voixTribu()===win?'victoire':'defaite',voixTribu()):''}
       <button class="btn" data-act="go">${L("Back to camp","Retour au camp","Volver al campamento")}</button>`);
@@ -4433,7 +4444,7 @@ async function immunityPhase(q,lines,sameDay=true){
   if(S.merged&&twOn('malus')&&!linkedOn('i')&&S.malusD!==S.day&&alive().length>5&&(S._forceMalus||Math.random()<0.4))S.malusD=S.day;
   const tn=sameDay?L("tonight","ce soir","esta noche"):L("tomorrow","demain","mañana");
   const g=gameOf('i');
-  if(!q)await ask(`${eb(DAY()+L(" · Immunity challenge"," · Épreuve d'immunité"," · Prueba de inmunidad"))}${soloHead()}<h1 class="h">${gN(g)}</h1>${flavor('imm')}${S.merged&&S.malusD===S.day?`<p class="secret">⚠️ ${L("Penalty challenge: whoever finishes last gets a vote against them at the next Council.","Épreuve à malus : le dernier recevra un vote contre lui au prochain Conseil.")}</p>`:''}
+  if(!q)await ask(`${eb(DAY()+L(" · Immunity challenge"," · Épreuve d'immunité"," · Prueba de inmunidad"))}${soloHead()}<h1 class="h">${gN(g)}</h1>${cryLine()}${flavor('imm')}${S.merged&&S.malusD===S.day?`<p class="secret">⚠️ ${L("Penalty challenge: whoever finishes last gets a vote against them at the next Council.","Épreuve à malus : le dernier recevra un vote contre lui au prochain Conseil.")}</p>`:''}
     ${host(S.merged&&linkedOn('i')?L("Linked fates: you play in pairs. The pair with the best average wins immunity, and both partners are safe at the next Council.","Destins liés : vous jouez par deux. Le binôme avec la meilleure moyenne remporte l'immunité, et les deux partenaires sont protégés au prochain Conseil.","Destinos unidos: jugáis por parejas. La pareja con mejor media gana la inmunidad y ambos están a salvo en el próximo Consejo."):S.merged?L(`From now on it's every castaway for themselves. The winner wears the immunity collar at the next Council, ${tn}.`,`Désormais, c'est chacun pour soi. Le vainqueur portera le collier d'immunité au prochain Conseil, ${tn}.`,`A partir de ahora es cada uno por su cuenta. El ganador llevará el collar de inmunidad en el próximo Consejo, ${tn}.`):`${gossip()} ${L(`This one is for immunity. The losing tribe goes to the Council ${tn}.`,`Cette épreuve est pour l'immunité. La tribu perdante ira au Conseil ${tn}.`,`Esta prueba es por la inmunidad. La tribu perdedora irá al Consejo ${tn}.`)}`)}
     ${rulesTeam(g)}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${humansAlive().length?L("Let's go!","C'est parti !","¡Vamos!"):L("Watch the challenge","Regarder l'épreuve","Ver la prueba")}</button></div>`);
   const sc=S.merged?await playAll(g,KIND_I()):await playTeam(g,KIND_I(),q);
@@ -4441,7 +4452,7 @@ async function immunityPhase(q,lines,sameDay=true){
   if(!S.merged){
     const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B');const win=tieWin(sc,A,B),lose=win==='A'?'B':'A';challengeFeel(sc,win,true);defeatStrain(win,lose);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);tribeMembers(win).forEach(p=>motv(p,6));tribeMembers(lose).forEach(p=>motv(p,-6));
     lines.push(L(`<b>${TR[win].n}</b> won immunity, ${sc2(Math.max(A,B),Math.min(A,B))} to ${sc2(Math.min(A,B),Math.max(A,B))}.`,`<b>${TR[win].n}</b> remporte l'immunité, ${sc2(Math.max(A,B),Math.min(A,B))} à ${sc2(Math.min(A,B),Math.max(A,B))}.`,`<b>${TR[win].n}</b> gana la inmunidad, ${sc2(Math.max(A,B),Math.min(A,B))} a ${sc2(Math.min(A,B),Math.max(A,B))}.`));
-    if(!q)await ask(`${eb(L("Immunity · Results","Immunité · Résultats","Inmunidad · Resultados"))}<h1 class="h">${L(`${TR[win].n} wins immunity`,`${TR[win].n} remporte l'immunité`,`${TR[win].n} gana la inmunidad`)}</h1>
+    if(!q)await ask(`${eb(L("Immunity · Results","Immunité · Résultats","Inmunidad · Resultados"))}${palmMark(win)}<h1 class="h">${L(`${TR[win].n} wins immunity`,`${TR[win].n} remporte l'immunité`,`${TR[win].n} gana la inmunidad`)}</h1>
       ${teamBoard(sc,A,B,win)}
       ${host(L(`${TR[lose].n}, I'll see you ${tn} at the Council.`,`${TR[lose].n}, je vous attends ${tn} au Conseil.`,`${TR[lose].n}, os espero ${tn} en el Consejo.`))}${voixTribu()?voixLigne(voixTribu()===win?'victoire':'defaite',voixTribu()):''}<button class="btn" data-act="go">${L("Back to camp","Retour au camp","Volver al campamento")}</button>`);
     await cursedTotem(lose,q,lines);
@@ -6302,7 +6313,7 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
   const top=places.filter(x=>x.place<=3||hid.has(x.id)),rest=places.filter(x=>!(x.place<=3||hid.has(x.id)));
   ETAB.fin='win';
   screen(`${eb(L("Winner · ","Gagnant · ","Ganador · ")+whereFlag())}${etabsHtml('fin',[['win',L("Vainqueur","Vainqueur")],['rank',L("Classement","Classement")],['season',L("Votre saison","Votre saison")]])}
-    <div class="etp" data-etp="fin:win"><div class="elimrow"><div class="facebox">${face(winner,180)}</div><div class="torchbox"><div class="flame"></div><div class="stick"></div></div></div><h1 class="title">${esc(winner.name)}</h1>
+    <div class="etp" data-etp="fin:win">${winner.human?'<i hidden data-palms></i>':''}<div class="elimrow"><div class="facebox">${face(winner,180)}</div><div class="torchbox"><div class="flame"></div><div class="stick"></div></div></div><h1 class="title">${esc(winner.name)}</h1>
     <p class="muted">${profileLine(winner)} · ${archN(winner.arch,winner.g)} · ${esc(sportName(winner.sport))}</p>
     ${host(L(`By ${hi} votes to ${lo}${c0===c1?', with the tie broken by the winner of the posts':''}, ${esc(winner.name)} wins Les Aventuriers.`,`Par ${hi} voix contre ${lo}${c0===c1?', l\'égalité étant tranchée en faveur du vainqueur des poteaux':''}, ${esc(winner.name)} remporte Les Aventuriers.`,`Por ${hi} votos a ${lo}${c0===c1?', con el empate resuelto a favor del ganador de los postes':''}, ${esc(winner.name)} gana Les Aventuriers.`))}
     ${winner.fromLib?'':`<button class="btn ghost" id="libsave">⭐ ${L(`Save ${esc(winner.name)} to my castaways`,`Enregistrer ${esc(winner.name)} dans mes aventuriers`,`Guardar a ${esc(winner.name)} en mis aventureros`)}</button>`}</div>
@@ -6874,7 +6885,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.99 · 2026-11-09';
+const APP_VER='2.100 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7560,7 +7571,15 @@ const $id=id=>document.getElementById(id);
 /* 1. a message card lays out its text as one block, so "(+13)" stays on the line */
 function lmFix(root){try{(root||$app).querySelectorAll('.lastmsg').forEach(m=>{if(m.querySelector(':scope > .lmt'))return;const ns=[...m.childNodes].filter(n=>!(n.nodeType===1&&n.classList.contains('lmbtns')));if(!ns.length)return;const s=document.createElement('span');s.className='lmt';ns[0].before(s);ns.forEach(n=>s.appendChild(n))})}catch(e){}}
 // après l'affichage
-function screenLastMove(html){lmFix()}
+function screenLastMove(html){lmFix();screenPalms()}
+/* v2.100 (lot I3, point 27) : pluie de palmes quand la tribu du joueur gagne une épreuve, et sur l'écran du gagnant ;
+   seulement sous body.icoanim (réglage « Transitions d'écran » et « réduire les animations » du téléphone), retirée après 3 s */
+const palmMark=t=>{try{return humansAlive().some(h=>tk(h)===t)?'<i hidden data-palms></i>':''}catch(e){return''}};
+function screenPalms(){try{if(!$app.querySelector('[data-palms]')||!document.body.classList.contains('icoanim'))return;palmRain()}catch(e){}}
+function palmRain(){try{document.querySelectorAll('.palmrain').forEach(x=>x.remove());const d=document.createElement('div');d.className='palmrain';d.setAttribute('aria-hidden','true');
+  const leaf=c=>`<svg viewBox="0 0 40 16" width="40" height="16"><path d="M2 8 Q20 -4 38 8 Q20 20 2 8Z" fill="${c}" stroke="#2a1c0d" stroke-width="1.2"/><path d="M4 8 H36" stroke="#2a1c0d" stroke-width="1"/></svg>`;
+  let h='';for(let i=0;i<18;i++){const x=(i*37+11)%100,dl=(i*0.13)%1.4,du=1.6+(i%5)*0.25,r=(i*47)%360,c=['#4f7a5e','#6e9a5a','#3f5e4a'][i%3];h+=`<i style="left:${x}%;animation-delay:${dl.toFixed(2)}s;animation-duration:${du.toFixed(2)}s;--r:${r}deg">${leaf(c)}</i>`}
+  d.innerHTML=h;document.body.appendChild(d);setTimeout(()=>{try{d.remove()}catch(e){}},3200)}catch(e){}}
 
 /* 2. daily challenge: the same island and castaways for everyone, all day */
 const dkey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
