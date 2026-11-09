@@ -1808,6 +1808,97 @@ details.wboard > summary .lbl{text-align:left; margin:0}
 #app .ctabs,#app .ctabs.n9{display:flex!important; flex-wrap:nowrap!important; overflow-x:auto!important; scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch; gap:6px!important; padding-bottom:2px}
 #app .ctabs::-webkit-scrollbar{display:none}
 #app .ctabs .ctab{flex:0 0 auto!important; white-space:nowrap!important; scroll-snap-align:start; padding:8px 12px!important}
+/* v2.94 — lot Camp A : le camp tient sur la hauteur de l'écran (téléphone).
+   Seul le panneau de l'onglet défile ; les familles s'ouvrent dans un panneau qui monte du bas. */
+body.camp1b:has(.wrap.camp1){padding-top:0!important;padding-bottom:0!important;overflow:hidden;height:100dvh}
+.wrap.camp1{height:100dvh;max-height:100dvh;display:flex!important;flex-direction:column;gap:6px!important;overflow:hidden;
+  padding-top:env(safe-area-inset-top,0px);box-sizing:border-box}
+.wrap.camp1 > *{flex:0 0 auto;margin-top:0!important;margin-bottom:0!important;min-width:0}
+
+/* barre du haut : 2 lignes ; ☰ au bout de la ligne 1 */
+.wrap.camp1 > .sbar{position:relative!important;top:auto;padding:4px 0 5px!important}
+.wrap.camp1 > .sbar .sb1{display:flex;align-items:center}
+.wrap.camp1 > .sbar .sb1 > .gmenu{position:static!important;margin-left:auto;flex:0 0 auto;width:38px;height:38px;min-height:38px;transform:none!important}
+.wrap.camp1 > .sbar .sbi.lo b{color:#f0a24a}
+.wrap.camp1 > .sbar .sbi.crit{background:rgba(214,72,58,.18);border-radius:8px}
+.wrap.camp1 > .sbar .sbi.crit b{color:#ff7a66}
+:root[data-theme="light"] .wrap.camp1 > .sbar .sbi.lo b{color:#b4600b}
+:root[data-theme="light"] .wrap.camp1 > .sbar .sbi.crit b{color:#b3261e}
+
+/* image du camp : 112 px, rétrécit jusqu'à 80, puis se cache (JS) */
+.wrap.camp1 > .cscene{flex:0 1 112px;min-height:80px;max-height:112px;overflow:hidden;border-radius:14px}
+.wrap.camp1 > .cscene[hidden]{display:none!important}
+.wrap.camp1 > .cscene .campscene{margin:0!important;height:100%}
+.wrap.camp1 > .cscene .campscene > svg{display:block;width:100%;height:100%}
+.wrap.camp1 > .cscene figcaption{display:none}
+.wrap.camp1 > .cextra{display:grid;gap:6px}
+
+/* onglets et panneau, juste au-dessus des familles */
+.wrap.camp1 > .ctabs{flex:0 0 auto}
+.wrap.camp1 > .ctpanel{flex:1 1 0!important;min-height:76px;overflow-y:auto;overscroll-behavior:contain;position:relative;display:block!important;
+  border-radius:14px;background:var(--panel);-webkit-overflow-scrolling:touch}
+.wrap.camp1 > .ctpanel > .ctp{border-radius:0!important;background:transparent!important}
+.wrap.camp1 > .ctpanel.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 26px),transparent);mask-image:linear-gradient(#000 calc(100% - 26px),transparent)}
+.wrap.camp1 > .ctpanel > .pnup{position:sticky;float:right;bottom:6px;margin:-38px 6px 0 0;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--night);color:var(--torch);font-size:1.1rem;font-weight:800;z-index:2;cursor:pointer}
+.wrap.camp1 > .ctpanel > .pnup[hidden]{display:none}
+
+/* Historique : un jour par page */
+.wrap.camp1 .ctp.histd .hnav{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.wrap.camp1 .ctp.histd .hnav .hd{flex:1;text-align:center}
+.wrap.camp1 .ctp.histd .hnav .hk{font-size:.8rem}
+.wrap.camp1 .ctp.histd .hnav button{width:36px;height:32px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--sand);font-size:1.2rem;cursor:pointer}
+.wrap.camp1 .ctp.histd .hnav button:disabled{opacity:.3;cursor:default}
+.wrap.camp1 .ctp.histd ul[hidden],.wrap.camp1 .ctp.histd .hday[hidden],.wrap.camp1 .ctp.histd .hres[hidden]{display:none!important}
+.wrap.camp1 .ctp.histd ul.hlist{margin:0;padding:0;list-style:none}
+.wrap.camp1 .ctp.histd ul.hlist > li{opacity:.78;padding:3px 0;display:block}
+.wrap.camp1 .ctp.histd ul.hlist > li.mine{opacity:1;font-weight:700}
+.wrap.camp1 .ctp.histd .hic{display:inline-block;width:1.4em;text-align:center;margin-right:2px}
+.wrap.camp1 .ctp.histd .lface{display:inline-block;vertical-align:-5px;margin-right:3px;line-height:0}
+.wrap.camp1 .ctp.histd .lface svg,.wrap.camp1 .ctp.histd .lface img{width:20px;height:20px}
+.wrap.camp1 .ctp.histd .hres{margin:0 0 8px;padding:8px 10px;border-radius:10px;border-left:3px solid var(--torch);background:rgba(240,162,74,.08)}
+.wrap.camp1 .ctp.histd .hres.fresh{background:rgba(240,162,74,.2)}
+body.icoanim .wrap.camp1 .ctp.histd .hres.fresh{animation:hresIn .9s ease-out}
+@keyframes hresIn{from{background:rgba(240,162,74,.45)}}
+
+/* familles d'actions : une rangée de tuiles en bas */
+.wrap.camp1 > .cfam{flex:0 0 auto}
+.wrap.camp1 .cfam > .agroups{display:grid!important;grid-template-columns:repeat(4,1fr);gap:6px!important}
+.wrap.camp1 .cfam > .agroups.n5{grid-template-columns:repeat(5,1fr);gap:4px!important}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary{font-size:.74rem;padding:7px 2px!important}
+.wrap.camp1 .cfam > .agroups.n3{grid-template-columns:repeat(3,1fr)}
+.wrap.camp1 .cfam > .agroups.n2{grid-template-columns:repeat(2,1fr)}
+.wrap.camp1 .cfam .agroup{margin:0!important;min-width:0}
+.wrap.camp1 .cfam .agroup > summary{padding:8px 4px!important;font-size:.82rem;line-height:1.15;justify-content:center;text-align:center;flex-direction:column;gap:2px;min-height:48px}
+.wrap.camp1 .cfam .agroup > summary::after{display:none}
+.wrap.camp1 .cfam .agroup > summary .recost{font-size:.72rem}
+.wrap.camp1 .cfam .agroup.famoff > summary{opacity:.42}
+.wrap.camp1 .cfam .agroup[open] > summary{outline:2px solid var(--torch);outline-offset:-2px}
+
+/* famille ouverte : panneau qui monte du bas, au-dessus de la barre du bas */
+.wrap.camp1 .cfam .agroup > .famsheet{position:fixed;left:0;right:0;bottom:var(--bbh,64px);z-index:30;max-height:min(70dvh,calc(100dvh - var(--bbh,64px) - 60px));overflow-y:auto;
+  overscroll-behavior:contain;background:var(--night);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:10px max(16px,env(safe-area-inset-left)) 12px;
+  box-shadow:0 -12px 32px rgba(0,0,0,.45);max-width:560px;margin:0 auto}
+body.icoanim .wrap.camp1 .cfam .agroup > .famsheet{animation:famUp .22s ease-out}
+@keyframes famUp{from{transform:translateY(24px);opacity:0}}
+.wrap.camp1 .famsheet .famhd{display:flex;align-items:center;gap:8px;margin:0 0 8px;position:sticky;top:-10px;background:var(--night);padding:4px 0;z-index:1}
+.wrap.camp1 .famsheet .famhd > b{flex:1;font-size:1.02rem}
+.wrap.camp1 .famsheet .famx{border:1px solid var(--line);background:transparent;color:var(--sand);border-radius:10px;padding:6px 10px;font-size:.85rem;cursor:pointer}
+.wrap.camp1 .famsheet > .choices{margin:0!important}
+.wrap.camp1 > .fambd{position:fixed;inset:0;z-index:29;background:rgba(0,0,0,.45)}
+.wrap.camp1 > .fambd[hidden]{display:none}
+
+/* barre du bas fixe ●●● · Simuler */
+.wrap.camp1 > .bbar{position:relative!important;z-index:31;margin-top:0!important;padding:6px 0 calc(8px + env(safe-area-inset-bottom))!important}
+
+/* tuiles des familles : 2 lignes au plus */
+.wrap.camp1 .cfam .agroup > summary{min-height:44px;font-size:.78rem;padding:6px 3px!important}
+.wrap.camp1 .cfam .agroup > summary .famlbl{display:block;overflow-wrap:normal;word-break:normal;hyphens:manual;max-width:100%}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary{font-size:.68rem;letter-spacing:-.01em}
+/* 5 familles : largeur selon le mot le plus long, sans couper « Stratégie » */
+.wrap.camp1 .cfam > .agroups.n5{display:flex!important}
+.wrap.camp1 .cfam > .agroups.n5 > .agroup{flex:1 1 auto;min-width:min-content}
+.wrap.camp1 .cfam > .agroups.n5 .agroup > summary{padding:6px 2px!important}
 </style>
 
 <div id="app"></div>
@@ -1957,7 +2048,7 @@ const writeSaves=o=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(o));return
 const BACKUP_KEY='aventuriers-backup';let DAYSNAP=null;
 const save=()=>{if(!S)return false;S.savedAt=Date.now();try{DAYSNAP=JSON.stringify(S);localStorage.setItem(BACKUP_KEY,DAYSNAP)}catch(e){}return true};
 const backupGet=()=>{try{const g=JSON.parse(localStorage.getItem(BACKUP_KEY)||'null');return g&&g.players&&g.gid?g:null}catch(e){return null}};
-function manualSave(){if(!DAYSNAP)return false;const g=JSON.parse(DAYSNAP);g.savedAt=Date.now();const o=allSaves();o[g.gid]=g;return writeSaves(o)}
+function manualSave(){if(!DAYSNAP)return false;const g=JSON.parse(DAYSNAP);g.savedAt=Date.now();const o=allSaves();o[g.gid]=g;const ok=writeSaves(o);if(ok)try{localStorage.setItem('aventuriers-lastsave',JSON.stringify({gid:g.gid,d:g.day||(g.S&&g.S.day)||(S&&S.day),t:g.savedAt}))}catch(e){}return ok}
 const saveBtn=()=>`<button class="btn ghost sbtn" data-save="1" aria-label="${L("Save","Sauvegarder","Guardar")}"><span aria-hidden="true">💾</span> <span class="stx">${L("Save","Sauvegarder","Guardar")}</span></button>`;
 const clearSave=()=>{const o=allSaves();delete o[S.gid];writeSaves(o);try{const b=backupGet();if(b&&b.gid===S.gid)localStorage.removeItem(BACKUP_KEY)}catch(e){}};
 const deleteSave=id=>{const o=allSaves();delete o[id];writeSaves(o)};
@@ -6428,7 +6519,7 @@ function openMenu(view='main'){
   const item=(k,ic,t,sub)=>`<button class="mitem" data-m="${k}"><span class="mic" aria-hidden="true">${ic}</span><span><b>${t}</b>${sub?`<span class="muted">${sub}</span>`:''}</span></button>`;
   const back=`<button class="btn ghost" data-m="main">‹ ${L("Menu","Menu","Menú")}</button>`;
   const tribes=S&&S.merged?['M']:['A','B'];
-  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent"),L("Read again what you just saw (or swipe from the left edge)","Relire ce que vous venez de voir (ou glissez depuis le bord gauche)")):''}${item('sim','⏭️',L("Simulate…","Simuler…"),L("Let the game play several days for you","Laisser le jeu jouer plusieurs jours à votre place"))}${item('save','💾',L("Save","Sauvegarder","Guardar"),L("Resumes from the current step","Reprend à l'étape en cours","Retoma desde el paso actual"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${msgViewer()!=null?item('journal','📓',L("My journal","Mon journal"),L("Your days on the island","Vos journées sur l'île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${msgViewer()!=null?item('rel','🕸️',L("Relationships","Relations"),L("What you know of who gets on with whom","Ce que vous savez des liens entre aventuriers")):''}${msgItem(item)}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
+  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent"),L("Read again what you just saw (or swipe from the left edge)","Relire ce que vous venez de voir (ou glissez depuis le bord gauche)")):''}${item('sim','⏭️',L("Simulate…","Simuler…"),L("Let the game play several days for you","Laisser le jeu jouer plusieurs jours à votre place"))}${item('save','💾',L("Save now","Sauvegarder maintenant","Guardar ahora"),lastSaveAt()?L(`Auto-saved at every camp · last: ${lastSaveAt()}`,`Sauvegarde automatique à chaque camp · dernière : ${lastSaveAt()}`,`Guardado automático en cada campamento · último: ${lastSaveAt()}`):L("Resumes from the current step","Reprend à l'étape en cours","Retoma desde el paso actual"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${msgViewer()!=null?item('journal','📓',L("My journal","Mon journal"),L("Your days on the island","Vos journées sur l'île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${msgViewer()!=null?item('rel','🕸️',L("Relationships","Relations"),L("What you know of who gets on with whom","Ce que vous savez des liens entre aventuriers")):''}${msgItem(item)}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
    :view==='cast'?`<h2 class="h">${L("The castaways","Les aventuriers","Los aventureros")}</h2>${tribes.map(t=>`<p class="lbl" style="margin-top:10px">${trName(t)}</p><div class="chips" style="margin-top:6px">${tribeMembers(t).map(x=>chip(x)).join('')}</div>`).join('')}${S.players.some(x=>!x.alive)?`<p class="lbl" style="margin-top:12px">${L("Out","Éliminés","Eliminados")}</p><div class="chips" style="margin-top:6px">${S.players.filter(x=>!x.alive).map(x=>chip(x,'out')).join('')}</div>`:''}<p class="hint">${L("Tap a name to open their profile.","Touchez un prénom pour ouvrir sa fiche.","Toca un nombre para abrir su ficha.")}</p>${back}`
    :view==='journal'?journalView(back)
    :view==='sim'?simView(back)
@@ -6576,7 +6667,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.93 · 2026-11-07';
+const APP_VER='2.94 · 2026-11-08';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -6883,7 +6974,7 @@ function tidyTitles(root){try{(root||document).querySelectorAll('.wrap,.sheet').
 function screen(html){
   html=screenPrepareHtml(html);screenKeepHistory(html);
   CAMPCTX=null;$app.innerHTML=`<div class="wrap fade${INGAME&&S?' ingame':''}">${MENUBTN()}${conseilBar(html)}${html}</div>`;try{if(window.__gu&&INGAME){const w=$app.querySelector('.wrap');if(w)w.prepend(window.__gu)}else if(window.__gu&&!INGAME){window.__gu=null}}catch(e){}colorTribes($app);colorNames($app);tidyTitles($app);syncWx();kbHint();window.scrollTo(0,0);orderText();campNews();campTabs();listFaces($app);normSpace($app);clearMenu();fitH1();fitBars();coach()
-  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);
+  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenCampOne(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);
 }
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')){const el2=n.querySelector('.sheet')||n;try{const e=el2.querySelector('.eyebrow'),h=el2.querySelector('h1.h,h2.h');if(e&&h&&e.textContent.trim().toLowerCase()===h.textContent.trim().toLowerCase())e.remove()}catch(_){}normSpace(el2);}}))}).observe(document.body,{childList:true})}catch(e){}
 
@@ -6978,17 +7069,17 @@ function ambTick(){if(!AMB.on||!AMB.c)return;const ph=PHASE,wx=S&&S.wx?S.wx.type
 
 function statusBar(p,t,when,left){
 capAll();
-const E=Math.round(p.energy),cap=enCap(),ef=effOf(p),tot=ACTIONS[when]||0;
+const E=Math.round(p.energy),cap=enCap(),ef=effOf(p);SB_WHEN=when;
+  const lv=(v,lo,cr)=>v<=cr?'crit':v<=lo?'lo':'';
   const it=(ic,v,tip,cls)=>`<span class="sbi${cls?' '+cls:''}" role="button" tabindex="0" data-tip="${esc(tip)}">${ic}${v!==''?`<b>${v}</b>`:''}</span>`;
-  const me=[it('⚡',E+(cap<100?'/'+cap:''),L(`Energy ${E}${cap<100?' (max '+cap+' today)':''}`,`Énergie ${E}${cap<100?' (max '+cap+' aujourd\'hui)':''}`)),
+  const me=[it('⚡',E+(cap<100?'/'+cap:''),L(`Energy ${E}${cap<100?' (max '+cap+' today)':''}`,`Énergie ${E}${cap<100?' (max '+cap+' aujourd\'hui)':''}`),lv(E,cap*.3,cap*.15)),
     it('✊',Math.round(st(p,'mot')),L("Motivation","Motivation"),'sbopt'),
     ef<1?it('😫','',L(`Tired: your camp work gives ${Math.round((1-ef)*100)} % less.`,(""+((p.g==='f')?"Fatiguée":"Fatigué")+" : votre travail au camp rapporte "+(Math.round((1-ef)*100))+" % de moins."),(""+((p.g==='f')?"Cansada":"Cansado")+": tu trabajo en el campamento rinde "+(Math.round((1-ef)*100))+" % menos.")),'warn'):'',
-    p.sick?it('🤒','',sickTxt(p).replace(/^🤒 /,'')+' · '+sickEff(p),'warn'):'',
-    it('🎯',`${left}/${tot}`,L(`${left} action${left>1?'s':''} left this ${whenShort(when)}`,`${left} action${left>1?'s':''} restante${left>1?'s':''} ce${/^a/i.test(whenShort(when))?'t':''} ${whenShort(when)}`))].filter(Boolean).join('');
-  const camp=[it('🪵',W(t),L("Firewood","Bois en réserve")),it('🍚',S.food[t]||0,L("Raw rations","Rations crues")),it('🍲',MEALS(t),L("Cooked meals","Repas cuisinés")),
+    p.sick?it('🤒','',sickTxt(p).replace(/^🤒 /,'')+' · '+sickEff(p),'warn'):''].filter(Boolean).join('');
+  const camp=[it('🪵',W(t),L("Firewood","Bois en réserve"),lv(W(t),1,0)),it('🍚',S.food[t]||0,L("Raw rations","Rations crues"),(S.food[t]||0)<=0?'lo':''),it('🍲',MEALS(t),L("Cooked meals","Repas cuisinés"),MEALS(t)<=0&&!(S.food[t]>0)?'crit':''),
     it(HW(t)?'💧':'🚱','',HW(t)?L("Fresh water found","Eau douce trouvée"):L("No fresh water yet","Pas encore d'eau douce"),HW(t)?'':'warn'),
     it(S.fire[t]?'🔥':'🌑','',S.fire[t]?L("Fire lit","Feu allumé"):L("No fire","Pas de feu"),S.fire[t]?'':'warn'),
-    it('🛖',SH(t)+'%',L("Shelter","Abri")),S.kit&&S.kit[t]?it('🎣','',L("Fishing kit","Kit de pêche"),'sbopt'):'',it(moraleIcon(t),'',L("Tribe morale","Moral de la tribu"),'sbopt')].join('');
+    it('🛖',SH(t)+'%',L("Shelter","Abri"),lv(SH(t),40,20)),S.kit&&S.kit[t]?it('🎣','',L("Fishing kit","Kit de pêche"),'sbopt'):'',it(moraleIcon(t),'',L("Tribe morale","Moral de la tribu"),'sbopt')].join('');
   return `<div class="ctop sbar"><div class="sbrow sb1"><span class="chface" data-pid="${p.id}" role="button" tabindex="0" aria-label="${esc(p.name)}">${face(p,28)}</span>${me}<span class="sbday" role="button" tabindex="0" data-tip="${esc(L(`Day ${S.day}${S.totalDays?' of '+S.totalDays:''} · ${whenLabel(when)}`,`Jour ${S.day}${S.totalDays?' sur '+S.totalDays:''} · ${whenLabel(when)}`,`Día ${S.day}${S.totalDays?' de '+S.totalDays:''} · ${whenLabel(when)}`))}"><span class="sbn">${L("D","J")}${S.day}${S.totalDays?'/'+S.totalDays:''}</span> ${({am:'🌅',pm:'☀️',ev:'🌇',tc:'🌆'})[when]||''}<span class="sbw"> ${esc(whenShort(when))}</span></span></div><div class="sbrow sb2"><span class="sbt">${trName(t)}</span>${camp}</div></div>`}
 
 function tribesMoved(){const cur={};alive().forEach(p=>cur[p.id]=S.merged?'M':tk(p));const prev=S.tmap;S.tmap=cur;if(!prev)return true;return alive().some(p=>prev[p.id]!=null&&prev[p.id]!==cur[p.id])}
@@ -7444,6 +7535,96 @@ function etabsHtml(k,tabs){const cur=tabs.some(t=>t[0]===ETAB[k])?ETAB[k]:tabs[0
 function etabsWire(k){try{const bs=()=>document.querySelectorAll(`[data-etabs="${k}"] [data-etab]`);
   const show=()=>{bs().forEach(b=>{const on=b.dataset.etab===ETAB[k];b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});document.querySelectorAll(`[data-etp^="${k}:"]`).forEach(d=>d.hidden=d.dataset.etp!==k+':'+ETAB[k])};
   bs().forEach(b=>b.onclick=()=>{ETAB[k]=b.dataset.etab;show();try{window.scrollTo(0,0)}catch(e){}});show()}catch(e){}}
+
+/* v2.94 (lot Camp A, « Vas-y camp A » du 8/11, 21 h 55) : le camp tient sur un écran de téléphone.
+   De haut en bas : barre (2 lignes, ☰ au bout de la ligne 1), image du camp, onglets, panneau de l'onglet (seul à défiler, ↑),
+   familles d'actions (chacune s'ouvre dans un panneau qui monte du bas), barre ●●● · Simuler.
+   Affichage seulement : rien ne change dans la partie (les choix et leurs data-act restent les mêmes). */
+let HISTPAGE=null,HISTSEEN={},CAMPRES='',CAMPSAVED='';
+const CAMPONE_MAXW=760;
+function campOneOk(){try{return INGAME&&S&&!HISTV&&innerWidth<CAMPONE_MAXW}catch(e){return false}}
+const histIcon=t=>/feu|fire|fuego/i.test(t)?'🔥':/conseil|council|consejo/i.test(t)?'⚖':/quitte|jury|jurado|leaves|abandona|élimin|eliminat/i.test(t)?'🔦':/remporte|récompense|escapade|lettres|wins?|reward|letters|gana|recompensa|cartas/i.test(t)?'🏆':/bless|coupé|infect|malade|injur|sick|herid|enferm/i.test(t)?'🤒':/alliance|alli|alianza|promesse|promise|promesa/i.test(t)?'🤝':/revenu|back from|volvi/i.test(t)?'🛶':'•';
+function screenCampOne(html){try{if(!campOneOk())return;const w=$app.querySelector('.wrap');if(!w)return;
+  const sb=w.querySelector(':scope > .sbar'),ag=w.querySelector('.agroups'),bar=w.querySelector('.ctabs'),pn=w.querySelector('.ctpanel'),bb=w.querySelector(':scope > .bbar');
+  if(!sb||!ag||!bar||!pn||!bb)return;
+  w.classList.add('camp1');document.body.classList.add('camp1b');
+  /* barre du haut : ☰ au bout de la ligne 1 ; le compteur 🎯 d'actions est déjà en bas (●●●) */
+  const gm=w.querySelector(':scope > .gmenu'),sb1=sb.querySelector('.sb1');if(gm&&sb1)sb1.appendChild(gm);
+  /* image du camp en haut (sortie de l'onglet Camp) */
+  const cs=pn.querySelector('.ctp.campd .campscene');let sc=null;
+  if(cs){sc=document.createElement('div');sc.className='cscene';cs.querySelectorAll('svg').forEach(s=>{if(!s.closest('.dico'))s.setAttribute('preserveAspectRatio','xMidYMax slice')});sc.appendChild(cs);const ci=pn.querySelector('.ctp.campd .campinfo');if(ci)ci.remove()}
+  /* ordre : barre, image, autres éléments, onglets, panneau, familles, barre du bas */
+  const fam=document.createElement('div');fam.className='cfam';fam.appendChild(ag);
+  const c2=w.querySelector(':scope > .camp2');
+  const extra=[...w.children].filter(x=>x!==sb&&x!==bb&&x!==c2&&!x.matches('.gmenu,.raline,.rabar,.toast,.coachb'));
+  const ex=document.createElement('div');ex.className='cextra';extra.forEach(x=>ex.appendChild(x));
+  sb.after(...[sc,ex.children.length?ex:null,bar,pn,fam].filter(Boolean));if(c2)c2.remove();
+  /* onglet ouvert : le dernier consulté ; sinon Nouvelles s'il y a du neuf, sinon Historique */
+  const has=c=>!!bar.querySelector(`[data-ctab="${c}"]`);const unreadNews=!!bar.querySelector('[data-ctab="news"].unread');
+  /* résultat de la dernière action : en tête de l'Historique, surligné une fois */
+  const last=pn.querySelector('.ctp.news .lastmsg'),hp=pn.querySelector('.ctp.histd');let fresh=false;
+  if(last&&hp){const key=S.day+'|'+last.textContent.trim();if(key!==CAMPRES){fresh=true;CAMPRES=key}
+    const cp=document.createElement('div');cp.className='lastmsg hres'+(fresh?' fresh':'');cp.innerHTML=last.innerHTML;cp.querySelectorAll('button,[data-act]').forEach(b=>b.remove());hp.prepend(cp)}
+  let sel=CTAB_SEL&&has(CTAB_SEL)?CTAB_SEL:(unreadNews?'news':has('histd')?'histd':(bar.querySelector('[data-ctab]')||{dataset:{}}).dataset.ctab);
+  if(fresh&&has('histd')){sel='histd';HISTPAGE=null}
+  CTAB_SEL=sel;bar.querySelectorAll('[data-ctab]').forEach(b=>{const on=b.dataset.ctab===sel;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  pn.querySelectorAll(':scope > .ctp').forEach(p=>p.classList.toggle('on',p.classList.contains(sel)));
+  if(sel==='news'){try{S._newsSeenD=S.day;S._newsSeen=S._news&&S._news.h?S._news.h.length:0;const nb=bar.querySelector('[data-ctab="news"]');if(nb)nb.classList.remove('unread')}catch(e){}}
+  /* onglet vide : une ligne qui le dit */
+  pn.querySelectorAll(':scope > .ctp').forEach(p=>{if(!p.textContent.trim()&&!p.querySelector('svg,img,button'))p.innerHTML=`<p class="hint">${L("Nothing here yet.","Rien ici pour l’instant.","Nada por aquí todavía.")}</p>`});
+  campOneHist(w,hp);
+  /* point orange : Historique quand une ligne a été ajoutée depuis la dernière lecture */
+  try{const hb=bar.querySelector('[data-ctab="histd"]'),n=Object.values(S.histD||{}).reduce((a,l)=>a+(l?l.length:0),0),k=S.gid||'g';if(hb){if(sel==='histd')HISTSEEN[k]=n;else if(HISTSEEN[k]!=null&&n>HISTSEEN[k])hb.classList.add('unread')}}catch(e){}
+  try{const ob=bar.querySelector('.ctab.on');if(ob)ob.scrollIntoView({block:'nearest',inline:'nearest'})}catch(e){}
+  /* panneau : ↑ dès qu'on a descendu, fondu en bas tant qu'il reste de la suite */
+  const up=document.createElement('button');up.type='button';up.className='pnup';up.setAttribute('aria-label',L("Back to top","Revenir en haut","Volver arriba"));up.textContent='↑';up.hidden=true;pn.appendChild(up);
+  const upd=()=>{up.hidden=pn.scrollTop<40;pn.classList.toggle('more',pn.scrollTop+pn.clientHeight<pn.scrollHeight-6)};pn.addEventListener('scroll',upd,{passive:true});up.onclick=()=>{pn.scrollTo({top:0,behavior:(SET.anim&&!RM())?'smooth':'auto'})};
+  /* familles : tuiles en bas ; une famille ouverte devient un panneau qui monte du bas */
+  campOneFamilies(w,ag,bb);
+  /* sauvegarde automatique à chaque camp (le bouton 💾 du bas est retiré, « Sauvegarder » reste dans le menu) */
+  const sv=bb.querySelector('[data-save]');if(sv)sv.remove();
+  try{const k=(S.gid||'')+'|'+S.day+'|'+(PHASE||'');if(k!==CAMPSAVED&&!AUTO&&!SIMR){CAMPSAVED=k;manualSave()}}catch(e){}
+  campOneFit(w);requestAnimationFrame(()=>{campOneFit(w);upd()})}catch(e){}}
+let SB_WHEN='am';const curWhen=()=>SB_WHEN;
+/* hauteur : l'image rétrécit d'abord, puis se cache, pour que le panneau garde au moins 3 lignes */
+function campOneFit(w){try{const sc=w.querySelector(':scope > .cscene'),pn=w.querySelector(':scope > .ctpanel'),bb=w.querySelector(':scope > .bbar');
+  if(bb)document.documentElement.style.setProperty('--bbh',Math.round(bb.getBoundingClientRect().height)+'px');
+  if(!sc||!pn)return;sc.hidden=false;const lh=parseFloat(getComputedStyle(pn).lineHeight)||22;
+  if(sc.getBoundingClientRect().height<64||pn.clientHeight<lh*3+24)sc.hidden=true}catch(e){}}
+/* Historique : un jour par page (‹ › ou glisser), têtes devant les noms, une icône par ligne, vos lignes en gras */
+function campOneHist(w,hp){try{if(!hp)return;const days=[...hp.querySelectorAll(':scope > .hday')];if(!days.length)return;
+  const pages=days.map(h=>{const ul=h.nextElementSibling&&h.nextElementSibling.matches('ul')?h.nextElementSibling:null;return{h,ul,d:+(h.textContent.match(/\d+/)||[0])[0]}});
+  const me=humansAlive().map(p=>p.name).filter(Boolean),vw=VIEW!=null?P(VIEW):null;
+  pages.forEach(pg=>{if(!pg.ul)return;colorNames(pg.ul);pg.ul.querySelectorAll(':scope > li').forEach(li=>{const t=li.textContent;if(!li.querySelector('.hic')&&!/^\s*(\p{Extended_Pictographic}|<svg)/u.test(li.innerHTML.replace(/^(\s|<(?!svg)[^>]+>)+/,''))){const i=document.createElement('span');i.className='hic';i.setAttribute('aria-hidden','true');i.textContent=histIcon(t);li.prepend(i)}
+      if(vw&&new RegExp('(^|[^\\p{L}])'+vw.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}]|$)','u').test(t))li.classList.add('mine');
+      li.querySelectorAll('.pn[data-pid]').forEach(n=>{if(n.previousElementSibling&&n.previousElementSibling.classList.contains('lface'))return;const p=P(+n.dataset.pid);if(!p)return;const s=document.createElement('span');s.className='lface';s.dataset.pid=p.id;s.setAttribute('role','button');s.innerHTML=face(p,20,p.alive?'':'gone');n.before(s)})})});
+  if(HISTPAGE==null||HISTPAGE>=pages.length)HISTPAGE=0;
+  const nav=document.createElement('div');nav.className='hnav';
+  nav.innerHTML=`<button type="button" class="hprev" aria-label="${L("Previous day","Jour précédent","Día anterior")}">‹</button><b class="hd"></b><span class="hk muted"></span><button type="button" class="hnext" aria-label="${L("Next day","Jour suivant","Día siguiente")}">›</button>`;
+  const res=hp.querySelector(':scope > .hres');(res||days[0]).after?(res?res.after(nav):days[0].before(nav)):0;
+  const show=()=>{pages.forEach((pg,i)=>{const on=i===HISTPAGE;pg.h.hidden=true;if(pg.ul)pg.ul.hidden=!on});const pg=pages[HISTPAGE];
+    nav.querySelector('.hd').textContent=pg.h.textContent.trim();nav.querySelector('.hk').textContent=`${pages.length-HISTPAGE} / ${pages.length}`;
+    nav.querySelector('.hprev').disabled=HISTPAGE>=pages.length-1;nav.querySelector('.hnext').disabled=HISTPAGE<=0;if(res)res.hidden=HISTPAGE!==0};
+  nav.querySelector('.hprev').onclick=e=>{e.stopPropagation();if(HISTPAGE<pages.length-1){HISTPAGE++;show()}};nav.querySelector('.hnext').onclick=e=>{e.stopPropagation();if(HISTPAGE>0){HISTPAGE--;show()}};
+  let x0=null,y0=null;hp.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY},{passive:true});
+  hp.addEventListener('pointerup',e=>{if(x0==null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;if(dx>0&&HISTPAGE<pages.length-1)HISTPAGE++;else if(dx<0&&HISTPAGE>0)HISTPAGE--;else return;show()},{passive:true});
+  show()}catch(e){}}
+/* familles d'actions : une seule ouverte, dans un panneau du bas avec « Fermer » ; une famille sans action possible est grisée */
+function campOneFamilies(w,ag,bb){try{const gs=[...ag.querySelectorAll(':scope > details.agroup')];if(!gs.length)return;ag.classList.add('n'+gs.length);
+  const bd=document.createElement('div');bd.className='fambd';bd.hidden=true;w.appendChild(bd);
+  const closeAll=()=>{gs.forEach(g=>g.open=false)};bd.onclick=closeAll;
+  gs.forEach(g=>{const sm=g.querySelector(':scope > summary');if(!sm)return;
+    if(!sm.querySelector('.famlbl')){const tn=[...sm.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());if(tn.length){const sp=document.createElement('span');sp.className='famlbl';tn[0].before(sp);tn.forEach(n=>sp.appendChild(n))}}
+    const kids=[...g.children].filter(x=>x!==sm);let sh=g.querySelector(':scope > .famsheet');
+    if(!sh){sh=document.createElement('div');sh.className='famsheet';const hd=document.createElement('div');hd.className='famhd';
+      const tt=document.createElement('b');tt.innerHTML=sm.innerHTML;tt.querySelectorAll('.recost').forEach(x=>x.remove());const cl=document.createElement('button');cl.type='button';cl.className='famx';cl.textContent=L("Close","Fermer","Cerrar")+' ✕';cl.onclick=e=>{e.preventDefault();e.stopPropagation();g.open=false};
+      hd.append(tt,cl);sh.appendChild(hd);kids.forEach(k=>sh.appendChild(k));g.appendChild(sh)}
+    const chs=[...sh.querySelectorAll('.choice')],ok=chs.filter(c=>!c.classList.contains('off')&&!c.disabled&&c.dataset.act);
+    if(chs.length&&!ok.length){g.classList.add('famoff');sm.addEventListener('click',e=>{e.preventDefault();const why=(chs.map(c=>c.title||c.dataset.why||'').find(Boolean))||L("No action possible here for now.","Aucune action possible ici pour le moment.","Ninguna acción posible aquí por ahora.");toast(sm.textContent.replace('★','').trim(),why)})}
+    g.open=false;g.addEventListener('toggle',()=>{if(g.open)gs.forEach(o=>{if(o!==g)o.open=false});bd.hidden=!gs.some(o=>o.open);w.classList.toggle('famopen',!bd.hidden)})})}catch(e){}}
+
+/* heure de la dernière sauvegarde de cette partie (menu ☰) */
+function lastSaveAt(){try{const o=JSON.parse(localStorage.getItem('aventuriers-lastsave')||'null');if(!o||!S||o.gid!==S.gid)return '';const d=new Date(o.t);return `${L("D","J")}${o.d} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}catch(e){return ''}}
 /* ==================== Appli web : installation, hors-ligne, mises à jour (lots W3 et W6) ==================== */
 // window.APPWEB est mis à true par la version web (dist/web), jamais dans l'artifact claude.ai.
 function appliWeb(){try{return !!window.APPWEB}catch(e){return false}}
