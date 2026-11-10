@@ -2122,6 +2122,8 @@ ul.lines li.place.pbarl.me{outline:2px solid var(--sky);outline-offset:-2px}
 
 /* Point 24 : surnom dans « Votre saison » */
 .surn{margin:0 0 12px}
+/* v2.106 — lot R1 : indice de trahison dans les Nouvelles */
+.clue b{color:var(--bad)}
 </style>
 
 <div id="app"></div>
@@ -2750,7 +2752,7 @@ function profileViewer(){if(VIEW!=null)return VIEW;const hs=S.players.filter(h=>
 function showProfile(id){
   if(!S||!S.players||!S.players[id])return;const p=P(id),v=profileViewer(),self=v===p.id;
   const tribe=p.tribe&&TR[p.tribe]?TR[p.tribe].n:'—';
-  const status=p.alive?L(`In the game · ${tribe}`,`En jeu · ${tribe}`,`En juego · ${tribe}`)+(p.sick?' · '+sickTxt(p):''):p.juror?L("Eliminated · on the jury",(""+((p.g==='f')?"Éliminée":"Éliminé")+" · membre du jury"),(""+((p.g==='f')?"Eliminada":"Eliminado")+" · en el jurado")):L("Eliminated",(""+((p.g==='f')?"Éliminée":"Éliminé")),(""+((p.g==='f')?"Eliminada":"Eliminado")));
+  const status=p.alive?L(`In the game · ${tribe}`,`En jeu · ${tribe}`,`En juego · ${tribe}`)+(p.sick?' · '+sickTxt(p):'')+(hurtOn(p)?' · 🩹 '+L("Hurt",(""+((p.g==='f')?"Blessée":"Blessé"))):''):p.juror?L("Eliminated · on the jury",(""+((p.g==='f')?"Éliminée":"Éliminé")+" · membre du jury"),(""+((p.g==='f')?"Eliminada":"Eliminado")+" · en el jurado")):L("Eliminated",(""+((p.g==='f')?"Éliminée":"Éliminé")),(""+((p.g==='f')?"Eliminada":"Eliminado")));
   let rel='';
   if(v==null)rel=`<p class="hint">${L("Open a profile during your own turn to see how you get on with this castaway.","Ouvrez un profil pendant votre propre tour pour voir votre relation avec cet aventurier.","Abre una ficha durante tu propio turno para ver tu relación con este aventurero.")}</p>`;
   else if(!self){const kn=know(v,p.id);let[them,c1]=theirView(v,p.id);const[you,c2]=mood(aff(v,p.id));
@@ -3078,6 +3080,7 @@ async function run(){
     await st('wx',async()=>{
     if(!S.wx||S.wx.day!==S.day){if(S.wxNext){S.wx=S.wxNext;S.wxNext=null}else rollWeather();S.wx.day=S.day;S.wx.notes=[...(S.notes||[])];S.notes=[];stormFire(S.wx.notes)}
     islandEvents();
+    betrayClues(lines);
     lines.push(`${L("Weather","Météo","Tiempo")} : ${wxLine()}.`,...S.wx.notes.map(n=>n.msg||n));
     });
     const dt=dayType(S.day),hasC=dt.includes('C'),hasI=dt.includes('I'),hasT=dt.includes('T');
@@ -4467,7 +4470,7 @@ function gameCoconuts(){return miniJeu(j=>{
 })}
 const ef=p=>0.75+0.25*p.energy/100;
 const sportBonus=(p,g)=>Math.round(clamp((st(p,GAMES[g].stat)-55)/2,-10,20));
-function aiScore(a,g){return clamp(Math.round((st(a,GAMES[g].stat)*0.62+rnd(0,40))*ef(a)*(1+famMotiv(a)/100)*motMul(a)*sickMul(a)*DF().ai))}
+function aiScore(a,g){return clamp(Math.round((st(a,GAMES[g].stat)*0.62+rnd(0,40))*ef(a)*(1+famMotiv(a)/100)*motMul(a)*sickMul(a)*hurtMul(a,g)*DF().ai))}
 async function humanPlay(p,g,kind){
 try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+1}catch(e){}
 
@@ -4488,7 +4491,7 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
   if(choiceAct!=='auto'&&!gaveUp){if(g==='edible'&&raw>=100)unlock(p,'edible100');if(g==='raft'&&raw>=96)unlock(p,'raft8');
     try{const k='aventuriers-games',o=JSON.parse(localStorage.getItem(k)||'{}');o[g]=1;localStorage.setItem(k,JSON.stringify(o));if(POOL.every(x=>o[x]))unlock(p,'allgames')}catch(e){}}
   if(g==='edible'&&window.__poison&&Math.random()<.6)sicken(p,'food',L(`${p.name} ate something they should not have during the challenge.`,`${p.name} a mangé ce qu'il ne fallait pas pendant l'épreuve.`,`${p.name} comió lo que no debía durante la prueba.`));
-  const fin=Math.round(clamp(raw*ef(p)*(1+bonus/100)*(1+famMotiv(p)/100)*motMul(p)*sickMul(p)));p.scores.push(fin);
+  const fin=Math.round(clamp(raw*ef(p)*(1+bonus/100)*(1+famMotiv(p)/100)*motMul(p)*sickMul(p)*hurtMul(p,g)));p.scores.push(fin);
   await stashOrAsk(fin,`${eb(gN(g))}<h1 class="h">${esc(p.name)} : <span class="num">${fin}</span> ${L("points","points","puntos")}</h1>
     ${(()=>{const motF=0.9+st(p,'mot')/500,charF=motMul(p)/motF,pct=x=>(x>=1?'+':'')+nf(((x-1)*100).toFixed(0))+' %',row=(a,b,c)=>`<span>${a}</span><b class="num">${b}</b>${c?`<span class="hint" style="grid-column:1/-1;margin-top:-4px">${c}</span>`:''}`;
       return `<section class="pgroup"><p class="lbl">${L("How your score was calculated","Comment votre score est calculé","Cómo se calcula tu puntuación")}</p><div class="kv" style="margin-top:8px">
@@ -4496,6 +4499,7 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
       ${row(L("Sport","Sport","Deporte"),pct(1+bonus/100),L(`${esc(sportName(p.sport))}: ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0.5% per point above 55).`,`${esc(sportName(p.sport))} : ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0,5 % par point au-dessus de 55).`,`${esc(sportName(p.sport))}: ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0,5 % por punto por encima de 55).`))}
       ${row(L("Energy","Énergie","Energía"),'×'+nf(ef(p).toFixed(2)),L(`Energy ${Math.round(p.energy)}/100: at 0 you keep 75% of your score.`,`Énergie ${Math.round(p.energy)}/100 : à 0, vous gardez 75 % du score.`,`Energía ${Math.round(p.energy)}/100: a 0 conservas el 75 % de la puntuación.`))}
       ${row(L("Family","Famille","Situación"),pct(1+famMotiv(p)/100),L("+1% per child, +2% with a partner.","+1 % par enfant, +2 % en couple.","+1 % por hijo, +2 % con pareja."))}
+      ${hurtMul(p,g)<1?row(L("Hurt",(""+((p.g==='f')?"Blessée":"Blessé"))),'×0,9'.replace(',',LANG!=='en'?',':'.'),L("physical challenges ×0.9 for 2 days","épreuves physiques ×0,9 pendant 2 jours")):''}
       ${p.sick?row(L("Sickness","Maladie","Enfermedad"),'×0,85'.replace(',',LANG!=='en'?',':'.'),sickTxt(p)):''}
       ${row(L("Motivation","Motivation","Motivación"),pct(motF),L(`Motivation ${st(p,'mot')}/100: from −10% to +10%.`,`Motivation ${st(p,'mot')}/100 : de −10 % à +10 %.`,`Motivación ${st(p,'mot')}/100: de −10 % a +10 %.`))}
       ${Math.abs(charF-1)>.001?row(L("Character","Caractère","Carácter"),pct(charF),archN(p.arch,p.g)):''}
@@ -4503,11 +4507,18 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
     <button class="btn" data-act="ok">${L("Continue","Continuer","Continuar")}</button>`);
   return fin;
 }
+/* v2.106 (lot R1) : petite blessure après un raté (score < 20) dans une épreuve physique (Force, Agilité, Endurance), 1 fois sur 3 :
+   −10 d'énergie, épreuves physiques ×0,9 pendant 2 jours */
+const PHYS=['str','agi','end'];
+const hurtMul=(p,g)=>hurtOn(p)&&GAMES[g]&&PHYS.includes(GAMES[g].stat)?.9:1;
+const hurtOn=p=>!!(p&&p.hurt&&S&&S.day<p.hurt);
+function hurtCheck(g,sc){try{const G=GAMES[g];if(!G||!PHYS.includes(G.stat))return;for(const id in sc){const p=P(+id);if(!p||!p.alive||hurtOn(p)||!(sc[id]<20))continue;
+  if(Math.random()<1/3){p.hurt=S.day+2;p.energy=clamp(p.energy-10);if(p.human)tell(p.id,L("You got hurt during the challenge: −10 energy, physical challenges ×0.9 for 2 days.",("Vous vous êtes "+((p.g==='f')?"blessée":"blessé")+" pendant l'épreuve : −10 d'énergie, épreuves physiques ×0,9 pendant 2 jours.")))}}}catch(e){}}
 async function playAll(g,kind){let sc=await (async ()=>{musicSet('challenge');
   const sc={};STASH=S.humans<=1;BREAK=null;
   for(const p of shuffle(humansAlive())){await passPhone(p,kind);sc[p.id]=await humanPlay(p,g,kind)}STASH=false;
   for(const a of alive().filter(p=>!p.human))sc[a.id]=g==='dagger'&&window.__dagAI&&window.__dagAI[a.id]!=null?window.__dagAI[a.id]:g==='sprint'&&window.__sprAI&&window.__sprAI[a.id]!=null?window.__sprAI[a.id]:aiScore(a,g);window.__dagAI=null;window.__sprAI=null;
-  for(const id in sc){const x=P(+id);x.cs=[...(x.cs||[]),sc[id]].slice(-4);if(S.merged)x.ip=(x.ip||0)+1;else x.tp=(x.tp||0)+1}chLog(g,kind,sc);
+  for(const id in sc){const x=P(+id);x.cs=[...(x.cs||[]),sc[id]].slice(-4);if(S.merged)x.ip=(x.ip||0)+1;else x.tp=(x.tp||0)+1}chLog(g,kind,sc);hurtCheck(g,sc);
   return sc;
 })();
 try{if(TEST_KEEP()&&sc&&typeof sc==='object'){const al=alive(),hs=al.filter(p=>p.human&&Number.isFinite(sc[p.id])),os=al.filter(p=>!p.human&&Number.isFinite(sc[p.id]));if(hs.length&&os.length){const lo=Math.min(...os.map(p=>sc[p.id]));hs.forEach(h=>{if(sc[h.id]<=lo)sc[h.id]=lo+0.1})}}}catch(e){}return sc}
@@ -4531,7 +4542,7 @@ async function confortPhase(q,lines){
       <div class="reward"><span class="lbl">${L("Today's reward","Récompense du jour","Recompensa del día")}</span><b>${R.n}</b><span class="muted">${R.d}</span></div>
       ${(()=>{const cr=once('confrule',L("Both tribes, everyone plays. Your average score decides who wins the reward.","Les deux tribus, tout le monde joue. La moyenne de chaque tribu décide qui remporte la récompense.","Las dos tribus, todos juegan. La media de cada tribu decide quién gana la recompensa."));return `${host(gossip())}${rulesTeam(g,cr)}`})()}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
     const sc=await playTeam(g,KIND_C(),q);
-    const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B'),win=tieWin(sc,A,B);challengeFeel(sc,win,false);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);
+    const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B'),win=tieWin(sc,A,B);challengeFeel(sc,win,false);teamStreak(win);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);
     let got=R.n;
     tribeMembers(win).forEach(p=>motv(p,5));tribeMembers(win==='A'?'B':'A').forEach(p=>motv(p,-2));
     if(rk==='rations')S.food[win]+=4;
@@ -4601,7 +4612,7 @@ async function immunityPhase(q,lines,sameDay=true){
   const sc=S.merged?await playAll(g,KIND_I()):await playTeam(g,KIND_I(),q);
   if(S.merged&&S.malusD===S.day){const ps=alive().filter(p=>sc[p.id]!=null).sort((a,b)=>sc[a.id]-sc[b.id]);if(ps[0]){S.malus=[{to:ps[0].id}];const m=L(`⚠️ ${esc(ps[0].name)} finished last and will receive a penalty vote at the Council.`,`⚠️ ${esc(ps[0].name)} termine ${ps[0].g==='f'?'dernière':'dernier'} et recevra un vote malus au Conseil.`);lines.push(m);if(!q)FLASH=(FLASH?FLASH+'<br>':'')+m;if(ps[0].human)unlock(ps[0],'malus')}}
   if(!S.merged){
-    const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B');const win=tieWin(sc,A,B),lose=win==='A'?'B':'A';challengeFeel(sc,win,true);defeatStrain(win,lose);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);tribeMembers(win).forEach(p=>motv(p,6));tribeMembers(lose).forEach(p=>motv(p,-6));
+    const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B');const win=tieWin(sc,A,B),lose=win==='A'?'B':'A';challengeFeel(sc,win,true);teamStreak(win);defeatStrain(win,lose);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);tribeMembers(win).forEach(p=>motv(p,6));tribeMembers(lose).forEach(p=>motv(p,-6));
     lines.push(L(`<b>${TR[win].n}</b> won immunity, ${sc2(Math.max(A,B),Math.min(A,B))} to ${sc2(Math.min(A,B),Math.max(A,B))}.`,`<b>${TR[win].n}</b> remporte l'immunité, ${sc2(Math.max(A,B),Math.min(A,B))} à ${sc2(Math.min(A,B),Math.max(A,B))}.`,`<b>${TR[win].n}</b> gana la inmunidad, ${sc2(Math.max(A,B),Math.min(A,B))} a ${sc2(Math.min(A,B),Math.max(A,B))}.`));
     if(!q)await ask(`${eb(L("Immunity · Results","Immunité · Résultats","Inmunidad · Resultados"))}${palmMark(win)}<h1 class="h">${L(`${TR[win].n} wins immunity`,`${TR[win].n} remporte l'immunité`,`${TR[win].n} gana la inmunidad`)}</h1>
       ${teamBoard(sc,A,B,win)}
@@ -4675,6 +4686,12 @@ function checkPromises(voters,votes,elig){if(!S.promises)return;for(const id in 
   else if(P(pr.from).alive&&Math.random()<0.6)breakAlly(pr.from,p.id,'did not vote as promised','n\'a pas voté comme promis')}}
 function breakAlly(a,b,whyEn,whyFr){if(!allied(a,b))return;unally(a,b);addAff(a,b,-10);addAff(b,a,-6);logH(a,b,`Alliance broken: ${P(b).name} ${whyEn}.`,`Alliance rompue : ${P(b).name} ${whyFr}.`,`Alianza rota con ${P(b).name}.`);
   [a,b].forEach(x=>{const o=x===a?b:a;if(P(x).human)tell(x,L(`💔 Your alliance with ${esc(P(o).name)} is over: ${esc(P(b).name)} ${whyEn}.`,`💔 Votre alliance avec ${esc(P(o).name)} est rompue : ${esc(P(b).name)} ${whyFr}.`))})}
+/* v2.106 (lot R1) : épreuves d'immunité et de confort par tribu, avant la réunification.
+   Victoire : +8 d'énergie à chaque membre. 2 défaites de suite : dispute entre les deux qui s'entendent le moins (−10 de lien chacun), puis la série repart. */
+function teamStreak(win){try{if(S.merged)return;const lose=win==='A'?'B':'A';tribeMembers(win).forEach(p=>p.energy=clamp(p.energy+8));
+  S.lossR=S.lossR||{};S.lossR[win]=0;S.lossR[lose]=(S.lossR[lose]||0)+1;if(S.lossR[lose]<2)return;S.lossR[lose]=0;
+  const ms=tribeMembers(lose);let best=null;ms.forEach(a=>ms.forEach(b=>{if(a.id>=b.id)return;const v=aff(a.id,b.id)+aff(b.id,a.id);if(!best||v<best[2])best=[a,b,v]}));if(!best)return;const [a,b]=best;
+  mutual(a.id,b.id,-10);logH(a.id,b.id,`${a.name} and ${b.name} argued after another defeat.`,`${a.name} et ${b.name} se sont disputés après une nouvelle défaite.`);[a,b].forEach(x=>{if(x.human)tell(x.id,L(`Two defeats in a row: you argued with ${esc((x===a?b:a).name)}.`,("Deux défaites de suite : vous vous êtes "+((x.g==='f')?"disputée":"disputé")+" avec "+(esc((x===a?b:a).name))+".")))})}catch(e){}}
 function defeatStrain(win,lose){S.losses=S.losses||{};S.losses[lose]=(S.losses[lose]||0)+1;S.losses[win]=0;if(S.losses[lose]<2)return;const ms=tribeMembers(lose);
   ms.forEach(a=>ms.forEach(b=>{if(a.id<b.id&&allied(a.id,b.id)&&Math.min(aff(a.id,b.id),aff(b.id,a.id))<8&&Math.random()<0.3)breakAlly(a.id,b.id,'gave up on the alliance after one defeat too many','a lâché l\'alliance après une défaite de trop')}))}
 function relView(back){const v=msgViewer(),me=P(v),t=tk(me),ms=(S.merged?alive():tribeMembers(t));const n=ms.length,R=120,cx=160,cy=150;
@@ -4941,7 +4958,7 @@ async function playTeam(g,kind,q){musicSet('challenge');
     else if(fmt==='relay'){const d=ms.filter(p=>sc[p.id]<30).length;T.drops[t]=d;T[t]=Math.max(0,avg(ms)-d*4)}
     else T[t]=avg(ms)}
   if(fmt==='roles'){const lose=T.A<T.B?'A':'B';players.filter(p=>p.human&&tk(p)===lose&&role[p.id]==='puzzle'&&sc[p.id]<40).forEach(p=>{players.filter(m=>tk(m)===lose&&m.id!==p.id).forEach(m=>addAff(m.id,p.id,-4));tell(p.id,L("Your tribe blames the puzzle for the defeat.","Votre tribu reproche la défaite au casse-tête."))})}
-  TEAMS.set(sc,T);chLog(g,kind,sc);return sc}
+  TEAMS.set(sc,T);chLog(g,kind,sc);hurtCheck(g,sc);return sc}
 function teamNote(sc,win){const T=TEAMS.get(sc);if(!T)return'';let h='';
   if(T.fmt==='relay'){h+=`<section class="pgroup"><p class="lbl">🏃 ${L("The relay","Le relais","El relevo")}</p>${['A','B'].map(t=>{const ms=alive().filter(p=>tk(p)===t&&sc[p.id]!=null);const tot=ms.reduce((s,p)=>s+sc[p.id],0)||1;
     return `<p class="lbl" style="margin-top:8px">${trName(t)}${T.drops[t]?` · ${L(`${T.drops[t]} baton drop${T.drops[t]>1?'s':''}`,`${T.drops[t]} témoin${T.drops[t]>1?'s':''} tombé${T.drops[t]>1?'s':''}`,`${T.drops[t]} testigo${T.drops[t]>1?'s':''} caído${T.drops[t]>1?'s':''}`)}`:''}</p><div class="relay">${ms.map((p,i)=>`<span class="leg ${sc[p.id]<30?'drop':''} ${p.human?'me':''}" style="flex:${Math.max(4,sc[p.id])};animation-delay:${i*0.3}s" title="${esc(p.name)}">${esc(p.name.slice(0,3))}</span>`).join('')}</div>`}).join('')}</section>`;
@@ -5827,8 +5844,15 @@ const inbox=id=>{S.inbox=S.inbox||{};return S.inbox[id]=S.inbox[id]||[]};
 /* v2.97 : un message reçu va tout de suite dans l'Historique (S.msgLog), à son jour et son moment ; la boîte reste lue par readInbox */
 const tell=(id,msg)=>{if(!P(id).human)return;inbox(id).push({k:'info',msg});try{S.msgLog=S.msgLog||{};const lg=S.msgLog[id]=S.msgLog[id]||[];lg.push({d:S.day,w:histMoment(S.ds&&S.ds.mk,((S.ds&&S.ds.lines)||[]).length),msg});if(lg.length>80)lg.splice(0,lg.length-80)}catch(e){}};
 function aiAccepts(ai,from){if(aff(ai.id,from.id)<0)return false;return sameOrigin(ai,from)*2-alliesOf(ai.id).length*6+aff(ai.id,from.id)+(st(ai,'trust')-50)/2+(from.arch==='manipulator'?10:0)+(ai.arch==='lone'?-20:0)+(ai.arch==='loyal'?6:0)+archFit(ai,from)*4-(mistrusted(from.id)||mistrusted(ai.id)?10:0)+rnd(-15,15)>12}
+/* v2.106 (lot R1) : une trahison non découverte au Conseil est révélée 1 fois sur 2 le lendemain matin par un indice (mêmes effets) */
+function betrayLater(v){if(Math.random()<0.5){S.clues=S.clues||[];S.clues.push({d:S.day+1,from:v.from,to:v.to})}}
+function betrayClues(lines){if(!S.clues||!S.clues.length)return;const now=S.clues.filter(c=>c.d<=S.day);S.clues=S.clues.filter(c=>c.d>S.day);
+  now.forEach(c=>{const f=P(c.from),t=P(c.to);if(!f||!t||!f.alive||!t.alive)return;const v={from:c.from,to:c.to};
+    if(allied(v.from,v.to))unally(v.from,v.to);mistSet(v.from,v.to);addAff(v.to,v.from,-20);motv(t,-10);logH(v.from,v.to,`${P(v.to).name} found out ${P(v.from).name} wrote their name. Alliance broken.`,`${P(v.to).name} a découvert que ${P(v.from).name} avait écrit son nom. Alliance rompue.`,`${P(v.to).name} descubrió que ${P(v.from).name} escribió su nombre. Alianza rota.`);
+    if(t.human){tell(v.to,L(`You found out ${esc(P(v.from).name)} wrote your name. Your alliance is over.`,`Vous avez découvert que ${esc(P(v.from).name)} a écrit votre nom. Votre alliance est terminée.`,`Has descubierto que ${esc(P(v.from).name)} escribió tu nombre. Vuestra alianza se ha acabado.`));campNewsAdd(`<span class="clue">🕵️ <b>${L("Clue:","Indice :")}</b> ${L(`${esc(f.name)} was seen scribbling your name at the last Conseil. Your alliance is over.`,`on a vu ${esc(f.name)} griffonner votre nom au dernier Conseil. Votre alliance est terminée.`)}</span>`)}})}
 async function readInbox(p){
-  const box=inbox(p);if(!box.length)return;S.inbox[p.id]=[];
+  /* v2.106 (lot R1) : la boîte se lit avec le numéro du joueur (avant : avec l'objet, elle restait toujours vide) */
+  const box=inbox(p.id);if(!box.length)return;S.inbox[p.id]=[];
   S.msgLog=S.msgLog||{};const lg=S.msgLog[p.id]=S.msgLog[p.id]||[];const w=histMoment(S.ds&&S.ds.mk,((S.ds&&S.ds.lines)||[]).length);box.forEach(m=>{if(m.k==='offer')lg.push({d:S.day,w,msg:L(`${esc(P(m.from).name)} proposed an alliance.`,`${esc(P(m.from).name)} vous a proposé une alliance.`)})});if(lg.length>80)lg.splice(0,lg.length-80);
   for(const m of box){
     if(m.k==='offer'){const f=P(m.from);if(!f.alive||allied(p.id,f.id))continue;
@@ -5993,7 +6017,7 @@ musicSet('conseil');setPhase('conseil');try{S._cvIds=ctx&&ctx.voters?ctx.voters.
   voters.filter(v=>v.id!==out).forEach(v=>{const n=votes.filter(x=>x.to===v.id).length;if(n)motv(v,-4*n);const mine=votes.find(x=>x.from===v.id);if(mine&&mine.to===out)motv(v,3)});
   const allies=votes.filter(v=>v.to===out).map(v=>v.from);allies.forEach(a=>allies.forEach(b=>{if(a<b)mutual(a,b,5)}));
   votes.filter(v=>v.to===out&&allied(v.from,out)).forEach(v=>unally(v.from,out));
-  promCheck(votes);votes.filter(v=>v.to!==out&&allied(v.from,v.to)&&Math.random()<0.4).forEach(v=>{unally(v.from,v.to);mistSet(v.from,v.to);addAff(v.to,v.from,-20);motv(P(v.to),-10);logH(v.from,v.to,`${P(v.to).name} found out ${P(v.from).name} wrote their name. Alliance broken.`,`${P(v.to).name} a découvert que ${P(v.from).name} avait écrit son nom. Alliance rompue.`,`${P(v.to).name} descubrió que ${P(v.from).name} escribió su nombre. Alianza rota.`);tell(v.to,L(`You found out ${esc(P(v.from).name)} wrote your name. Your alliance is over.`,`Vous avez découvert que ${esc(P(v.from).name)} a écrit votre nom. Votre alliance est terminée.`,`Has descubierto que ${esc(P(v.from).name)} escribió tu nombre. Vuestra alianza se ha acabado.`))});
+  promCheck(votes);votes.filter(v=>v.to!==out&&allied(v.from,v.to)&&(Math.random()<0.4||(betrayLater(v),false))).forEach(v=>{unally(v.from,v.to);mistSet(v.from,v.to);addAff(v.to,v.from,-20);motv(P(v.to),-10);logH(v.from,v.to,`${P(v.to).name} found out ${P(v.from).name} wrote their name. Alliance broken.`,`${P(v.to).name} a découvert que ${P(v.from).name} avait écrit son nom. Alliance rompue.`,`${P(v.to).name} descubrió que ${P(v.from).name} escribió su nombre. Alianza rota.`);tell(v.to,L(`You found out ${esc(P(v.from).name)} wrote your name. Your alliance is over.`,`Vous avez découvert que ${esc(P(v.from).name)} a écrit votre nom. Votre alliance est terminée.`,`Has descubierto que ${esc(P(v.from).name)} escribió tu nombre. Vuestra alianza se ha acabado.`))});
   S.plans={};
   outPlayer(e);votes.filter(v=>v.black&&v.to===out).forEach(v=>unlock(P(v.from),'blackvote'));
   const partners=[];if(ctx.linked&&S.linked&&!S.linked.done){S.linked.done=true;const pr=S.linked.pairs.find(x=>x.includes(out))||[];pr.filter(id=>id!==out&&P(id).alive).forEach(id=>{const m=P(id);outPlayer(m);partners.push(m)});if(partners.length){S.skipT=(S.skipT||0)+partners.length;lines.push(L(`🔗 Linked fates: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> left the island with ${esc(e.name)}.`,`🔗 Destins liés : <b>${partners.map(m=>esc(m.name)).join(', ')}</b> quitte l'île avec ${esc(e.name)}.`,`🔗 Destinos unidos: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> abandona la isla con ${esc(e.name)}.`))}}
@@ -6377,7 +6401,7 @@ async function sacredFire(voters,elig,votes,played,q,title,lines){S._fireSaved=n
   else{const b=[...cands].sort((a,b)=>aff(h.id,b.id)-aff(h.id,a.id))[0];to=b?b.id:null}
   if(to==null||!cands.some(x=>x.id===to))return;
   played.add(to);COLL_BY[to]=h.id;S._fireSaved={by:h.id,to,d:S.day};if(to!==h.id)mutual(h.id,to,15);
-  lines.push(L(`🔥 Sacred fire: <b>${esc(h.name)}</b> saved <b>${esc(P(to).name)}</b>.`,`🔥 Feu sacré : <b>${esc(h.name)}</b> a sauvé <b>${esc(P(to).name)}</b>.`))}
+  lines.push(to===h.id?L(`🔥 Sacred fire: <b>${esc(h.name)}</b> saves ${h.g==='f'?'herself':'himself'}.`,("🔥 Feu sacré : <b>"+(esc(h.name))+"</b> se sauve "+((h.g==='f')?"elle-même":"lui-même")+".")):L(`🔥 Sacred fire: <b>${esc(h.name)}</b> saved <b>${esc(P(to).name)}</b>.`,`🔥 Feu sacré : <b>${esc(h.name)}</b> a sauvé <b>${esc(P(to).name)}</b>.`))}
 /* ==================== Finale, fin de partie et récit ==================== */
 const TONES={honest:['🤝',()=>L("Honest","Honnête")],humble:['🙏',()=>L("Humble","Humble")],strat:['♟️',()=>L("Strategic","Stratégique")]};
 const toneLikes=j=>['loyal','carer','shy'].includes(j.arch)?'humble':['strategist','manipulator','lone'].includes(j.arch)?'strat':'honest';
@@ -7059,7 +7083,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.105 · 2026-11-09';
+const APP_VER='2.106 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7463,7 +7487,8 @@ const E=Math.round(p.energy),cap=enCap(),ef=effOf(p);SB_WHEN=when;
   const me=[it('⚡',E+(cap<100?'/'+cap:''),L(`Energy ${E}${cap<100?' (max '+cap+' today)':''}`,`Énergie ${E}${cap<100?' (max '+cap+' aujourd\'hui)':''}`),lv(E,cap*.3,cap*.15)),
     it('✊',Math.round(st(p,'mot')),L("Motivation","Motivation"),'sbopt'),
     ef<1?it('😫','',L(`Tired: your camp work gives ${Math.round((1-ef)*100)} % less.`,(""+((p.g==='f')?"Fatiguée":"Fatigué")+" : votre travail au camp rapporte "+(Math.round((1-ef)*100))+" % de moins."),(""+((p.g==='f')?"Cansada":"Cansado")+": tu trabajo en el campamento rinde "+(Math.round((1-ef)*100))+" % menos.")),'warn'):'',
-    p.sick?it('🤒','',sickTxt(p).replace(/^🤒 /,'')+' · '+sickEff(p),'warn'):''].filter(Boolean).join('');
+    p.sick?it('🤒','',sickTxt(p).replace(/^🤒 /,'')+' · '+sickEff(p),'warn'):'',
+    hurtOn(p)?it('🩹','',L("Hurt",(""+((p.g==='f')?"Blessée":"Blessé")))+' · '+L("physical challenges ×0.9 for 2 days","épreuves physiques ×0,9 pendant 2 jours"),'warn'):''].filter(Boolean).join('');
   const camp=[it('🪵',W(t),L("Firewood","Bois en réserve"),lv(W(t),1,0)),it('🍚',S.food[t]||0,L("Raw rations","Rations crues"),(S.food[t]||0)<=0?'lo':''),it('🍲',MEALS(t),L("Cooked meals","Repas cuisinés"),MEALS(t)<=0&&!(S.food[t]>0)?'crit':''),
     it(HW(t)?'💧':'🚱','',HW(t)?L("Fresh water found","Eau douce trouvée"):L("No fresh water yet","Pas encore d'eau douce"),HW(t)?'':'warn'),
     it(S.fire[t]?'🔥':'🌑','',S.fire[t]?L("Fire lit","Feu allumé"):L("No fire","Pas de feu"),S.fire[t]?'':'warn'),
