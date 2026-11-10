@@ -2095,6 +2095,33 @@ ul.lines li.place.pbarl.me{outline:2px solid var(--sky);outline-offset:-2px}
 .wrap.camp1 > .sbar .sb1 > .gmenu{margin-right:0}
 .ctp.reld .relmap{max-width:100%;margin:4px auto}
 .ctp.jrnd .journal{margin-top:6px}
+/* v2.105 — lot T (textes) et alignement des panneaux du camp */
+
+/* Panneaux du camp : une seule taille et un seul interligne partout ; le contenu en sable, seules les phrases « vide » en gris (décision de Clément du 9/11) */
+.wrap.camp1 > .ctpanel > .ctp{color:var(--sand)}
+.wrap.camp1 > .ctpanel > .ctp :is(p,li):not(.lbl){font-size:.95rem;line-height:1.5}
+.wrap.camp1 > .ctpanel > .ctp :is(p.hint,p.muted):not(.cvide){color:var(--sand)}
+.wrap.camp1 > .ctpanel > .ctp .cvide{color:var(--muted)}
+
+/* Point 13 : bulle du premier Conseil */
+.cbul{display:flex;align-items:center;gap:6px;border:1px solid var(--info);background:var(--info-bg);border-radius:12px;padding:2px 2px 2px 12px;font-size:.95rem;line-height:1.4;margin:0 0 12px}
+.cbul > span{flex:1}
+.cbul .cbx{flex:0 0 44px;width:44px;height:44px;border:0;background:transparent;color:var(--sand);font-size:1.3rem;cursor:pointer}
+
+/* Point 15 : mots de l'émission soulignés, définition au toucher */
+.glo{text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-color:var(--torch);cursor:help}
+.glo:focus-visible{outline:2px solid var(--torch);outline-offset:2px;border-radius:3px}
+.gbul{position:fixed;z-index:9999;max-width:min(320px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--torch);color:var(--sand);border-radius:12px;padding:10px 12px;font-size:.95rem;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.gbul b{color:var(--torch)}
+
+/* Point 19 : phrase du joueur en tête du jour, dans Mon journal */
+.jday p.jbord{font-style:italic;margin:0 0 4px}
+
+/* Point 22 : rumeur du jour dans les Nouvelles */
+.rum b{color:var(--info)}
+
+/* Point 24 : surnom dans « Votre saison » */
+.surn{margin:0 0 12px}
 </style>
 
 <div id="app"></div>
@@ -2848,6 +2875,24 @@ const VOIX={
 const VOIXU=new Map();
 function vrnd(){const m=VOIXU.get('rng')||{s:0,n:0};if(m.g!==S.seed){m.g=S.seed;m.s=(S.seed||1)>>>0;VOIXU.clear()}VOIXU.set('rng',m);m.s=(m.s+0x6D2B79F5)|0;let t=Math.imul(m.s^m.s>>>15,1|m.s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}
 const vpick=a=>a[Math.floor(vrnd()*a.length)];
+/* v2.105 (lot T) : hasard d'affichage, fixé par la graine de la partie et des nombres donnés ; n'avance aucun tirage du jeu */
+function hrnd(...k){let h=((S&&S.seed)||1)>>>0;for(const x of k){h=Math.imul(h^((x|0)>>>0),0x9E3779B1)>>>0;h^=h>>>15}h=Math.imul(h^h>>>16,0x85EBCA6B);h^=h>>>13;h=Math.imul(h,0xC2B2AE35);h^=h>>>16;return (h>>>0)/4294967296}
+/* v2.105 (lot T, point 24) : surnom du joueur, donné au matin du jour 4 d'après ce qu'il a le plus fait au camp, puis gardé */
+const SURN_KIND={fish:'pecheur',fishfail:'pecheur',food:'cueilleur',foragefail:'cueilleur',wood:'bucheron',water:'porteur',shelter:'batisseur',craft:'batisseur',fire:'gardien',firefail:'gardien',watch:'gardien',cook:'cuistot',rest:'dormeur',talk:'bavard',cheer:'bavard',care:'soigneur',search:'explorateur'};
+const SURN_ORDER=['champion','pecheur','cueilleur','bucheron','porteur','batisseur','gardien','cuistot','soigneur','explorateur','bavard','dormeur','discret'];
+function surnomCle(h){try{if(!S||!h||!h.human)return null;S._surn=S._surn||{};if(S._surn[h.id])return S._surn[h.id];if(S.day<4)return null;
+  const n={};Object.values(S.feed||{}).forEach(f=>(f||[]).forEach(e=>{if(e.id!==h.id)return;const k=SURN_KIND[e.k];if(k)n[k]=(n[k]||0)+1}));
+  let k='discret';if((h.wins||0)>=2)k='champion';else{let best=0;SURN_ORDER.forEach(x=>{if((n[x]||0)>best){best=n[x];k=x}})}
+  S._surn[h.id]=k;return k}catch(e){return null}}
+function surnom(h){const k=surnomCle(h);if(!k)return'';const f=h.g==='f';return ({
+  champion:L("the Champion",(""+((f)?"la Championne":"le Champion"))),pecheur:L("the Fisher",(""+((f)?"la Pêcheuse":"le Pêcheur"))),cueilleur:L("the Gatherer",(""+((f)?"la Cueilleuse":"le Cueilleur"))),bucheron:L("the Lumberjack",(""+((f)?"la Bûcheronne":"le Bûcheron"))),porteur:L("the Water Carrier",(""+((f)?"la Porteuse d'eau":"le Porteur d'eau"))),batisseur:L("the Builder",(""+((f)?"la Bâtisseuse":"le Bâtisseur"))),gardien:L("the Fire Keeper",(""+((f)?"la Gardienne du feu":"le Gardien du feu"))),
+  cuistot:L("the Cook",(""+((f)?"la Cuisinière":"le Cuisinier"))),soigneur:L("the Healer",(""+((f)?"la Soigneuse":"le Soigneur"))),explorateur:L("the Explorer",(""+((f)?"l'Exploratrice":"l'Explorateur"))),bavard:L("the Chatterbox",(""+((f)?"la Bavarde":"le Bavard"))),dormeur:L("the Sleepyhead","la Marmotte"),discret:L("the Shadow","l'Ombre")})[k]||''}
+/* au matin : le jour où il est donné, le présentateur l'annonce ; ensuite, un matin sur deux, un aventurier de la tribu l'emploie */
+function surnomMatin(){try{const h=humansAlive()[0];if(!h||S.humans>1)return'';const s0=surnom(h);if(!s0)return'';const s=esc(s0);
+  S._surnA=S._surnA||{};if(!S._surnA[h.id]){S._surnA[h.id]=S.day;return host(L(`At camp, they now call you “${s}”.`,`Au camp, on vous surnomme désormais « ${s} ».`))}
+  if(hrnd(S.day,24)<.5)return'';const ms=tribeMembers(tk(h)).filter(m=>!m.human);if(!ms.length)return'';const sp=ms[Math.floor(hrnd(S.day,25)*ms.length)],i=Math.floor(hrnd(S.day,26)*3);
+  const said=[L(`Here comes ${s}!`,`Voilà ${s} qui se lève !`),L(`So, is ${s} saving us today?`,`Alors, c'est ${s} qui nous sauve aujourd'hui ?`),L(`We're counting on ${s} this morning.`,`On compte sur ${s} ce matin.`)][i];return `<p class="voix"><span class="vq">« ${said} »</span> <span class="vw">${esc(sp.name)}</span></p>`}catch(e){return''}}
+
 function voixLigne(moment,tribe){try{
   if(!S||!tribe)return'';
   const ms=tribeMembers(tribe),pnj=ms.filter(p=>!p.human&&VOIX[p.arch]&&VOIX[p.arch][moment]&&VOIX[p.arch][moment].length);
@@ -3142,7 +3187,7 @@ async function dayIntro(){
       if(a1==='quit'){manualSave();home();return new Promise(()=>{})}
       continue}
     const a=await ask(`${eb(DAYOF()+' · '+whereFlag())}<h1 class="h">${S.day===1?L("The tribes","Les tribus","Las tribus"):L(`Morning on ${isl}`,`Matin sur ${isl}`,`Mañana en ${isl}`)}</h1>
-      ${S.day>1?host(morningLine())+voixLigne('matin',voixTribu()):''}
+      ${S.day>1?host(morningLine())+voixLigne('matin',voixTribu())+surnomMatin():''}
       ${(()=>{const cards=tribes.map(t=>tribeCard(t,S.merged)).join('');const sig=tribes.map(t=>tribeMembers(t).map(p=>p.id).join(',')).join('|');const changed=S.day===1||sig!==S.tribeSig;S._sig=sig;
         return changed?cards:`<details class="statd"><summary>${S.merged?L(`One tribe · ${alive().length} castaways`,`Tribu réunifiée · ${alive().length} aventuriers`):L(`Tribes: ${tribeMembers('A').length} vs ${tribeMembers('B').length}`,`Tribus : ${tribeMembers('A').length} contre ${tribeMembers('B').length}`)}</summary>${cards}</details>`})()}
       ${jury.length?`<section><p class="lbl">${L("Jury","Jury","Jurado")}</p><div class="chips" style="margin-top:8px">${jury.map(j=>chip(j,'out')).join('')}</div></section>`:''}
@@ -3430,10 +3475,17 @@ function jWrite(){if(!S||!S.jsnap||S.jsnap.done)return;const sn=S.jsnap;sn.done=
     if(!h.alive)e.push(["My adventure ends here. What a ride.","Mon aventure s'arrête ici. Quelle aventure."]);
     else if(h.energy<25)e.push(["I am exhausted. I dream of bread.","Je suis à bout de forces. Je rêve de pain."]);else if(h.energy>75)e.push(["I feel great today.","Je me sens en pleine forme."]);
     if(e.length<2)e.push(["One more day on the island.","Une journée de plus sur l'île."]);
-    (S.journal[id]=S.journal[id]||[]).push({d:sn.d,e})}}
+    /* v2.105 (lot T, point 19) : ce que le joueur a fait de sa journée, écrit à l'affichage dans la langue du moment */
+    const b=[],vu=new Set();Object.values(S.feed||{}).forEach(f=>(f||[]).forEach(x=>{if(x.id!==h.id||x.d!==sn.d||!BORD_K.includes(x.k)||vu.has(x.k)||b.length>=3)return;vu.add(x.k);b.push([x.k,x.o!=null?x.o:null])}));
+    (S.journal[id]=S.journal[id]||[]).push(b.length?{d:sn.d,e,b}:{d:sn.d,e})}}
+const BORD_K=['water','fish','food','wood','shelter','fire','cook','watch','rest','talk','care','cheer','craft','search','fishfail','firefail','foragefail'];
+function bordLigne(x,h){try{if(!x||!x.b||!x.b.length)return'';const f=h&&h.g==='f';const it=x.b.map(([k,o])=>{const on=o!=null&&P(o)?esc(P(o).name):'';return ({
+  water:L("I found water","j'ai trouvé de l'eau"),fish:L("I went fishing","j'ai pêché"),food:L("I foraged for food","j'ai cherché à manger"),wood:L("I gathered wood","j'ai ramassé du bois"),shelter:L("I worked on the shelter","j'ai travaillé sur l'abri"),fire:L("I tended the fire",("je me suis "+((f)?"occupée":"occupé")+" du feu")),cook:L("I cooked for the tribe","j'ai cuisiné pour la tribu"),watch:L("I kept watch over the fire","j'ai veillé sur le feu"),rest:L("I rested",("je me suis "+((f)?"reposée":"reposé"))),
+  talk:on?L(`I talked with ${on}`,`j'ai parlé avec ${on}`):L("I chatted at camp","j'ai discuté au camp"),care:on?L(`I took care of ${on}`,`j'ai soigné ${on}`):L("I looked after someone sick","j'ai soigné un malade"),cheer:on?L(`I cheered ${on} up`,`j'ai remonté le moral de ${on}`):L("I lifted the camp's spirits","j'ai remonté le moral du camp"),craft:L("I made something for the camp","j'ai fabriqué de quoi améliorer le camp"),search:L("I went searching the island",("je suis "+((f)?"partie":"parti")+" fouiller l'île")),fishfail:L("I fished and caught nothing","j'ai pêché sans rien prendre"),firefail:L("I tried to light the fire","j'ai essayé d'allumer le feu"),foragefail:L("I came back from foraging empty-handed",("je suis "+((f)?"revenue":"revenu")+" bredouille de la cueillette"))})[k]}).filter(Boolean);
+  if(!it.length)return'';const liste=it.length===1?it[0]:it.slice(0,-1).join(', ')+' '+L("and","et")+' '+it[it.length-1];return `<p class="jbord">${L(`Today ${liste}.`,`Aujourd'hui, ${liste}.`)}</p>`}catch(e){return''}}
 function journalView(back){const v=msgViewer()!=null?msgViewer():(humansAlive()[0]||S.players.find(p=>p.human)||{}).id;const js=(S.journal||{})[v]||[];
   if(js.length>=5){const h=P(v);if(h)unlock(h,'diary')}
-  return `<h2 class="h">📓 ${L("My journal","Mon journal")}</h2>${P(v)?evoBox(P(v)):''}${chView(v)}${js.length?`<div class="journal">${js.slice().reverse().map(x=>`<div class="jday"><p class="lbl">${L("Day ","Jour ")+x.d}</p><p>${x.e.map(p=>esc(L(p[0],p[1]))).join(' ')}</p></div>`).join('')}</div>`:`<p class="muted">${L("Your journal fills up at the end of each day.","Votre journal se remplit à la fin de chaque journée.")}</p>`}${back}`}
+  return `<h2 class="h">📓 ${L("My journal","Mon journal")}</h2>${P(v)?evoBox(P(v)):''}${chView(v)}${js.length?`<div class="journal">${js.slice().reverse().map(x=>`<div class="jday"><p class="lbl">${L("Day ","Jour ")+x.d}</p>${bordLigne(x,P(v))}<p>${x.e.map(p=>esc(L(p[0],p[1]))).join(' ')}</p></div>`).join('')}</div>`:`<p class="muted cvide">${L("Your journal fills up at the end of each day.","Votre journal se remplit à la fin de chaque journée.")}</p>`}${back}`}
 /* letters */
 function letterQuote(p){const city=esc(String(p.city||'').split(',')[0]),par=p.g==='f'?L("Mum","Maman"):L("Dad","Papa");
   const pool=p.kids?[[`${par}, we drew your island with a big sun. Come back with the immunity collar!`,`${par}, on a dessiné ton île avec un gros soleil. Reviens avec le collier !`],[`${par}, the cat sleeps on your pillow since you left. Win for him.`,`${par}, le chat dort sur ton oreiller depuis ton départ. Gagne pour lui.`],[`${par}, everyone at school knows you are on TV. Do not lose!`,`${par}, à l'école tout le monde sait que tu passes à la télé. Ne perds pas !`]]
@@ -3561,7 +3613,21 @@ storyTick();
   }
   S.camp=null;if(when==="ev")S.banner=null;if(when==='am')S.introBox=null;
 }
+/* v2.105 (lot T, point 22) : une rumeur par jour dans les Nouvelles, sur un aventurier de la tribu ; parfois fausse (plus souvent en Difficile et Expert).
+   Affichage seul : aucune règle ne change, aucun tirage du jeu n'avance (hasard hrnd) */
+function rumeurDuJour(p){try{if(!S||S.day<2||S.humans>1)return;S._rumD=S._rumD||0;if(S._rumD===S.day)return;S._rumD=S.day;
+  const t=tk(p),ms=tribeMembers(t),pnj=ms.filter(m=>!m.human);if(pnj.length<2)return;const r=n=>hrnd(S.day,40+n,p.id);
+  const x=pnj[Math.floor(r(1)*pnj.length)],autres=ms.filter(m=>m.id!==x.id),fausse=r(2)<({easy:.15,normal:.25,hard:.4,expert:.5}[S.diff]??.25);
+  const auHasard=(l,sauf)=>{const c=l.filter(m=>!sauf||m.id!==sauf.id);return c.length?c[Math.floor(r(3)*c.length)]:null};
+  let kind=['vise','proche','collier','fatigue'][Math.floor(r(4)*4)],y=null,z=x;
+  if(kind==='collier'){const avec=ms.filter(m=>m.idol&&!m.human),sans=pnj.filter(m=>!m.idol);if(fausse&&sans.length)z=auHasard(sans);else if(!fausse&&avec.length)z=avec[0];else kind='fatigue'}
+  if(kind==='fatigue'){const tri=[...pnj].sort((a,b)=>a.energy-b.energy);z=fausse?tri[tri.length-1]:tri[0]}
+  if(kind==='vise'||kind==='proche'){const tri=[...autres].sort((a,b)=>aff(x.id,a.id)-aff(x.id,b.id)),vrai=kind==='vise'?tri[0]:tri[tri.length-1];y=fausse?(auHasard(autres,vrai)||vrai):vrai;z=x}
+  if(!z)return;const zn=esc(z.name),yn=y?esc(y.name):'';
+  const txt=kind==='vise'?L(`word is ${zn} is thinking of writing ${yn}'s name at the next Conseil.`,`${zn} penserait à écrire le nom de ${yn} au prochain Conseil.`):kind==='proche'?L(`word is ${zn} and ${yn} have become inseparable.`,`${zn} et ${yn} ne se quitteraient plus.`):kind==='collier'?L(`word is ${zn} has found an immunity collar.`,`${zn} aurait trouvé un collier d'immunité.`):L(`word is ${zn} is running on empty.`,`${zn} serait au bout du rouleau.`);
+  campNewsAdd(`<span class="rum">🗣️ <b>${L("Today's rumour:","Rumeur du jour :")}</b> ${txt}</span>`)}catch(e){}}
 async function humanCamp(p,when,left){musicSet('camp');
+  if(left===ACTIONS[when]&&when==='am')rumeurDuJour(p);
   if(left===ACTIONS[when])await readInbox(p);
   if(left===ACTIONS[when]&&when==='pm')await confessional(p,tk(p),tribeMembers(tk(p)).filter(m=>m.id!==p.id));
   if(left===ACTIONS[when]&&when==='am')await maybeDilemma(p,tk(p),tribeMembers(tk(p)).filter(m=>m.id!==p.id));
@@ -4060,7 +4126,7 @@ function lnVis(l){try{const m=/data-tb="(\w+)"/.exec(String(l));if(!m||S.merged)
 function histHtml(){const H=S.histD||{},W=S.histW||{},M={};let mid=null;try{mid=msgViewer()}catch(e){}
   ((S.msgLog||{})[mid]||[]).forEach(m=>{(M[m.d]=M[m.d]||[]).push(m)});
   const days=[...new Set([...Object.keys(H).map(Number).filter(d=>H[d]&&H[d].length),...Object.keys(M).map(Number)])].sort((a,b)=>b-a);
-  if(!days.length)return `<p class="hint">${L("Important events will gather here day after day.","Les événements importants s'accumulent ici jour après jour.")}</p>`;
+  if(!days.length)return `<p class="hint cvide">${L("Important events will gather here day after day.","Les événements importants s'accumulent ici jour après jour.")}</p>`;
   const ord={am:0,pm:1,ev:2};
   return days.map(d=>{const rows=(H[d]||[]).map((l,i)=>[l,(W[d]||[])[i]||'']).filter(([l])=>lnVis(l));const has=rows.some(r=>r[1]);
     /* v2.99 (lot I2, point 20) : chaque éliminé du jour, avec la dernière phrase qu'on l'a entendu dire au camp */
@@ -5831,6 +5897,7 @@ function voteListe(p,elig){const os=elig.filter(e=>e.id!==p.id);let cons=null;
   /* v2.99 (lot I2, point 8) : en Facile et Normal, une flèche dit ce que chacun pense de vous (↗ bien, → partagé, ↘ mal), sans ouvrir sa fiche */
   const lien=m=>{try{if(DF().adv==='off')return'';const r=theirView(p.id,m.id);return `<span class="vlink ${r[1]}" title="${esc(r[0])}"><span aria-hidden="true">${r[1]==='good'?'↗':r[1]==='bad'?'↘':'→'}</span> ${r[0]}</span>`}catch(e){return''}};
   return infoList(os,p.id,m=>lien(m)+(m.id===cons?`<span class="voteco">★ ${L("suggested","conseillé","sugerido")}</span>`:''))}
+function premierConseil(){try{if(localStorage.getItem('aventuriers-bulle-conseil'))return false;localStorage.setItem('aventuriers-bulle-conseil','1');return true}catch(e){return false}}
 async function humanVote(p,elig,second){
   if(AUTO){const pv=predictVotes(p);if(pv.top&&+pv.top[0]===p.id&&!AUTO.nostop)stopAuto(L("you are in danger at this Council.","vous êtes en danger à ce Conseil."));else{const v=aiVotes([p],elig.filter(e=>e.id!==p.id).concat([p]))[0];if(v&&v.to!=null&&v.to!==p.id)return{to:v.to,idol:false}}}
   let idol=false;if(!elig.some(e=>e.id!==p.id))return{to:null,idol};
@@ -5838,7 +5905,9 @@ async function humanVote(p,elig,second){
     <p class="secret">${L("If you play it tonight, every vote against you is cancelled. It works only once.","Si vous le jouez ce soir, tous les votes contre vous sont annulés. Il ne sert qu'une fois.","Si lo juegas esta noche, se anulan todos los votos en tu contra. Solo sirve una vez.")}</p>
     <div class="row"><button class="btn" data-act="play">${L("Play it tonight","Le jouer ce soir","Jugarlo esta noche")}</button><button class="btn ghost" data-act="keep">${L("Keep it hidden","Le garder caché","Guardarlo en secreto")}</button></div>`);idol=a==='play'}
   const vx=second?'':voixLigne('avant_conseil',tk(p));
-  let to;for(;;){to=+await ask(`${eb('Conseil · '+esc(p.name))}<h1 class="h">${L("Write a name","Écrivez un nom","Escribe un nombre")}</h1>${vx}
+  /* v2.105 (lot T, point 13) : au tout premier vote sur cet appareil, une bulle d'une ligne explique le Conseil */
+  const bul=(!AUTO&&premierConseil())?`<div class="cbul" role="note"><span>💡 ${L("Secret vote: the most-written name leaves the adventure, the immunity collar protects, and you have 2 s to undo.","Vote secret : le nom le plus écrit quitte l'aventure, le collier d'immunité protège, et vous avez 2 s pour annuler.")}</span><button type="button" class="cbx" aria-label="${L("Close","Fermer","Cerrar")}" onclick="this.parentNode.remove()">×</button></div>`:'';
+  let to;for(;;){to=+await ask(`${eb('Conseil · '+esc(p.name))}<h1 class="h">${L("Write a name","Écrivez un nom","Escribe un nombre")}</h1>${bul}${vx}
     ${voteListe(p,elig)}`);if(AUTO||!(await voteUndo(to)))break}
   return{to,idol};
 }
@@ -6024,7 +6093,12 @@ function voteTable(votes){const m=surpOpen()?'all':DF().votes||'players';if(m===
   return `<details class="statd"><summary>${m==='all'?L("Who voted for whom","Qui a voté pour qui","Quién votó a quién"):L("Who voted against the players","Qui a voté contre les joueurs","Quién votó contra los jugadores")}</summary><ul class="lines" style="margin-top:8px">${shown.map(v=>`<li>${v.black?'🖤 ':''}<b>${v.malus?(v.kind==='totem'?'🗿 '+L("Cursed totem","Totem maudit"):'⚠️ '+L("Penalty (last in the challenge)","Malus (dernier à l'épreuve)")):esc(P(v.from).name)}</b> → ${esc(P(v.to).name)}${v.black?` <span class="muted">(${L("black vote","vote noir","voto negro")})</span>`:''}${v.r2?` <span class="muted">(${L("2nd vote","2e vote","2ª votación")})</span>`:''}${v.hij?` <span class="muted">(${L("hijacked ballot","bulletin détourné")})</span>`:''}</li>`).join('')}</ul></details>`}
 function juryQuestion(j,f){S._jqU=S._jqU instanceof Set?S._jqU:new Set(S._jqU||[]);const bad=aff(j.id,f.id)<-15,friend=aff(j.id,f.id)>25,w=wrec(f.id);
   const k=bad?'betray':f.wins>=2?'strong':w.score<workAvg(alive())-4?'lazy':friend?'friend':'why';const q=jqPick(JQ[k],S._jqU),i=JQ[k].indexOf(q);
+  /* v2.105 (lot T, point 23) : la question cite un fait entre ce juré et ce finaliste, s'il y en a un (le texte seul change) */
+  const fq=juryFactQ(j,f);if(fq){const fqt=fq.k==='wrote'?L(`on day ${fq.d}, you wrote my name.`,`jour ${fq.d}, tu as écrit mon nom.`):fq.k==='clash'?L(`on day ${fq.d}, we had words, you and me.`,`jour ${fq.d}, on a eu des mots, toi et moi.`):L("the night I left, you did not write my name.","le soir de mon départ, tu n'as pas écrit mon nom.");return{k,i,q:L(`${esc(f.name)}, ${fqt} ${cap1(q[0])}`,`${esc(f.name)}, ${fqt} ${cap1(gfx(q[1],f.g).replace('éliminé','éliminé'+(j.g==='f'?'e':'')))}`)}}
   return{k,i,q:L(`${esc(f.name)}, ${q[0]}`,`${esc(f.name)}, ${gfx(q[1],f.g).replace('éliminé','éliminé'+(j.g==='f'?'e':''))}`)}}
+function juryFactQ(j,f){try{const vs=(S.vlog||[]).filter(x=>(x.v||[]).some(([a,b])=>a===f.id&&b===j.id));if(vs.length)return{k:'wrote',d:vs[vs.length-1].d};
+  const h=((S.hist||{})[akey(j.id,f.id)]||[]).filter(e=>/disput|argument|voté contre|voted against|trahi|betray|accus|clash|fight|menti|lied|reproch|blam/i.test((e.fr||'')+' '+(e.en||''))).slice(-1)[0];if(h)return{k:'clash',d:h.d};
+  const vl=(S.vlog||[]).find(x=>x.out===j.id);if(vl&&(vl.v||[]).some(([a,b])=>a===f.id&&b!==j.id))return{k:'spared',d:vl.d};return null}catch(e){return null}}
 async function juryQA(finals,J){
 if(AUTO&&AUTO.k==='jury')stopAuto(L("here is the jury.","voici le jury.","aquí está el jurado."));
 S.juryB={};S._jqU=new Set();S._jaU=new Set();const log=[];
@@ -6409,6 +6483,7 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
     <div class="etp" data-etp="fin:rank"><section><ul class="lines" aria-label="${L("Final standings","Classement final","Clasificación final")}" style="margin-top:8px">${top.map(placeLi).join('')}</ul>
     ${rest.length?`<details class="rankmore"><summary>${L("Tout le classement","Tout le classement")} <span class="muted">· ${rest.length}</span></summary><ul class="lines">${rest.map(placeLi).join('')}</ul></details>`:''}</section></div>
     <div class="etp${hums.length>1?' evom':''}" data-etp="fin:season">${hums.length>1?`<div class="pchips evochips"><div class="pchipl" role="tablist">${hums.map((x,i)=>`<button type="button" role="tab" class="pchip${i?'':' on'}" data-evo="${i}" aria-selected="${!i}"><span class="prowf">${face(x,40)}</span><b>${esc(x.name)}</b></button>`).join('')}</div></div>${hums.map((x,i)=>`<div class="evosel" data-evi="${i}"${i?' hidden':''}>${evoBox(x,false)}</div>`).join('')}`:hums.map(x=>evoBox(x,true)).join('')}
+    ${hums.map(x=>{const s=S._surn&&S._surn[x.id]?surnom(x):'';return s?`<p class="surn">🏷️ ${hums.length>1?esc(x.name)+' · ':''}${L("Your camp nickname:","Votre surnom au camp :")} <b>« ${esc(s)} »</b></p>`:''}).join('')}
     ${seasonRecap(places,winner)}</div>
     <div class="row stickb">${canReplay?`<button class="btn ghost" id="tohome">${L("Home","Accueil","Inicio")}</button>`:''}<button class="btn" id="again">${L("Play again","Rejouer","Jugar otra vez")}</button></div>`);
   try{const w=$app.querySelector('.wrap');w.classList.add('hasstick','finw');const se=w.querySelector('.etp[data-etp="fin:season"] > .storyend');if(se)w.querySelector('.etp[data-etp="fin:win"]').prepend(se);const rk=w.querySelector('.etp[data-etp="fin:rank"]');const sd=w.querySelector('.etp[data-etp="fin:season"] details.story');if(sd)rk.appendChild(sd);const rb=w.querySelector('#runsb'),cb=w.querySelector('#card'),sh=w.querySelector('#share');if(rb&&cb)cb.after(rb);if(sh){sh.closest('.row')&&sh.remove();w.querySelector('.stickb').prepend(sh);if(canReplay){const t=sh.textContent.replace(/^\s*📤\s*/u,'');sh.setAttribute('aria-label',t);sh.title=t;sh.innerHTML='<span aria-hidden="true" class="shic">📤</span>'}}}catch(e){}
@@ -6984,7 +7059,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.104 · 2026-11-09';
+const APP_VER='2.105 · 2026-11-09';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7287,7 +7362,7 @@ function tidyTitles(root){try{(root||document).querySelectorAll('.wrap,.sheet').
 function screen(html){
   html=screenPrepareHtml(html);screenKeepHistory(html);
   CAMPCTX=null;$app.innerHTML=`<div class="wrap fade${INGAME&&S?' ingame':''}">${MENUBTN()}${conseilBar(html)}${html}</div>`;try{if(window.__gu&&INGAME){const w=$app.querySelector('.wrap');if(w)w.prepend(window.__gu)}else if(window.__gu&&!INGAME){window.__gu=null}}catch(e){}colorTribes($app);colorNames($app);tidyTitles($app);syncWx();kbHint();window.scrollTo(0,0);orderText();campNews();campTabs();listFaces($app);normSpace($app);clearMenu();fitH1();fitBars();coach()
-  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenCampOne(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);screenListFit(html);
+  screenWideCamp(html);screenTransition(html);screenLayoutFixes(html);screenConseilFlame(html);screenWeatherPopup(html);screenToastsCoach(html);screenCampHelpers(html);screenCampOne(html);screenStratStep(html);screenPhaseUnread(html);screenMiniGameHint(html);screenHomeDecor(html);screenLastMove(html);screenIcones(html);screenListFit(html);screenGlossaire(html);
 }
 try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('ovl')){const el2=n.querySelector('.sheet')||n;try{const e=el2.querySelector('.eyebrow'),h=el2.querySelector('h1.h,h2.h');if(e&&h&&e.textContent.trim().toLowerCase()===h.textContent.trim().toLowerCase())e.remove()}catch(_){}normSpace(el2);}}))}).observe(document.body,{childList:true})}catch(e){}
 
@@ -7509,7 +7584,7 @@ function screenLayoutFixes(html){try{const w=$app.querySelector('.wrap');if(!w)r
       const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.className='ctab'+(CTAB_SEL===c?' on':'');b.dataset.ctab=c;b.setAttribute('aria-selected',String(CTAB_SEL===c));b.textContent=ic+' '+n;bar.appendChild(b);
       const d=document.createElement('div');d.className='ctp '+c+(CTAB_SEL===c?' on':'');d.innerHTML=f();const h=d.querySelector(':scope > h2.h');if(h)h.remove();panel.appendChild(d)}catch(e){}});
     bar.classList.toggle('n9',bar.children.length>8);
-    const np=panel.querySelector('.ctp.news');if(np&&S._news&&S._news.d===S.day){const seen=S._newsSeenD===S.day?(S._newsSeen||0):0,len=S._news.h.length;if(seen&&len>seen){np.innerHTML=S._news.h.slice(0,len-seen).replace(/ data-act="[^"]*"/g,'')}else if(seen&&len<=seen&&CTAB_SEL!=='news'){np.innerHTML=`<p class="hint">${L("Nothing new since you last read. Important events are in History.","Rien de nouveau depuis votre dernière lecture. Les événements importants sont dans l'Historique.")}</p>`}}}
+    const np=panel.querySelector('.ctp.news');if(np&&S._news&&S._news.d===S.day){const seen=S._newsSeenD===S.day?(S._newsSeen||0):0,len=S._news.h.length;if(seen&&len>seen){np.innerHTML=S._news.h.slice(0,len-seen).replace(/ data-act="[^"]*"/g,'')}else if(seen&&len<=seen&&CTAB_SEL!=='news'){np.innerHTML=`<p class="hint cvide">${L("Nothing new since you last read. Important events are in History.","Rien de nouveau depuis votre dernière lecture. Les événements importants sont dans l'Historique.")}</p>`}}}
   /* 1. last action result goes to News; redo/undo float for 4 s */
   const ra=w.querySelector('.raline');if(ra){if(ra.querySelector('button')&&w.querySelector('.ctp.news .lastmsg, details.news .lastmsg'))ra.classList.add('rabar');else ra.remove()}
   if(w.querySelector(':scope > .sbar'))flushHold();
@@ -7855,6 +7930,24 @@ function icoTexte(t){try{const p=t.parentElement;if(!p||!t.nodeValue||!ICO_HAS.t
   if(k<s.length)f.appendChild(document.createTextNode(s.slice(k)));t.replaceWith(f)}catch(e){}}
 function icoScan(r){try{if(!r)return;if(r.nodeType===3){icoTexte(r);return}if(r.nodeType!==1||(r.closest&&r.closest(ICO_SKIP)))return;
   const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),l=[];let n;while((n=w.nextNode()))if(ICO_HAS.test(n.nodeValue))l.push(n);l.forEach(icoTexte)}catch(e){}}
+/* v2.105 (lot T, point 15) : les mots de l'émission sont soulignés en pointillé (première fois par écran) ; un toucher ouvre leur définition */
+const GLOSS={conseil:()=>[L("Conseil|Council","Conseil|Conseils"),L("on vote night, everyone secretly writes a name; the one named most leaves the adventure.","le soir du vote, chacun écrit un nom en secret ; le plus cité quitte l'aventure.")],collier:()=>[L("collar|collars","collier|colliers"),L("whoever wears it cannot be voted out at the Conseil.","son porteur ne peut pas être éliminé au Conseil.")],
+  poteaux:()=>[L("posts","poteaux"),L("the last challenge before the final: the last one standing goes to the final and picks who comes along.","la dernière épreuve avant la finale : le dernier debout va en finale et choisit qui l'accompagne.")],feu_sacre:()=>[L("Sacred fire","Feu sacré"),L("after the vote, its holder saves a castaway: the votes against them do not count.","après le vote, son détenteur sauve un aventurier : les votes contre lui ne comptent pas.")],
+  reunification:()=>[L("merge","réunification"),L("the tribes become one; from then on, every castaway plays for themselves.","les tribus n'en font plus qu'une ; désormais, chacun joue pour soi.")],jury:()=>[L("jury|jurors|juror","jury|jurés|juré"),L("the castaways voted out after the merge; at the end, they choose the winner among the finalists.","les éliminés après la réunification ; à la fin, ils élisent le vainqueur parmi les finalistes.")],
+  confort:()=>[L("reward challenge|reward","épreuve de confort|confort"),L("the winning tribe gets a reward: food or gear.","la tribu gagnante remporte une récompense : nourriture ou matériel.")],boules_noires:()=>[L("black balls|black ball","boules noires|boule noire"),L("when a tribe has more castaways, they draw lots: a black ball sits out, with no penalty.","quand une tribu a plus d'aventuriers, on tire au sort : une boule noire reste sur le banc, sans pénalité.")],
+  vote_noir:()=>[L("black vote","vote noir"),L("on leaving, the castaway writes a name that counts at the next Conseil.","en partant, l'éliminé écrit un nom qui comptera au prochain Conseil.")],ambassadeurs:()=>[L("ambassadors|ambassador","ambassadeurs|ambassadeur"),L("before the merge, one castaway per tribe; together they choose who leaves, with no Conseil.","avant la réunification, un aventurier par tribu ; ensemble, ils choisissent qui part, sans Conseil.")]};
+const GLOSS_SAUF='button,a,input,select,option,textarea,svg,h1,h2,h3,summary,label,.sbar,.bbar,.stickb,.ctabs,.choice,.pick,.eyebrow,.lbl,.tag,.cbar,.glo,.dico,.gbul,.voix .vw,[data-noico],[contenteditable]';
+let GLOSS_RE=null,GLOSS_LANG=null;
+function glossRe(){if(GLOSS_RE&&GLOSS_LANG===LANG)return GLOSS_RE;GLOSS_LANG=LANG;GLOSS_RE=Object.entries(GLOSS).map(([id,f])=>{const mots=[...new Set(String(f()[0]||'').split('|').map(m=>m.trim()).filter(Boolean).flatMap(m=>[m,cap1(m)]))].sort((a,b)=>b.length-a.length).map(m=>m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  return mots.length?[id,new RegExp('(^|[^\\p{L}])('+mots.join('|')+')(?![\\p{L}])','u')]:null}).filter(Boolean);return GLOSS_RE}
+function screenGlossaire(){try{if((window.__gu&&document.contains(window.__gu))||(typeof MGHINT!=='undefined'&&MGHINT))return;const w=$app.querySelector('.wrap');if(!w)return;glossMark(w)}catch(e){}}
+function glossMark(root){const res=glossRe(),faits=new Set();const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&!(n.parentElement&&n.parentElement.closest(GLOSS_SAUF))?1:3});
+  const ns=[];while(tw.nextNode())ns.push(tw.currentNode);
+  for(const n of ns){for(const [id,re] of res){if(faits.has(id))continue;const m=re.exec(n.nodeValue);if(!m)continue;faits.add(id);
+    const debut=m.index+m[1].length,fin=debut+m[2].length,mid=n.splitText(debut);mid.splitText(fin-debut);const s=document.createElement('span');s.className='glo';s.dataset.g=id;s.tabIndex=0;s.setAttribute('role','button');mid.parentNode.insertBefore(s,mid);s.appendChild(mid);break}}}
+function glossBulle(g){document.querySelectorAll('.gbul').forEach(x=>x.remove());const f=GLOSS[g.dataset.g];if(!f)return;const b=document.createElement('div');b.className='gbul';b.setAttribute('role','tooltip');
+  b.innerHTML=`<b>${esc(cap1(g.textContent.trim()))}</b> · ${f()[1]}`;document.body.appendChild(b);const r=g.getBoundingClientRect(),bw=b.offsetWidth,bh=b.offsetHeight;
+  b.style.left=Math.max(16,Math.min(innerWidth-bw-16,r.left+r.width/2-bw/2))+'px';b.style.top=(r.bottom+8+bh<innerHeight-8?r.bottom+8:Math.max(8,r.top-8-bh))+'px'}
 function screenIcones(html){try{document.body.classList.toggle('icoanim',!!SET.anim&&!RM())}catch(e){}}
 try{if(typeof MutationObserver!=='undefined'&&document.body&&document.createTreeWalker){
   new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==='characterData')icoTexte(m.target);else m.addedNodes.forEach(icoScan)})}).observe(document.body,{childList:true,subtree:true,characterData:true});
@@ -7911,7 +8004,7 @@ function screenCampOne(html){try{if(!campOneOk())return;const w=$app.querySelect
   pn.querySelectorAll(':scope > .ctp').forEach(p=>p.classList.toggle('on',p.classList.contains(sel)));
   if(sel==='news'){try{S._newsSeenD=S.day;S._newsSeen=S._news&&S._news.h?S._news.h.length:0;const nb=bar.querySelector('[data-ctab="news"]');if(nb)nb.classList.remove('unread')}catch(e){}}
   /* onglet vide : une ligne qui le dit */
-  pn.querySelectorAll(':scope > .ctp').forEach(p=>{if(!p.textContent.trim()&&!p.querySelector('svg,img,button'))p.innerHTML=`<p class="hint">${L("Nothing here yet.","Rien ici pour l’instant.","Nada por aquí todavía.")}</p>`});
+  pn.querySelectorAll(':scope > .ctp').forEach(p=>{if(!p.textContent.trim()&&!p.querySelector('svg,img,button'))p.innerHTML=`<p class="hint cvide">${L("Nothing here yet.","Rien ici pour l’instant.","Nada por aquí todavía.")}</p>`});
   campOneHist(w,hp);
   /* point orange : Historique quand une ligne a été ajoutée depuis la dernière lecture */
   try{const hb=bar.querySelector('[data-ctab="histd"]'),n=Object.values(S.histD||{}).reduce((a,l)=>a+(l?l.length:0),0),k=S.gid||'g';if(hb){if(sel==='histd')HISTSEEN[k]=n;else if(HISTSEEN[k]!=null&&n>HISTSEEN[k])hb.classList.add('unread')}}catch(e){}
@@ -8245,6 +8338,11 @@ try{const enMiniJeu=()=>!!((window.__gu&&document.contains(window.__gu))||(typeo
   document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('svg.face[data-fid]');if(!t||!INGAME||!S||enMiniJeu())return;
     const id=+t.dataset.fid;if(!S.players||!S.players[id]||t.closest('.pface'))return;
     e.preventDefault();e.stopPropagation();showProfile(id)},true)}catch(e){}
+/* v2.105 (lot T, point 15) : toucher un mot souligné ouvre sa définition ; un autre toucher la ferme */
+try{document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('.glo');const had=document.querySelector('.gbul');document.querySelectorAll('.gbul').forEach(x=>x.remove());
+  if(!g)return;e.preventDefault();e.stopPropagation();if(had&&had.dataset.for===g.dataset.g)return;glossBulle(g);const b=document.querySelector('.gbul');if(b)b.dataset.for=g.dataset.g},true);
+  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('glo')){e.preventDefault();e.target.click()}});
+  window.addEventListener('scroll',()=>document.querySelectorAll('.gbul').forEach(x=>x.remove()),{passive:true,capture:true})}catch(e){}
 home();
 
 </script>
