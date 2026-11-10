@@ -2174,6 +2174,22 @@ ul.lines li.place.pbarl.me{outline:2px solid var(--sky);outline-offset:-2px}
 /* avec « Suivant › », « Retour » passe en bouton carré « ‹ » pour que « Commencer la partie » tienne sur une ligne (libellé gardé en aria-label) */
 .setupgo.hasnx #prev{width:56px;padding:0;font-size:0;display:grid;place-items:center}
 .setupgo.hasnx #prev::before{content:"‹";font-size:1.6rem;line-height:1}
+/* v2.110 — Nouvelles et Historique en un seul onglet « Nouvelles » */
+/* en tête de la 1re page du jour : la nuit passée et le programme du jour, sans puce */
+.wrap.camp1 .ctp.histd ul.h1list > li.htoday .prog{display:inline-flex;flex-wrap:wrap;gap:4px 6px;align-items:center;vertical-align:middle}
+.ctp.histd .htoday .banner{margin:0}
+.ctp.histd .htoday .prog{margin:0}
+/* lignes arrivées depuis la dernière lecture : surlignées une fois */
+.ctp.histd li.hnew{background:var(--info-bg);border-radius:6px}
+.wrap.camp1 .ctp.histd ul.h1list > li.hnew{background:var(--info-bg);border-radius:6px}
+.wrap.camp1 .ctp.histd ul.h1list > li.hnewsx{opacity:1}
+/* menu ☰ en partie : le panneau peut monter jusqu'à 8 px du haut (au lieu de 90 % de l'écran), pour tenir sans défiler en 390 × 664 */
+.ovl.gm .sheet{max-height:calc(100vh - 8px);max-height:calc(100dvh - 8px)}
+/* capture de Clément du 10/11 (13 h 27) : chaque nouvelle commence par une puce et toutes sont alignées, têtes comprises */
+.wrap.camp1 .ctp.histd ul.h1list > li.hasf{padding-left:16px}
+.wrap.camp1 .ctp.histd ul.h1list > li.hasf::before{content:'•'}
+.wrap.camp1 .ctp.histd ul.h1list > li.hresl{background:rgba(240,162,74,.12);border-radius:6px}
+.wrap.camp1 .ctp.histd ul.h1list > li.hresl.fresh{animation:hresIn .9s ease-out}
 </style>
 
 <div id="app"></div>
@@ -3699,7 +3715,7 @@ async function humanCamp(p,when,left){musicSet('camp');
   undoSnap(p,when,left);
   CURGK=S.day+'|'+when+'|'+p.id;const gOpen=k=>(OPENG[CURGK]||[]).includes(k)?'open':'';
   const reads=mates.map(m=>({m,v:perceived(p.id,m.id)})).sort((a,b)=>(b.v??-999)-(a.v??-999));
-  const nmsg=p.nightMsg&&p.nightMsg.d===S.day&&when==='am'&&left===ACTIONS[when]?`<div class="banner">🌙 <b>${L("Last night","Cette nuit")}</b> · ${p.nightMsg.msg}</div>`:'';if(nmsg)p.nightMsg=null;
+  const nmsg=p.nightMsg&&p.nightMsg.d===S.day&&when==='am'&&left===ACTIONS[when]?`<div class="banner nightb">🌙 <b>${L("Last night","Cette nuit")}</b> · ${p.nightMsg.msg}</div>`:'';if(nmsg)p.nightMsg=null;
   CAMPCTX={p,t};SIMR=!AUTO&&p._simrest===S.day+'|'+when;let act=AUTO||SIMR?autoAct(p,t):await (h=>{CAMP_LAST={pid:p.id,d:S.day,w:when,sb:CAMP_SB,h};return ask(h)})(`${(CAMP_SB=statusBar(p,t,when,left))}${campView(t,when,p)}${nmsg}<details class="wxd statd" data-keep="wx" ${keepOpen('wx')}><summary>${({sun:'☀️',clouds:'⛅',rain:'🌧️',storm:'⛈️',heat:'🥵'})[S.wx?S.wx.type:'sun']||'☀️'} ${wxLine()}</summary><p class="muted wxeff">⚠️ ${wxEffect()}</p><p class="wxadv">💡 ${wxAdvice()}</p></details>${S.introBox===S.day&&when==='am'&&left===ACTIONS[when]?introBox():''}${S.banner||''}${missionLine(p,mates)}
     ${p._lastMsg?`<div class="lastmsg" role="status">${p._lastMsg}</div>`:''}<div class="raline">${redoBtn(p,t,left,when)}${undoBtn(p,when,left)}</div>
     ${p.human?objLine(p):''}
@@ -7000,10 +7016,11 @@ if(!v)return;const w=wrec(p.id),t=tk(p);w[k]+=v;if(k!=='rest')motv(p,1);
 function openMenu(view='main'){
   document.querySelectorAll('.ovl.gm').forEach(x=>x.remove());
   const ov=document.createElement('div');ov.className='ovl gm';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+  // v2.110 : Écran précédent, Simuler et Sauvegarder sans explication (demande de Clément du 10/11, 13 h 23 : le menu tient sur un écran)
   const item=(k,ic,t,sub)=>`<button class="mitem" data-m="${k}"><span class="mic" aria-hidden="true">${ic}</span><span><b>${t}</b>${sub?`<span class="muted">${sub}</span>`:''}</span></button>`;
   const back=`<button class="btn ghost" data-m="main">‹ ${L("Menu","Menu","Menú")}</button>`;
   const tribes=S&&S.merged?['M']:['A','B'];
-  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent"),L("Read again what you just saw (or swipe from the left edge)","Relire ce que vous venez de voir (ou glissez depuis le bord gauche)")):''}${item('sim','⏭️',L("Simulate…","Simuler…"),L("Let the game play several days for you","Laisser le jeu jouer plusieurs jours à votre place"))}${item('save','💾',L("Save now","Sauvegarder maintenant","Guardar ahora"),lastSaveAt()?L(`Auto-saved at every camp · last: ${lastSaveAt()}`,`Sauvegarde automatique à chaque camp · dernière : ${lastSaveAt()}`,`Guardado automático en cada campamento · último: ${lastSaveAt()}`):L("Resumes from the current step","Reprend à l'étape en cours","Retoma desde el paso actual"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
+  const body=view==='main'?`<h2 class="h">${L("Menu","Menu","Menú")}</h2><div class="mlist">${HIST.length?item('hist','↩️',L("Previous screen","Écran précédent")):''}${item('sim','⏭️',L("Simulate…","Simuler…"))}${item('save','💾',L("Save now","Sauvegarder maintenant","Guardar ahora"))}${S&&S.code?item('sharecode','🔗',L("Share the challenge code","Partager le code de défi"),L("Challenge a friend on this island","Défiez un ami sur cette île")):''}${item('cast','👥',L("The castaways","Les aventuriers","Los aventureros"),L("Tribes, jury and profiles","Tribus, jury et fiches","Tribus, jurado y fichas"))}${item('rules','📖',L("How to play","Comment jouer","Cómo jugar"))}${item('settings','⚙️',L("Settings","Réglages","Ajustes"),L("Language, theme, sounds, vibrations","Langue, thème, sons, vibrations","Idioma, tema, sonidos, vibraciones"))}${item('quit','🏠',L("Quit to the home page","Quitter vers l'accueil","Salir al inicio"))}</div>`
    :view==='cast'?`<h2 class="h">${L("The castaways","Les aventuriers","Los aventureros")}</h2>${tribes.map(t=>`<p class="lbl" style="margin-top:10px">${trName(t)}</p><div class="chips" style="margin-top:6px">${tribeMembers(t).map(x=>chip(x)).join('')}</div>`).join('')}${S.players.some(x=>!x.alive)?`<p class="lbl" style="margin-top:12px">${L("Out","Éliminés","Eliminados")}</p><div class="chips" style="margin-top:6px">${S.players.filter(x=>!x.alive).map(x=>chip(x,'out')).join('')}</div>`:''}<p class="hint">${L("Tap a name to open their profile.","Touchez un prénom pour ouvrir sa fiche.","Toca un nombre para abrir su ficha.")}</p>${back}`
    :view==='journal'?journalView(back)
    :view==='sim'?simView(back)
@@ -7150,7 +7167,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.109 · 2026-11-10';
+const APP_VER='2.110 · 2026-11-10';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -7679,6 +7696,7 @@ function screenLayoutFixes(html){try{const w=$app.querySelector('.wrap');if(!w)r
     const np=panel.querySelector('.ctp.news');if(np&&S._news&&S._news.d===S.day){const seen=S._newsSeenD===S.day?(S._newsSeen||0):0,len=S._news.h.length;if(seen&&len>seen){np.innerHTML=S._news.h.slice(0,len-seen).replace(/ data-act="[^"]*"/g,'')}else if(seen&&len<=seen&&CTAB_SEL!=='news'){np.innerHTML=`<p class="hint cvide">${L("Nothing new since you last read. Important events are in History.","Rien de nouveau depuis votre dernière lecture. Les événements importants sont dans l'Historique.")}</p>`}}}
   /* 1. last action result goes to News; redo/undo float for 4 s */
   const ra=w.querySelector('.raline');if(ra){if(ra.querySelector('button')&&w.querySelector('.ctp.news .lastmsg, details.news .lastmsg'))ra.classList.add('rabar');else ra.remove()}
+  if(bar&&panel&&!campOneOk())newsMerge(bar,panel,panel.querySelector('.ctp.histd'),false);
   if(w.querySelector(':scope > .sbar'))flushHold();
   if(w.querySelector(':scope > .sbar .sbi'))sbLegend(w)}catch(e){}}
 
@@ -8092,6 +8110,7 @@ function screenCampOne(html){try{if(!campOneOk())return;const w=$app.querySelect
   const last=pn.querySelector('.ctp.news .lastmsg'),hp=pn.querySelector('.ctp.histd');let fresh=false;
   if(last&&hp){const key=S.day+'|'+last.textContent.trim();if(key!==CAMPRES){fresh=true;CAMPRES=key}
     const cp=document.createElement('div');cp.className='lastmsg hres'+(fresh?' fresh':'');cp.innerHTML=last.innerHTML;cp.querySelectorAll('button,[data-act]').forEach(b=>b.remove());hp.prepend(cp)}
+  newsMerge(bar,pn,hp,true);
   let sel=CTAB_SEL&&has(CTAB_SEL)?CTAB_SEL:(unreadNews?'news':has('histd')?'histd':(bar.querySelector('[data-ctab]')||{dataset:{}}).dataset.ctab);
   if(fresh&&has('histd')){sel='histd';HISTPAGE=null}
   CTAB_SEL=sel;bar.querySelectorAll('[data-ctab]').forEach(b=>{const on=b.dataset.ctab===sel;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
@@ -8124,6 +8143,39 @@ function campOneFit(w){try{const sc=w.querySelector(':scope > .cscene'),pn=w.que
   if(sc.getBoundingClientRect().height<64||pn.clientHeight<lh*3+24)sc.hidden=true}catch(e){}finally{try{const pn=w.querySelector(':scope > .ctpanel');if(pn)document.documentElement.style.setProperty('--pnt',Math.round(pn.getBoundingClientRect().top)+'px')}catch(e){}}}
 /* Historique (v2.95, maquette « Le camp sur un écran · v2 ») : une page par moment (« ‹ Jour 2 · Matin › 2 / 2 »), puis des lignes simples.
    Les parties sans moments enregistrés (avant la v2.95) gardent une page par jour. */
+/* v2.110 (« Oui » de Clément le 10/11, 9 h 08 et questionnaire) : Nouvelles et Historique en un seul onglet « Nouvelles ».
+   Le panneau de l'Historique reste (pages par moment) ; l'onglet prend le nom « 📰 Nouvelles ». De l'ancien panneau des Nouvelles,
+   seuls restent la nuit passée et le programme du jour, en tête de la 1re page du jour ; le récapitulatif de la veille (déjà dans les pages
+   des jours) et ce qui est déjà dans l'Historique sont retirés ; le reste passe en tête de la page la plus récente.
+   Les lignes ajoutées depuis la dernière lecture sont surlignées (.hnew), une fois. */
+let HSEENT={};
+function newsMerge(bar,pn,hp,one){try{const nb=bar.querySelector('[data-ctab="news"]:not([data-clone])'),np=pn.querySelector(':scope > .ctp.news'),hb=bar.querySelector('[data-ctab="histd"]:not([data-clone])');if(!hb||!hp)return;
+  const norm=t=>String(t||'').replace(/\s+/g,' ').trim();
+  if(np){const top=[...np.querySelectorAll('.nightb, .prog')];np.querySelectorAll('ul.lines').forEach(u=>{let x=u.previousSibling;while(x&&x.nodeType===1&&x.tagName==='BR'){const y=x.previousSibling;x.remove();x=y}u.remove()});
+    const htxt=norm(hp.textContent);const rest=[...np.children].filter(x=>!top.includes(x)&&norm(x.textContent)&&!htxt.includes(norm(x.textContent)));
+    if(top.length){const box=document.createElement(one?'li':'div');box.className='htoday';top.forEach(x=>{if(one&&x.matches('.nightb')){const s=document.createElement('span');s.className='hnight';s.innerHTML=x.innerHTML;box.appendChild(s)}else box.appendChild(x)});
+      if(one){const hd=[...hp.querySelectorAll(':scope > .hday')].find(h=>+(h.textContent.match(/\d+/)||[0])[0]===S.day);let ul=hd&&hd.nextElementSibling&&hd.nextElementSibling.matches('ul')?hd.nextElementSibling:null;
+        if(!ul){const h=document.createElement('p');h.className='lbl hday';h.textContent=L("Day ","Jour ")+S.day;ul=document.createElement('ul');ul.className='lines hlist';const first=hp.querySelector(':scope > .hday');if(first)first.before(h,ul);else hp.append(h,ul)}
+        const lis=[...ul.querySelectorAll(':scope > li')];const w0=lis.length?(lis[lis.length-1].dataset.w||''):(S.ds&&S.ds.mk?histMoment(S.ds.mk,0):'');if(w0)box.dataset.w=w0;ul.prepend(box)}
+      else hp.prepend(box)}
+    /* le reste (dernier résultat d'hier, message) : en tête de la page la plus récente */
+    if(rest.length){if(one){const ul=hp.querySelector(':scope > .hday + ul');if(ul){const w1=(ul.querySelector(':scope > li')||{dataset:{}}).dataset.w||'';rest.reverse().forEach(x=>{const li=document.createElement('li');li.className='hnewsx';if(w1)li.dataset.w=w1;li.innerHTML=x.innerHTML;ul.prepend(li)})}}
+      else rest.reverse().forEach(x=>hp.prepend(x))}
+    {const tb=hp.querySelector('.htoday');if(tb&&one&&tb.parentElement){tb.parentElement.prepend(tb);[...tb.children].slice(1).reverse().forEach(c=>{const li=document.createElement('li');li.className='htoday';if(tb.dataset.w)li.dataset.w=tb.dataset.w;li.appendChild(c);tb.after(li)})}}
+    /* v2.110 (capture de Clément du 10/11, 13 h 27) : le dernier résultat devient une ligne comme les autres (puce, même taille), surlignée, en tête de la page la plus récente (après la nuit et le programme si c'est la même page) */
+    if(one){const res=hp.querySelector(':scope > .hres'),ul=hp.querySelector(':scope > .hday + ul');if(res&&ul){const li=document.createElement('li');li.className='hnew hresl'+(res.classList.contains('fresh')?' fresh':'');const w1=(ul.querySelector(':scope > li:not(.htoday)')||ul.querySelector(':scope > li')||{dataset:{}}).dataset.w||'';if(w1)li.dataset.w=w1;li.innerHTML=res.innerHTML;
+      const tbs=ul.querySelectorAll(':scope > li.htoday'),tb=tbs[tbs.length-1];if(tb&&(tb.dataset.w||'')===w1)tb.after(li);else ul.prepend(li);res.remove()}}
+    np.remove()}
+  /* résultat surligné (.hres) déjà écrit tel quel dans une ligne : on garde la ligne, surlignée, et on retire le doublon */
+  {const res=hp.querySelector(':scope > .hres');if(res){const t=norm(res.textContent),li=[...hp.querySelectorAll('li')].find(l=>norm(l.textContent)===t);if(li){li.classList.add('hnew');res.remove()}}}
+  if(nb){if(nb.classList.contains('unread'))hb.classList.add('unread');nb.remove();bar.querySelectorAll('[data-ctab="news"][data-clone]').forEach(x=>x.remove())}
+  if(CTAB_SEL==='news')CTAB_SEL='histd';
+  hb.textContent='📰 '+L("News","Nouvelles");
+  /* lignes nouvelles depuis la dernière lecture */
+  const k=S.gid||'g',lis=[...hp.querySelectorAll('li:not(.htoday)')],key=li=>norm(li.textContent).slice(0,160);
+  if(!HSEENT[k]){HSEENT[k]=new Set(lis.map(key));return}
+  const seen=HSEENT[k];lis.forEach(li=>{if(!seen.has(key(li)))li.classList.add('hnew')});
+  setTimeout(()=>{if(CTAB_SEL==='histd')lis.forEach(li=>seen.add(key(li)))},0)}catch(e){}}
 function campOneHist(w,hp){try{if(!hp)return;const days=[...hp.querySelectorAll(':scope > .hday')];if(!days.length)return;
   const pages=[];days.forEach(h=>{h.hidden=true;const ul=h.nextElementSibling&&h.nextElementSibling.matches('ul')?h.nextElementSibling:null;const d=+(h.textContent.match(/\d+/)||[0])[0];if(!ul)return;
     colorNames(ul);const lis=[...ul.querySelectorAll(':scope > li')];
