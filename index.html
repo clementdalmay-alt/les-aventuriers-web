@@ -2244,6 +2244,12 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 .mgfeu{position:relative;border-radius:12px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .mgfeu svg{display:block;width:100%;height:auto;max-height:28vh}
 .fmods{font-size:.85rem}
+/* v2.123 : jauge du rythme de frottement */
+.frub{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-top:6px}
+.frubg{position:relative;height:10px;border-radius:5px;background:var(--line)}
+.frubz{position:absolute;top:0;bottom:0;background:rgba(111,207,143,.45);border-left:2px solid var(--good);border-right:2px solid var(--good)}
+.frubg i{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;border-radius:3px;background:var(--muted)}
+.frubg i.ok{background:var(--good)}.frubg i.hot{background:var(--bad)}
 </style>
 
 <div id="app"></div>
@@ -4331,7 +4337,7 @@ function dEffLine(fn,m){const d=dEff(fn);if(!d)return'';const s=String(fn);const
 function campSig(t){try{return [SH(t)>=100?2:SH(t)>=40?1:0,S.fire[t]?1:0,HW(t)?1:0,S.kit&&S.kit[t]?1:0,S.trap&&S.trap[t]?1:0,MEALS(t)>0?1:0].join('')}catch(e){return''}}
 /* ==================== Épreuves et mini-jeux : confort, immunité, entraînement, poteaux ==================== */
 const GAMES={
-  fire:{name:"Make fire",nf:"Faire le feu",stat:'agi',rules:"Rub your finger fast, left and right, across the wooden board to heat it until an ember forms (20 seconds). Then tap <b>Blow</b> steadily to keep the glow in the green zone until it bursts into flame (12 seconds).",rf:"Frottez vite, de gauche à droite, sur la planche pour chauffer le bois jusqu'à obtenir une braise (20 secondes). Puis tapez <b>Souffler</b> régulièrement pour garder la lueur dans la zone verte jusqu'à ce que la flamme jaillisse (12 secondes)."},
+  fire:{name:"Make fire",nf:"Faire le feu",stat:'agi',rules:"Rub left and right across the board at the right rhythm (not too slow, not too fast) until an ember forms. Then tap <b>Blow</b> steadily to keep the glow in the green zone until it bursts into flame. The time limit depends on the level.",rf:"Frottez de gauche à droite sur la planche au bon rythme (ni trop lent, ni trop vite) jusqu'à obtenir une braise. Puis tapez <b>Souffler</b> régulièrement pour garder la lueur dans la zone verte jusqu'à ce que la flamme jaillisse. Le temps limite dépend du niveau."},
   totem:{name:"Totem Memory",nf:"Mémoire des totems",stat:'mind',rules:"The totems light up in order. Repeat the sequence. It grows by one each round, up to 8 totems.",rf:"Les totems s'allument dans un ordre précis. Reproduisez la séquence. Elle s'allonge d'un totem à chaque manche, jusqu'à 8."},
   post:{name:"The Post",nf:"Les poteaux",stat:'end',rules:"Press inside the ring and keep your finger in it as it drifts and shrinks. Lift your finger or stay outside too long and you fall. 30 seconds is a perfect score.",rf:"Appuyez dans l'anneau et gardez le doigt dedans pendant qu'il dérive et rétrécit. Si vous levez le doigt ou restez dehors trop longtemps, vous tombez. 30 secondes donnent le score parfait."},
   rope:{name:"Tug of War",nf:"Tir à la corde",stat:'str',rules:"Tap <b>Pull</b> as fast as you can for 8 seconds to drag the knot to your side.",rf:"Tapez <b>Tirer</b> le plus vite possible pendant 8 secondes pour ramener le nœud de votre côté."},
@@ -4441,13 +4447,17 @@ function lancerMiniJeu(g){return withGiveUp((PLAYG[g]||PLAYG.post)())}
    Le feu prend au camp si et seulement s'il prend ici : atouts et météo agissent dans le jeu et sont annoncés (fireMods).
    Niveaux appliqués en partie comme à l'Entraînement (fireLv lit S.diff) ; Expert : zone 54-70 et rafales. Seuil « rapide »
    (1 bûche au lieu de 2) : FIRE.fast. window.__lastFire = {lit, t} ; score rendu inchangé (allumé 60 + rapidité). */
-const FIRE={zone:{e:[35,85],n:[40,80],h:[46,74],x:[54,70]},fast:{e:14,n:12,h:10,x:9}};
+const FIRE={zone:{e:[35,85],n:[40,80],h:[46,74],x:[54,70]},fast:{e:10,n:11,h:12,x:13},
+  /* v2.123 : frotter au bon rythme (largeurs de planche par seconde) ; dans la bande, la braise vient en T s */
+  rub:{e:[.5,3.2],n:[.7,2.6],h:[.9,2.2],x:[1,1.8]},rubT:{e:4,n:5,h:6,x:7},
+  /* v2.123 : limites par niveau [braise, feu] en secondes (avant : 20 et 32 partout) */
+  lim:{e:[15,30],n:[12,25],h:[10,21],x:[9,18]}};
 const fireLv=()=>{if(typeof TLV!=='undefined'&&TLV&&!INGAME)return TLV;const d=S&&S.diff;return d==='easy'?'e':d==='hard'?'h':d==='expert'?'x':'n'};
 /* effets de l'aventurier et de la météo, au camp seulement (à l'Entraînement : sans atout, beau temps) */
 function fireMods(p){const lv=fireLv(),z=FIRE.zone[lv]||FIRE.zone.n;let mul=1,wid=0,dec=25;
   if(p&&INGAME){const sb=sportBonus(p,'fire'),hd=perk(p)==='handy';mul=1+sb/100+(hd?.25:0);wid=Math.round(sb/5)+(hd?4:0)+Math.round((st(p,'surv')-55)/10);
     const w=S.wx&&S.wx.type;if(w==='rain'){dec=32;wid-=3}else if(w==='storm'){dec=40;wid-=6}}
-  return{lv,mul:Math.max(.7,mul),dec,z:[clamp(z[0]-wid,5,60),clamp(z[1]+wid,40,95)],fast:FIRE.fast[lv]||12}}
+  return{lv,mul:Math.max(.7,mul),dec,rub:FIRE.rub[lv]||FIRE.rub.n,rubT:FIRE.rubT[lv]||5,lim:FIRE.lim[lv]||FIRE.lim.n,z:[clamp(z[0]-wid,5,60),clamp(z[1]+wid,40,95)],fast:FIRE.fast[lv]||12}}
 const fireModsTxt=m=>L(`Heat ×${m.mul.toFixed(2)} · cools ${m.dec}%/s · green zone ${m.z[0]} to ${m.z[1]}%${m.lv==='x'?' · gusts':''} · fast under ${m.fast} s`,`Chaleur ×${nf(m.mul.toFixed(2))} · retombe ${m.dec} %/s · zone verte ${m.z[0]} à ${m.z[1]} %${m.lv==='x'?' · rafales':''} · rapide sous ${m.fast} s`);
 /* aventurier assis de profil (tourné vers la droite) : « rub » pousse le bâton dans la rainure (tip = bout du bâton), « blow » penché vers la braise */
 function fireFig(col,pose,tip){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${I}" stroke-width="${w+3.4}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -4467,12 +4477,13 @@ function gameFire(){return miniJeu(j=>{const camp=INGAME?window.__mgCampP:null,M
     <p class="muted fmods">${fireModsTxt(M)}</p>
     <div class="mgfeu" id="bd"><svg viewBox="30 70 240 130" id="fsv" aria-hidden="true"></svg></div>
     <div class="meter2"><div class="mlabels"><span class="lbl" id="gl">${L("Heat","Chaleur","Calor")}</span><b class="num" id="gv">0 %</b><span class="num muted" id="tm">0,0 s</span></div>
-      <div class="gauge"><div class="gzone" id="gz" hidden style="left:${M.z[0]}%;width:${M.z[1]-M.z[0]}%"></div><i id="gb"></i></div></div>
+      <div class="gauge"><div class="gzone" id="gz" hidden style="left:${M.z[0]}%;width:${M.z[1]-M.z[0]}%"></div><i id="gb"></i></div>
+      <div class="frub" id="rw"><span class="lbl">${L("Rhythm","Rythme")}</span><div class="frubg"><div class="frubz" style="left:${M.rub[0]/4*100}%;width:${(M.rub[1]-M.rub[0])/4*100}%"></div><i id="rn"></i></div></div></div>
     <div id="pw" hidden><p class="lbl">${L("Flame","Flamme","Llama")} <b class="num" id="pv">0 %</b></p><div class="gauge"><i id="pb" style="background:var(--yellow)"></i></div></div>
     <p class="fb" id="fb">${L("Start rubbing!","Commencez à frotter !","¡Empieza a frotar!")}</p>
     <button class="btn" id="blow" hidden style="padding:22px;font-size:1.3rem">${L("Blow","Souffler","Soplar")}</button>`);
   const bd=el('bd'),sv=el('fsv'),gb=el('gb'),fb=el('fb');
-  let phase=1,heat=0,down=false,lastX=0,clock=0,last=null,air=0,prog=0,stick=140,puff=0,gust=0,nextGust=2+Math.random()*1.5,lit=false,lastHeat=0,moved=false;
+  let phase=1,heat=0,down=false,lastX=0,dist=0,spd=0,clock=0,last=null,air=0,prog=0,stick=140,puff=0,gust=0,nextGust=2+Math.random()*1.5,lit=false,lastHeat=0,moved=false;
   const draw=()=>{if(!document.getElementById('fsv'))return;let g=`<rect width="320" height="200" fill="#183635"/><rect y="182" width="320" height="18" fill="#e6d6a8"/><path d="M0 182 H320" stroke="${I}" stroke-width="2"/>`;
     g+=`<rect x="104" y="172" width="130" height="10" rx="3" fill="#7d5634" stroke="${I}" stroke-width="2.2"/><path d="M118 174 h40" stroke="#4e3520" stroke-width="2"/><g transform="translate(168 170)"><path d="M-20 2 Q-14 -10 -4 -4 Q0 -14 6 -5 Q14 -12 20 2Z" fill="#c9b06a" stroke="${I}" stroke-width="1.8"/></g>`;
     const sm=phase===1?heat/100:lit?0:.6;for(let i=0;i<3;i++){const y=150-((clock*30+i*30)%90),o=sm*(1-(150-y)/95);if(o>0)g+=`<circle cx="${168+Math.sin(clock*2+i)*8}" cy="${y}" r="${7+(150-y)/8}" fill="#c8c8c8" opacity="${o*.55}"/>`}
@@ -4482,25 +4493,29 @@ function gameFire(){return miniJeu(j=>{const camp=INGAME?window.__mgCampP:null,M
     /* souffle : arcs d'air de la bouche vers la braise */
     if(phase===2&&puff>0)for(let i=0;i<3;i++){const cx=110+i*14,cy=122+i*12;g+=`<path d="M${cx} ${cy-6} q6 6 0 12" fill="none" stroke="#d9efff" stroke-width="2.2" stroke-linecap="round" opacity="${puff*(1-i*.2)}" transform="rotate(-38 ${cx} ${cy})"/>`}
     if(gust>0)for(let i=0;i<4;i++)g+=`<path d="M${320-((clock*260+i*70)%340)} ${40+i*24} q-20 -6 -40 0" fill="none" stroke="#d9efff" stroke-width="2" opacity=".7"/>`;
-    sv.innerHTML=g;el('tm').textContent=nf(clock.toFixed(1))+' s';
+    sv.innerHTML=g;el('tm').textContent=nf(clock.toFixed(1))+' / '+(phase===1?M.lim[0]:M.lim[1])+' s';
     if(phase===1){gb.style.width=heat+'%';el('gv').textContent=Math.round(heat)+' %'}else{gb.style.width=air+'%';el('gv').textContent=Math.round(air)+' %';const pf=Math.min(1,prog/3);el('pb').style.width=pf*100+'%';el('pv').textContent=Math.round(pf*100)+' %'}};
   const end=(ok,score,msg)=>{j.fini=true;lit=ok;window.__lastFire={lit:ok,t:Math.round(clock*10)/10};el('ft').textContent=msg;el('blow').hidden=true;draw();j.fin(Math.round(clamp(score)),1500)};
   bd.addEventListener('pointerdown',e=>{if(phase!==1)return;down=true;lastX=e.clientX;try{bd.setPointerCapture(e.pointerId)}catch(_){}});
-  bd.addEventListener('pointermove',e=>{if(!down||phase!==1)return;const dx=Math.abs(e.clientX-lastX);lastX=e.clientX;heat=Math.min(100,heat+dx*0.05*M.mul);if(dx>2)moved=true;const r=bd.getBoundingClientRect();stick=124+Math.abs(((e.clientX-r.left)/r.width*320)%52-26)});
+  bd.addEventListener('pointermove',e=>{if(!down||phase!==1)return;const dx=Math.abs(e.clientX-lastX);lastX=e.clientX;const r=bd.getBoundingClientRect();dist+=dx/(r.width||300);if(dx>2)moved=true;stick=124+Math.abs(((e.clientX-r.left)/r.width*320)%52-26)});
   const up=()=>{down=false};bd.addEventListener('pointerup',up);bd.addEventListener('pointercancel',up);
   const puffF=()=>{if(phase===2&&!j.fini){air=Math.min(100,air+10);puff=1}};el('blow').addEventListener('pointerdown',e=>{e.preventDefault();puffF()});
   const kb=e=>{if(j.fini){document.removeEventListener('keydown',kb);return}if(e.key===' '||e.key==='Enter'){e.preventDefault();puffF()}};try{document.addEventListener('keydown',kb)}catch(_){}
   const loop=now=>{if(j.fini||!document.getElementById('fsv'))return;if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;
-    if(phase===1){heat=Math.max(0,heat-M.dec*dt);fb.textContent=!moved?L("Start rubbing!","Commencez à frotter !","¡Empieza a frotar!"):heat<lastHeat-0.2?L("Faster! It is cooling down.","Plus vite ! Ça refroidit.","¡Más rápido! Se está enfriando."):heat>70?L("Almost there, keep going!","Presque, continuez !","¡Casi, sigue!"):L("Good, keep rubbing.","Bien, continuez à frotter.","Bien, sigue frotando.");lastHeat=heat;
-      if(heat>=98){phase=2;heat=100;air=55;el('s1').classList.remove('on');el('s1').classList.add('done');el('s2').classList.add('on');el('ft').textContent=L("An ember! Now blow gently","Une braise ! Soufflez doucement","¡Una brasa! Ahora sopla suave");el('gl').textContent=L("Glow","Lueur","Brillo");el('gz').hidden=false;el('pw').hidden=false;el('blow').hidden=false}
-      else if(clock>20){end(false,heat*0.45,L("The wood never got hot enough","Le bois n'a jamais assez chauffé","La madera nunca se calentó lo suficiente"));return}}
+    if(phase===1){/* vitesse lissée ; dans la bande la chaleur monte, trop lent elle retombe, trop vite le bâton saute */
+      const v=dt>0?dist/dt:0;dist=0;spd+=(v-spd)*Math.min(1,dt/.25);const rz=spd<M.rub[0]?0:spd>M.rub[1]?2:1;
+      if(rz===1)heat=Math.min(100,heat+100/M.rubT*M.mul*dt);else heat=Math.max(0,heat-(M.dec+(rz===2?15:0))*dt);
+      const rn=el('rn');if(rn){rn.style.left=Math.min(100,spd/4*100)+'%';rn.className=rz===1?'ok':rz===2?'hot':''}
+      fb.textContent=!moved?L("Start rubbing!","Commencez à frotter !","¡Empieza a frotar!"):rz===2?L("Too fast: the stick jumps out of the groove!","Trop vite : le bâton saute de la rainure !"):rz===0?L("Faster! It is cooling down.","Plus vite ! Ça refroidit.","¡Más rápido! Se está enfriando."):heat>70?L("Almost there, keep going!","Presque, continuez !","¡Casi, sigue!"):L("Good, keep rubbing.","Bien, continuez à frotter.","Bien, sigue frotando.");lastHeat=heat;
+      if(heat>=98){phase=2;heat=100;air=55;el('s1').classList.remove('on');el('s1').classList.add('done');el('s2').classList.add('on');el('ft').textContent=L("An ember! Now blow gently","Une braise ! Soufflez doucement","¡Una brasa! Ahora sopla suave");el('gl').textContent=L("Glow","Lueur","Brillo");el('gz').hidden=false;el('rw').hidden=true;el('pw').hidden=false;el('blow').hidden=false}
+      else if(clock>M.lim[0]){end(false,heat*0.45,L("The wood never got hot enough","Le bois n'a jamais assez chauffé","La madera nunca se calentó lo suficiente"));return}}
     else{air=Math.max(0,air-air*0.4*dt);puff=Math.max(0,puff-dt*3);
       if(M.lv==='x'){nextGust-=dt;if(nextGust<=0){air=Math.max(0,air-25);gust=.6;nextGust=2+Math.random()*1.5;fb.textContent=L("Gust!","Rafale !")}gust=Math.max(0,gust-dt)}
       if(air>=M.z[0]&&air<=M.z[1]){prog+=dt;gb.className='ok';if(!gust)fb.textContent=L("Perfect, keep this rhythm","Parfait, gardez ce rythme","Perfecto, mantén este ritmo")}
       else if(air>M.z[1]){prog=Math.max(0,prog-dt*1.5);gb.className='hot';fb.textContent=L("Too hard! The ember is scattering","Trop fort ! La braise s'éparpille","¡Demasiado fuerte! La brasa se dispersa")}
       else{gb.className='';if(!gust)fb.textContent=L("Too soft, blow a bit more","Trop doux, soufflez un peu plus","Muy suave, sopla un poco más")}
-      if(prog>=3){try{sfx('fire')}catch(_){}const tot=clock;fb.textContent=tot<M.fast?L("Fast: just one log","Rapide : une seule bûche"):L("The fire caught: two logs","Le feu a pris : deux bûches");end(true,60+clamp((32-tot)/24*40,0,40),L(`Fire! Lit in ${tot.toFixed(1)} seconds`,`Le feu ! Allumé en ${nf(tot.toFixed(1))} secondes`,`¡Fuego! Encendido en ${nf(tot.toFixed(1))} segundos`));return}
-      if(clock>32){end(false,45+prog/3*14,L("The ember went cold","La braise s'est éteinte","La brasa se apagó"));return}}
+      if(prog>=3){try{sfx('fire')}catch(_){}const tot=clock;fb.textContent=tot<M.fast?L("Fast: just one log","Rapide : une seule bûche"):L("The fire caught: two logs","Le feu a pris : deux bûches");end(true,60+clamp((M.lim[1]-tot)/(M.lim[1]-6)*40,0,40),L(`Fire! Lit in ${tot.toFixed(1)} seconds`,`Le feu ! Allumé en ${nf(tot.toFixed(1))} secondes`,`¡Fuego! Encendido en ${nf(tot.toFixed(1))} segundos`));return}
+      if(clock>M.lim[1]){end(false,45+prog/3*14,L("The ember went cold","La braise s'est éteinte","La brasa se apagó"));return}}
     draw();requestAnimationFrame(loop)};
   draw();requestAnimationFrame(loop)})}
 /* Lot L10 : en finale, l'animateur annonce chaque poignard trouvé (clés dagger.found.*, à valider par Dialogues). */
@@ -5124,9 +5139,10 @@ function woodFig(col){const L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${WOO
    +`<circle cx="108" cy="78" r="10" fill="${WOOD_SK}" stroke="${WOOD_INK}" stroke-width="2.4"/><path d="M98 75 Q108 66 118 73 L118 77 L98 78Z" fill="${col}" stroke="${WOOD_INK}" stroke-width="2"/><path d="M98 76 L90 81 L93 73Z" fill="${col}" stroke="${WOOD_INK}" stroke-width="1.8"/><circle cx="113.5" cy="79" r="1.4" fill="${WOOD_INK}"/>`}
 function gameWoodSplit(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b2[LV]||WOOD.b2.n,T=10,SH={x:112,y:98},REACH=86,TOP=-150,DOWN=4,LX=200;window.__lastWood=null;
   const me=window.__mgP||window.__mgCampP,col=me&&me.tribe&&TR[me.tribe]?TR[me.tribe].c:'#f39a2b';
-  let th=DOWN,ph=0,t=T,n=0,strikeT=0,stuck=0,splitT=0,hits=0,need=2,knotty=false,after=null,last=null;let chips=[];
-  const newLog=()=>{knotty=!!(C.knotty&&Math.random()<C.knotty);need=knotty?3:2;hits=0};newLog();
-  screen(`${eb(gN('wood'))}<h1 class="h">${L("Split the logs","Fendez les bûches")}</h1><p class="muted">${L("Tap Strike when the axe is at the top: in the dark green the log splits in one go; in the light green, halfway. Anywhere else the axe gets stuck. 10 seconds.","Touchez « Frapper » quand la hache est en haut : dans le vert foncé, la bûche se fend d'un coup ; dans le vert clair, à moitié. Ailleurs, la hache se plante. 10 secondes.")}${C.knotty?' '+L("A knotty log takes 3 hits.","Une bûche noueuse demande 3 frappes."):''}</p>
+  let th=DOWN,ph=0,t=T,n=0,strikeT=0,stuck=0,splitT=0,hits=0,need=3,knotty=false,after=null,last=null;let chips=[];
+  /* v2.123 : une bûche demande 3 coups (vert foncé compte 2, vert clair 1), une noueuse 4 */
+  const newLog=()=>{knotty=!!(C.knotty&&Math.random()<C.knotty);need=knotty?4:3;hits=0};newLog();
+  screen(`${eb(gN('wood'))}<h1 class="h">${L("Split the logs","Fendez les bûches")}</h1><p class="muted">${L("Tap Strike when the axe is at the top: dark green = 2 notches, light green = 1. The log splits at 3 notches. Anywhere else the axe gets stuck. 10 seconds.","Touchez « Frapper » quand la hache est en haut : vert foncé = 2 entailles, vert clair = 1. La bûche se fend à 3 entailles. Ailleurs, la hache se plante. 10 secondes.")}${C.knotty?' '+L("A knotty log takes 4.","Une bûche noueuse en demande 4."):''}</p>
     <div class="mgwood" id="ws"><svg viewBox="0 0 320 190" id="wsv" aria-hidden="true"></svg></div>
     <p class="lbl"><span class="num" id="wt">${nf(T.toFixed(1))} s</span> · ${L("Split","Fendues")} <b class="num" id="wn">0</b></p>
     <button class="btn" id="cut" style="padding:26px;font-size:1.25rem">${L("Strike","Frapper")}</button><p class="fb" id="fb"> </p>`);
@@ -5147,7 +5163,7 @@ function gameWoodSplit(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b2[LV]||WOO
   const draw=()=>{if(!document.getElementById('wsv'))return;sv.innerHTML=woodGround()+woodStump(LX-26,52)+logUp()+woodFig(col)+arm()+gauge()+woodChips(chips)};
   const end=()=>{j.fini=true;const k=Math.max(1,Math.min(4,n));window.__lastWood=k;el('wt').textContent=nf('0.0')+' s';el('fb').textContent=woodTxt(k);draw();j.fin(WOOD_SC[k],900)};
   const strike=()=>{if(j.fini||strikeT>0||stuck>0||splitT>0)return;const z=zoneOf(),early=ph<.5;strikeT=.12;
-    after=()=>{if(z){const h0=hits;hits+=z;woodChipsAdd(chips,LX,96,z===2?11:6);if(hits>=need){n++;el('wn').textContent=n;splitT=1;el('fb').textContent=h0===0&&z>=need?L("Split in one go!","Fendue d'un coup !"):L("Log split","Bûche fendue")}else el('fb').textContent=z===2?L("Perfect strike","Frappe parfaite"):L("Cut halfway","Entaillée à moitié")}
+    after=()=>{if(z){hits+=z;woodChipsAdd(chips,LX,96,z===2?11:6);if(hits>=need){n++;el('wn').textContent=n;splitT=1;el('fb').textContent=L("Log split","Bûche fendue")}else el('fb').textContent=z===2?L("Perfect strike","Frappe parfaite"):L("Cut halfway","Entaillée à moitié")}
       else{stuck=.8;el('fb').textContent=early?L("Too early: axe stuck","Trop tôt : hache plantée"):L("Too late: axe stuck","Trop tard : hache plantée")}}};
   el('cut').addEventListener('pointerdown',e=>{e.preventDefault();strike()});el('cut').onclick=strike;el('ws').addEventListener('pointerdown',e=>{e.preventDefault();strike()});
   const loop=tt=>{if(j.fini)return;if(!document.getElementById('wsv'))return;if(last==null)last=tt;const dt=Math.min(.05,(tt-last)/1000);last=tt;
@@ -5767,7 +5783,7 @@ function horlogeVitesse(f){try{
     if(raf)window.requestAnimationFrame=cb=>raf.call(window,()=>cb(HORLOGE.now()))}
   HORLOGE.b=HORLOGE.now();HORLOGE.r=HORLOGE.pn();HORLOGE.f=f}catch(e){}}
 const SCORE_RULES={
-  fire:()=>L("The fire catches if it catches in the game: an ember within 20 s, then 3 s of blowing in the green. Lit fast (14 / 12 / 10 / 9 s by level): 1 log, otherwise 2. Record: best time.","Le feu prend s'il prend dans le jeu : la braise en 20 s, puis 3 s de souffle dans le vert. Allumé vite (14 / 12 / 10 / 9 s selon le niveau) : 1 bûche, sinon 2. Record : le meilleur temps."),
+  fire:()=>L("Rub at the right rhythm (the green band narrows with the level) to get an ember, then hold 3 s of blowing in the green. Limits: ember within 15 / 12 / 10 / 9 s, fire within 30 / 25 / 21 / 18 s by level. Lit fast (10 / 11 / 12 / 13 s): 1 log, otherwise 2. Record: best time.","Frottez au bon rythme (la bande verte se resserre avec le niveau) pour obtenir la braise, puis tenez 3 s de souffle dans le vert. Limites : braise en 15 / 12 / 10 / 9 s, feu en 30 / 25 / 21 / 18 s selon le niveau. Allumé vite (10 / 11 / 12 / 13 s) : 1 bûche, sinon 2. Record : le meilleur temps."),
   totem:()=>L("Sequences repeated ÷ 6 × 100. 6 sequences in a row = 100.","Séquences réussies ÷ 6 × 100. 6 séquences d'affilée = 100.","Secuencias repetidas ÷ 6 × 100. 6 secuencias seguidas = 100."),
   post:()=>L("Seconds held ÷ 30 × 100. 30 s = 100.","Secondes tenues ÷ 30 × 100. 30 s = 100.","Segundos aguantados ÷ 30 × 100. 30 s = 100."),
   rope:()=>L("Based on your pace over 8 s: 2 pulls/s = 0, 9 pulls/s = 100.","Selon votre rythme sur 8 s : 2 tractions/s = 0, 9 tractions/s = 100.","Según tu ritmo durante 8 s: 2 tirones/s = 0, 9 tirones/s = 100."),
@@ -5804,7 +5820,7 @@ const SCORE_RULES={
   chest:()=>L("Opened: 60 + up to 40 for speed. Otherwise: up to 55 by progress.","Ouvert : 60 + jusqu'à 40 selon la vitesse. Sinon : jusqu'à 55 selon l'avancée.","Abierto: 60 + hasta 40 según la rapidez. Si no: hasta 55 según el avance.")
 };
 const scoreRule=g=>{const r=SCORE_RULES[g];return r?r():L("Score from 0 to 100 based on how well you do.","Note de 0 à 100 selon votre performance.","Puntuación de 0 a 100 según tu actuación.")};
-const scoreBox=(g,open,extra)=>`<details class="scoreh" ${open?'open':''}><summary>📏 ${L("How it's scored","Comment c'est noté","Cómo se puntúa")}</summary><p>${scoreRule(g)}</p>${extra?`<p class="muted" style="margin-top:6px">${extra}</p>`:''}<p class="muted" style="margin-top:6px">${L("Every challenge gives 0 to 100. In a full game, your characteristics and energy then adjust it.","Chaque épreuve donne une note de 0 à 100. En partie, vos caractéristiques et votre énergie l'ajustent ensuite.","Cada prueba da una puntuación de 0 a 100. En una partida, tus características y tu energía la ajustan después.")}</p></details>`;
+const scoreBox=(g,open,extra)=>`<details class="scoreh" ${open?'open':''}><summary>📏 ${L("How it's scored","Comment c'est noté","Cómo se puntúa")}</summary><p>${scoreRule(g)}</p>${extra?`<p class="muted" style="margin-top:6px">${extra}</p>`:''}${['climb','fire','wood','fish','shelter'].includes(g)?'':`<p class="muted" style="margin-top:6px">${L("Every challenge gives 0 to 100. In a full game, your characteristics and energy then adjust it.","Chaque épreuve donne une note de 0 à 100. En partie, vos caractéristiques et votre énergie l'ajustent ensuite.","Cada prueba da una puntuación de 0 a 100. En una partida, tus características y tu energía la ajustan después.")}</p>`}</details>`;
 async function trainGame(g){const lv=tlvGet(),key=recKey(g,lv),best0=bestGet()[key];
   const a=await ask(`${eb(L("Training","Entraînement")+' · '+TLVN[lv]())}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>
     <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?recTxt(g,best0):'—'}</b></div>${scoreBox(g,false)}
@@ -7508,7 +7524,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.122 · 2026-11-11';
+const APP_VER='2.123 · 2026-11-11';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
