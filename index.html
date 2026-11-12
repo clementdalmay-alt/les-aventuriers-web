@@ -2250,6 +2250,11 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 .frubz{position:absolute;top:0;bottom:0;background:rgba(111,207,143,.45);border-left:2px solid var(--good);border-right:2px solid var(--good)}
 .frubg i{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;border-radius:3px;background:var(--muted)}
 .frubg i.ok{background:var(--good)}.frubg i.hot{background:var(--bad)}
+/* v2.126 : Tir à la corde dessiné (les deux tribus sur la corde, repère du rythme) et cri du meneur */
+.ropest{border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none}
+.ropest svg{display:block;width:100%;height:auto;max-height:28vh}
+.rcall{text-align:center;font:400 1.6rem/1.2 var(--f-display);min-height:1.3em;color:var(--sand);margin:0}
+.rcall.on{color:var(--torch)}
 </style>
 
 <div id="app"></div>
@@ -4359,7 +4364,7 @@ const GAMES={
   fire:{name:"Make fire",nf:"Faire le feu",stat:'agi',rules:"Rub left and right across the board at the right rhythm (not too slow, not too fast) until an ember forms. Then tap <b>Blow</b> steadily to keep the glow in the green zone until it bursts into flame. The time limit depends on the level.",rf:"Frottez de gauche à droite sur la planche au bon rythme (ni trop lent, ni trop vite) jusqu'à obtenir une braise. Puis tapez <b>Souffler</b> régulièrement pour garder la lueur dans la zone verte jusqu'à ce que la flamme jaillisse. Le temps limite dépend du niveau."},
   totem:{name:"Totem Memory",nf:"Mémoire des totems",stat:'mind',rules:"The totems light up in order. Repeat the sequence. It grows by one each round, up to 8 totems.",rf:"Les totems s'allument dans un ordre précis. Reproduisez la séquence. Elle s'allonge d'un totem à chaque manche, jusqu'à 8."},
   post:{name:"The Post",nf:"Les poteaux",stat:'end',rules:"Press inside the ring and keep your finger in it as it drifts and shrinks. Lift your finger or stay outside too long and you fall. 30 seconds is a perfect score.",rf:"Appuyez dans l'anneau et gardez le doigt dedans pendant qu'il dérive et rétrécit. Si vous levez le doigt ou restez dehors trop longtemps, vous tombez. 30 secondes donnent le score parfait."},
-  rope:{name:"Tug of War",nf:"Tir à la corde",stat:'str',rules:"Tap <b>Pull</b> as fast as you can for 8 seconds to drag the knot to your side.",rf:"Tapez <b>Tirer</b> le plus vite possible pendant 8 secondes pour ramener le nœud de votre côté."},
+  rope:{name:"Tug of War",nf:"Tir à la corde",stat:'str',rules:"At the leader's « heave… ho! », pull on « ho »: in the dark green you pull hard, in the light green less, off the beat the rope slips. Bring the flag past your line before the end.",rf:"Au « Ho… hisse ! » du meneur, tirez au « hisse » : dans le vert foncé, traction forte ; dans le vert clair, moyenne ; à contretemps, la corde glisse. Faites passer le foulard de votre côté avant la fin."},
   edible:{name:"Edible or Not?",nf:"Comestible ou pas ?",stat:'surv',rules:"Things found on the island appear one by one: <b>Eat</b> or <b>Leave</b> before the bar runs out. The number of cards and the time depend on the level. Careful, some need cooking first.",rf:"Des choses trouvées sur l'île apparaissent une par une : <b>Manger</b> ou <b>Laisser</b> avant la fin de la jauge. Le nombre de cartes et le temps dépendent du niveau. Attention, certaines doivent d'abord être cuites."},
   raft:{name:"Raft Lashing",nf:"Le radeau",stat:'surv',rules:"Lash logs together by tapping the arrows in the order shown. Each completed knot adds a log. A wrong arrow undoes the knot. 25 seconds.",rf:"Attachez les rondins en tapant les flèches dans l'ordre indiqué. Chaque nœud terminé ajoute un rondin. Une erreur défait le nœud. 25 secondes."},
   bamboo:{name:"Bamboo Water",nf:"L'eau dans le bambou",stat:'surv',rules:"Hold <b>Pour</b> to fill the bamboo and release right on the line. Five pours. Overflow wastes everything.",rf:"Maintenez <b>Verser</b> pour remplir le bambou et relâchez pile sur le trait. Cinq essais. Si ça déborde, tout est perdu."},
@@ -4424,7 +4429,7 @@ SPORTS.forEach(s=>s.e=SP[s.n]);
 const GA={fire:["Hacer fuego","Frota rápido con el dedo, de izquierda a derecha, sobre la tabla de madera para calentarla hasta que salga una brasa (20 segundos). Luego toca <b>Soplar</b> a ritmo constante para mantener el brillo en la zona verde hasta que prenda la llama (12 segundos)."],
   totem:["Memoria de tótems","Los tótems se iluminan en un orden. Repite la secuencia. Crece en uno cada ronda, hasta 8 tótems."],
   post:["Los postes","Pulsa dentro del anillo y mantén el dedo en él mientras se mueve y se encoge. Si levantas el dedo o te quedas fuera demasiado tiempo, caes. 30 segundos es la puntuación perfecta."],
-  rope:['Tira y afloja',"Toca <b>Tirar</b> lo más rápido que puedas durante 8 segundos para traer el nudo a tu lado."],
+  rope:['Tira y afloja',"Al « ¡Aúpa… ya! » del líder, tira en el « ya »: en el verde oscuro, tirón fuerte; en el verde claro, medio; a destiempo, la cuerda resbala. Lleva el pañuelo a tu lado antes del final."],
   edible:['¿Comestible o no?',"Doce cosas que podrías encontrar en la isla aparecen una a una. Tienes 3 segundos para cada una: <b>Comer</b> o <b>Dejar</b>. Cuidado, algunas hay que cocinarlas antes."],
   raft:["La balsa","Ata los troncos tocando las flechas en el orden indicado. Cada nudo terminado añade un tronco. Una flecha equivocada deshace el nudo. 25 segundos."],
   bamboo:["Agua en el bambú","Mantén <b>Verter</b> para llenar el bambú y suelta justo en la línea. Cinco intentos. Si se desborda, se pierde todo."],
@@ -4595,19 +4600,63 @@ function gamePost(cap){return miniJeu(j=>{
     if(e_>=cap){finish(cap,L("Unshakeable!","Inébranlable !","¡Inquebrantable!"));return}
     requestAnimationFrame(loop)};
 })}
-function gameRope(){return miniJeu(j=>{
-  const DUR=8,RT=window.__ropeTeam;
-  screen(`${eb(gN('rope'))}<div class="big-time" id="tm">8.0</div>
-    <div class="rope"><div class="line"></div><div class="mid"></div><span class="side" style="left:10px">${RT?esc(RT.me):L("You","Vous","Tú")}</span><span class="side" style="right:10px">${RT?esc(RT.them):L("Rival","Adversaire","Rival")}</span><div class="knot" id="knot" style="left:50%"></div></div>
-    <p class="fb" id="fb">${L("First tap starts the clock.","Le premier appui lance le chrono.","El primer toque pone en marcha el reloj.")}</p>
+/* v2.126 : Tir à la corde (planche « Tir à la corde » du 12/11). Le meneur crie « Ho… hisse ! » : tirer au « hisse ».
+   Vert foncé = +10 cm, vert clair = +6, contretemps = −4 (la corde glisse), temps manqué = 0. Niveaux (ROPE) : nombre de temps,
+   cadence, fenêtre, traction du rival ; Difficile : cadence plus rapide à mi-épreuve ; Expert : cadence irrégulière et à-coups
+   du rival (temps rouge : sans traction parfaite, −12 cm). Plus d'horloge accélérée. Score interne = traction moyenne × 10
+   (0 à 100, même échelle que aiScore). En équipe (window.__ropeTeam) : les virtuels tirent avec leur score de l'épreuve, calculé
+   avant (window.__ropeAI, repris par playTeam) : « Gagné de 34 cm » dit donc le vrai résultat. window.__lastRope = écart en cm. */
+/* rival renforcé (choix de Clément du 12/11 vers 13 h 30) : joueur « correct » (±80 ms) 99 / 64 / 39 / 13 % de victoires */
+const ROPE={e:{n:12,beat:1.1,perf:130,riv:8.5},n:{n:12,beat:.95,perf:110,riv:9},h:{n:14,beat:.85,perf:90,riv:9,change:true},x:{n:14,beat:.8,perf:70,riv:8,irr:true,jerk:.35}};/* v2.126 : Expert durci après essai de Clément (« gagné de 40 cm du premier coup ») : rival 8 cm, ±70 ms, 35 % d'à-coups */
+const ropeLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
+const ropeTxt=v=>v>0?L(`Won by ${v} cm`,`Gagné de ${v} cm`):v<0?L(`Lost by ${-v} cm`,`Perdu de ${-v} cm`):L("Draw","Égalité");
+function ropeDrum(){if(!SET.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const c=AC,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(55,t+.18);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.24)}catch(e){}}
+/* aventurier de profil tourné vers la droite, pieds en (0,0), penché en arrière de a degrés, mains sur la corde */
+function ropeFig(col,a){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${I}" stroke-width="${w+3.4}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<g transform="rotate(${-a})">`+L('M0 0 L-4 -20 L-2 -34',6)+L('M8 0 L6 -18 L2 -34',6)
+  +`<path d="M-6 -36 Q4 -40 8 -32 L6 -68 Q-6 -72 -10 -64Z" fill="#efe2c4" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-8 -44 L8 -44 L7 -32 L-6 -32Z" fill="${col}" stroke="${I}" stroke-width="2.2"/>`
+  +`<circle cx="0" cy="-80" r="10" fill="${K}" stroke="${I}" stroke-width="2.4"/><path d="M-10 -83 Q0 -92 10 -85 L10 -81 L-10 -80Z" fill="${col}" stroke="${I}" stroke-width="2"/><circle cx="5.5" cy="-79" r="1.4" fill="${I}"/>`
+  +L('M2 -62 L16 -54 L30 -52',4)+`</g>`}
+function gameRope(){return miniJeu(j=>{const LV=ropeLv(),C=ROPE[LV]||ROPE.n,RT=window.__ropeTeam,I='#2a1c0d';window.__lastRope=null;
+  const me=window.__mgP||window.__mgCampP,myT=me&&me.tribe&&TR[me.tribe]?me.tribe:null,col=myT?TR[myT].c:'#e0643a',
+    oT=RT&&RT.ot&&TR[RT.ot]?RT.ot:null,col2=oT?TR[oT].c:'#e6bf35';
+  screen(`${eb(gN('rope'))}<h1 class="h">${L("Heave… ho!","Ho… hisse !")}</h1>${LV==='h'||LV==='x'?`<p class="muted">${LV==='h'?L("The beat speeds up halfway.","La cadence accélère à mi-épreuve."):L("Irregular beat; red beat = rival jerk, hold it with a perfect pull.","Cadence irrégulière ; temps rouge = à-coup du rival, tenez-le en tirant parfait.")}</p>`:''}
+    <div class="ropest"><svg viewBox="0 0 320 190" id="rsv" aria-hidden="true"></svg></div>
+    <p class="lbl">${L("Beats","Temps")} <b class="num" id="rk">0</b>/${C.n} · ${L("Gap","Écart")} <b class="num" id="rg">0 cm</b></p>
+    <p class="rcall" id="rc"> </p><p class="fb" id="fb">${L("Tap Pull to start, then pull on « ho ».","Touchez Tirer pour commencer, puis tirez au « hisse ».")}</p>
     <button class="btn pull" id="pull">${L("Pull!","Tirez !","¡Tira!")}</button>`);
-  let taps=0,t0=null;
-  const RIVAL=6.2;
-  const tick=()=>{if(j.fini)return;const e=(performance.now()-t0)/1000;const left=Math.max(0,DUR-e);el('tm').textContent=nf(left.toFixed(1));
-    const diff=RT?(taps+RT.mates*e-RT.rivals*e)/Math.max(1,RT.n)*1.5:taps-RIVAL*e;el('knot').style.left=clamp(50-diff*2.2,6,94)+'%';
-    if(left<=0){j.fini=true;const rate=taps/DUR;const sc=Math.round(clamp((rate-2)/7*100));el('fb').textContent=L(`${taps} pulls in 8 seconds`,`${taps} tractions en 8 secondes`,`${taps} tirones en 8 segundos`);j.fin(sc,1100);return}
-    requestAnimationFrame(tick)};
-  el('pull').addEventListener('pointerdown',e=>{e.preventDefault();if(j.fini)return;if(t0===null){t0=performance.now();el('fb').textContent=L("Pull! Pull! Pull!","Tirez ! Tirez ! Tirez !","¡Tira! ¡Tira! ¡Tira!");requestAnimationFrame(tick)}taps++});
+  const sv=el('rsv');let k=0,gap=0,sum=0,clock=0,last=null,run=false,used=false,beatLen=C.beat,next=C.beat,jerkNext=false,lean=8,rlean=10,raf=0,held=false;
+  /* traction des autres par temps : équipe (moyennes, la vôtre comprise) ou rival du niveau */
+  const team=RT&&RT.n,mates=team?RT.mates:0,rivals=team?RT.rivals:C.riv,n=team?RT.n:1;
+  const MUL=team&&window.__mgMul?window.__mgMul:1;const pull=v=>{sum+=v;gap+=team?(v*MUL+mates)/n-rivals:v-C.riv};
+  const draw=()=>{if(!document.getElementById('rsv'))return;const off=-clamp(gap,-50,50)*.5,ry=114;
+    let o=`<rect width="320" height="190" fill="#183635"/><rect y="168" width="320" height="22" fill="#e6d6a8"/><path d="M0 168 H320" stroke="${I}" stroke-width="2"/><path d="M160 166 V186" stroke="#fff" stroke-width="3" stroke-dasharray="4 3"/><path d="M110 172 v12 M210 172 v12" stroke="${I}" stroke-width="2" opacity=".5"/>`;
+    o+=`<path d="M10 ${ry} H310" stroke="#b88a57" stroke-width="5" stroke-linecap="round"/><g transform="translate(${off} 0)">`;
+    [[122,1],[94,.92],[66,.84]].forEach(([x,s])=>o+=`<g transform="translate(${x} 168) scale(${s})">${ropeFig(col,lean)}</g>`);
+    [[198,1],[226,.92],[254,.84]].forEach(([x,s])=>o+=`<g transform="translate(${x} 168) scale(${-s} ${s})">${ropeFig(col2,rlean)}</g>`);
+    o+=`<path d="M156 ${ry} l4 16 l4 -16Z" fill="#d9493b" stroke="${I}" stroke-width="1.6"/></g>`;
+    const ph=run?clamp((clock-(next-beatLen))/beatLen,0,1):0,zd=C.perf/1000/beatLen*40,zl=zd*2;
+    o+=`<g transform="translate(300 18)"><rect x="-8" y="0" width="16" height="70" rx="6" fill="#0b1c1f" opacity=".6"/><rect x="-8" y="${60-zl}" width="16" height="${zl*2}" rx="4" fill="#6fcf8f" opacity=".85"/><rect x="-8" y="${60-zd}" width="16" height="${zd*2}" rx="3" fill="#1f7a45"/><rect id="rdot" data-j="${jerkNext?1:0}" x="-13" y="${2.5+ph*56}" width="26" height="3" rx="1.5" fill="${jerkNext?'#ef6b5b':'#efe2c4'}" stroke="${I}" stroke-width="1.2"/></g>`;
+    sv.innerHTML=o;el('rk').textContent=Math.min(k,C.n)+(k>C.n?' +'+(k-C.n):'');el('rg').textContent=(gap>0?'+':'')+Math.round(gap)+' cm'};
+  const end=()=>{run=false;j.fini=true;const g=Math.round(gap);window.__lastRope=g;draw();el('rc').textContent=' ';el('fb').textContent=team&&g===0?L("Draw: each tribe's best scores break the tie.","Égalité : les meilleurs scores de chaque tribu départagent."):ropeTxt(g);j.fin(Math.round(clamp(sum/Math.max(1,k)*10)),1100)};
+  const beat=()=>{if(!used){pull(0);el('fb').textContent=L("Missed beat","Temps manqué")}if(jerkNext&&!held){pull(-12);el('fb').textContent=L("Jerk: −12 cm","À-coup : −12 cm")}
+    k++;used=false;held=false;rlean=jerkNext?20:10;
+    /* v2.126 : égalité à la fin = un temps de plus, jusqu'à ce qu'un camp gagne (choix de Clément du 12/11, 15 h 20 ; arrêt de sûreté à 20 temps de plus) */
+    if(!team&&(gap>=50||gap<=-50))return end();
+    if(k>=C.n){if(Math.round(gap)!==0||k>=C.n+20)return end();el('fb').textContent=L("Tie: one more!","Égalité : encore un !")}
+    let b=C.beat;if(C.change&&k>=C.n/2)b*=.85;if(C.irr)b*=.8+Math.random()*.45;beatLen=b;next=clock+b;jerkNext=!!C.jerk&&Math.random()<C.jerk;
+    el('rc').textContent=L("Heave…","Ho…");el('rc').className='rcall'};
+  let called=false;
+  const loop=()=>{if(!run||j.fini)return;const now=performance.now();if(last==null)last=now;const dt=Math.min(.25,(now-last)/1000);last=now;clock+=dt;lean=Math.max(8,lean-dt*40);
+    if(next-clock<.18&&!called){called=true;el('rc').textContent=jerkNext?L("Ho! (jerk)","Hisse ! (à-coup)"):L("Ho!","Hisse !");el('rc').className='rcall on';ropeDrum()}
+    if(clock>next+C.perf*2/1000){called=false;beat()}
+    if(run){draw();raf=requestAnimationFrame(loop)}};
+  draw();
+  el('pull').addEventListener('pointerdown',e=>{e.preventDefault();if(j.fini)return;
+    if(!run){run=true;last=null;clock=0;next=C.beat;el('rc').textContent=L("Heave…","Ho…");el('fb').textContent=' ';raf=requestAnimationFrame(loop);return}
+    const d=Math.abs(clock-next)*1000;if(used||d>C.perf*2){pull(-4);el('fb').textContent=L("Off the beat: the rope slips","Contretemps : la corde glisse");return}
+    used=true;const v=d<=C.perf?10:6;pull(v);lean=v===10?24:16;if(jerkNext&&v===10)held=true;el('fb').textContent=v===10?L("Perfect!","Parfait !"):L("Good","Bien")});
 })}
 function gameShells(){return miniJeu(j=>{
   // Entraînement : Facile 12 coquillages ; Normal 16 ; Difficile 16 qui se mélangent tous les 4 ; Expert 20 qui se mélangent à chaque coquillage
@@ -4700,7 +4749,7 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
   PRECHOICE=null;let raw;
   window.__poison=false;
   if(choiceAct!=='auto')await countdown();
-  window.__mgP=p;try{raw=choiceAct==='auto'?Math.round(clamp(st(p,GAMES[g].stat)*0.62+rnd(0,40))):await lancerMiniJeu(g)}finally{window.__mgP=null}
+  window.__mgP=p;/* v2.126 : multiplicateur de forme appliqué ensuite au score (fin), connu du jeu pour que la corde tire comme le score final */window.__mgMul=ef(p)*(1+bonus/100)*(1+famMotiv(p)/100)*motMul(p)*sickMul(p)*hurtMul(p,g);try{raw=choiceAct==='auto'?Math.round(clamp(st(p,GAMES[g].stat)*0.62+rnd(0,40))):await lancerMiniJeu(g)}finally{window.__mgP=null;window.__mgMul=null}
   const gaveUp=raw===-1;if(gaveUp)raw=Math.round(clamp(st(p,GAMES[g].stat)*0.62+rnd(0,40)));
   if(choiceAct!=='auto'&&!gaveUp){if(g==='edible'&&raw>=100)unlock(p,'edible100');if(g==='raft'&&raw>=96)unlock(p,'raft8');
     try{const k='aventuriers-games',o=JSON.parse(localStorage.getItem(k)||'{}');o[g]=1;localStorage.setItem(k,JSON.stringify(o));if(POOL.every(x=>o[x]))unlock(p,'allgames')}catch(e){}}
@@ -4931,7 +4980,8 @@ function teamBoard(sc,A,B,win){teamNote(sc,win);const contrib=[];const T=TEAMS.g
     // v2.109 (lot Écrans restants) : une seule ligne « Contribution » pour les deux tribus, sous les deux tribus ; chaque liste garde le nom de sa tribu
     contrib.push(`<p class="lbl tbcl" style="color:${trC(t)}">${esc(TR[t].n)}${drops}</p><ol class="ranks">${[...ranked,...bench].map((p,i)=>`<li class="${p.human?'me':''}" data-pid="${p.id}"><span class="num rk">${sc[p.id]!=null?i+1:'–'}</span><b class="rkn">${face(p,26)}${esc(p.name)}</b><span class="muted">${roleOf(p)}</span><span class="num">${sc[p.id]!=null?sc[p.id]:'—'}</span></li>`).join('')}</ol>`);
     return `<section class="tbk ${t===win?'win':''}" style="--tc:${trC(t)}"><div class="tbh"><b style="color:${trC(t)}">${t===win?'🏆 ':''}${esc(TR[t].n)}</b><span class="num">${sc2(v,v===A?B:A)}</span>${tbar(v)}</div>${mine}${extra}</section>`}).join('');
-  return `<div class="tboard">${html}<details class="statd tbd tbd1"><summary>👥 ${L("Contribution","Contribution")}<span class="muted"> · ${FMT_N[T.fmt]?FMT_N[T.fmt]():''}</span></summary>${contrib.join('')}</details></div>${used?'':bb}`}
+  /* v2.126 : égalité parfaite des moyennes = départage affiché (tieWin : meilleurs scores, puis bois) */
+  return `<div class="tboard">${html}${A===B?`<p class="muted">${L("Draw: broken on each tribe's best scores, then on firewood in store.","Égalité : départagée sur les meilleurs scores de chaque tribu, puis sur le bois en réserve.")}</p>`:''}<details class="statd tbd tbd1"><summary>👥 ${L("Contribution","Contribution")}<span class="muted"> · ${FMT_N[T.fmt]?FMT_N[T.fmt]():''}</span></summary>${contrib.join('')}</details></div>${used?'':bb}`}
 function paritySit(big,small,diff){const cnt=(xs,g)=>xs.filter(p=>p.g===g).length,out=[];const pool=shuffle(big.slice());
   for(let i=0;i<diff;i++){const rest=pool.filter(p=>!out.includes(p.id));if(!rest.length)break;const sf=cnt(rest,'f')-cnt(small,'f'),sm=cnt(rest,'m')-cnt(small,'m');const g=sf>sm?'f':sm>sf?'m':pick(['f','m']);out.push((rest.find(p=>p.g===g)||rest[0]).id)}return out}
 /* v2.102 (lot À plusieurs) : boules noires repliées sur une ligne « ⚫ Boules noires · prénoms sur le banc », explication et tirage dans le dépli */
@@ -5370,11 +5420,13 @@ async function playTeam(g,kind,q){musicSet('challenge');
           if(cand){role[cand.id]=mine}role[h.id]=want;FLASH=L("The tribe agreed: you swap roles.","La tribu accepte : vous changez de rôle.")}
         else{others.forEach(m=>addAff(m.id,h.id,-2));FLASH=L("The tribe refused: you keep your role, and some found you pushy.","La tribu refuse : vous gardez votre rôle, et certains vous ont trouvé insistant.")}}}}
   const sc={},gameFor=p=>fmt==='roles'&&role[p.id]==='puzzle'?pg:g;
-  const rate=p=>2+aiScore(p,'rope')/100*7;
+  /* v2.126 : Tir à la corde en direct : les virtuels ont leur score avant l'épreuve (__ropeAI, repris plus bas) ; la corde tire avec, l'écart affiché est donc le vrai résultat */
+  if(fmt==='live'){window.__ropeAI={};players.filter(x=>!x.human).forEach(a=>window.__ropeAI[a.id]=aiScore(a,'rope'))}
+  const ropeK=x=>(window.__ropeAI&&window.__ropeAI[x.id]!=null?window.__ropeAI[x.id]:sc[x.id]!=null?sc[x.id]:aiScore(x,'rope'))/10;
   STASH=S.humans<=1;BREAK=null;for(const p of shuffle(players.filter(x=>x.human))){await passPhone(p,kind);
-    if(fmt==='live'){const t=tk(p),o=t==='A'?'B':'A';window.__ropeTeam={me:TR[t].n,them:TR[o].n,mates:players.filter(x=>tk(x)===t&&x.id!==p.id).reduce((s,x)=>s+rate(x),0),rivals:players.filter(x=>tk(x)===o).reduce((s,x)=>s+rate(x),0),n:players.filter(x=>tk(x)===t).length}}
+    if(fmt==='live'){const t=tk(p),o=t==='A'?'B':'A',rv=players.filter(x=>tk(x)===o);window.__ropeTeam={me:TR[t].n,them:TR[o].n,ot:o,mates:players.filter(x=>tk(x)===t&&x.id!==p.id).reduce((s,x)=>s+ropeK(x),0),rivals:rv.length?rv.reduce((s,x)=>s+ropeK(x),0)/rv.length:0,n:players.filter(x=>tk(x)===t).length}}
     try{sc[p.id]=await humanPlay(p,gameFor(p),kind)}finally{window.__ropeTeam=null}}
-  STASH=false;for(const a of players.filter(x=>!x.human)){const ga=gameFor(a);sc[a.id]=ga==='sprint'&&window.__sprAI&&window.__sprAI[a.id]!=null?window.__sprAI[a.id]:aiScore(a,ga)}window.__sprAI=null;
+  STASH=false;for(const a of players.filter(x=>!x.human)){const ga=gameFor(a);sc[a.id]=ga==='rope'&&window.__ropeAI&&window.__ropeAI[a.id]!=null?window.__ropeAI[a.id]:ga==='sprint'&&window.__sprAI&&window.__sprAI[a.id]!=null?window.__sprAI[a.id]:aiScore(a,ga)}window.__sprAI=null;window.__ropeAI=null;
   for(const id in sc){const x=P(+id);x.cs=[...(x.cs||[]),sc[id]].slice(-4);x.tp=(x.tp||0)+1}
   sit.forEach(id=>{const x=P(id);x.tp=(x.tp||0)+1});
   const T={fmt,sit,pg,role,drops:{}};
@@ -5778,7 +5830,7 @@ const TLVN={e:()=>L("Easy","Facile"),n:()=>L("Normal","Normal"),h:()=>L("Hard","
 const tlvGet=()=>{try{const v=localStorage.getItem(TLV_KEY);return ['e','n','h','x'].includes(v)?v:'n'}catch(e){return'n'}};
 const tbk=(g,lv)=>lv==='n'?g:g+'_'+lv;
 /* v2.116 : record de la cueillette en temps (clé à part, les anciens scores sur 100 ne sont pas repris) ; poignards et cueillette : le plus petit gagne */
-const recKey=(g,lv)=>tbk(g==='climb'?'climbT':g==='fire'?'fireT':g==='fish'?'fishN':g==='shelter'?'shelterP'+shelterTrainVar():g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='fire'?climbTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):g==='shelter'?shelterTxt(v):v,recLow=g=>g==='dagger'||g==='climb'||g==='fire';
+const recKey=(g,lv)=>tbk(g==='rope'?'ropeG':g==='climb'?'climbT':g==='fire'?'fireT':g==='fish'?'fishN':g==='shelter'?'shelterP'+shelterTrainVar():g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='rope'?ropeTxt(v):g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='fire'?climbTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):g==='shelter'?shelterTxt(v):v,recLow=g=>g==='dagger'||g==='climb'||g==='fire';
 const TFAM=[['new','🆕',()=>L("New challenges","Nouvelles épreuves"),NJK],['logic','🧠',()=>L("Logic","Logique"),['seq','calc','logs']],['camp','🏝️',()=>L("Camp mini-games","Mini-jeux du camp"),['fish','wood','shelter','climb']],['classic','🔥',()=>L("Classic challenges","Épreuves classiques"),null]];
 /* Groupes de l'entraînement : repliés à chaque arrivée depuis l'accueil, gardés ouverts pendant la visite (retour d'une épreuve). */
 const TROPEN=new Set();
@@ -5797,7 +5849,9 @@ function trainScreen(garder){if(garder!==true)TROPEN.clear();const best=bestGet(
    L'horloge accélérée (performance.now, setTimeout, setInterval, requestAnimationFrame) n'est posée qu'au premier
    entraînement qui en a besoin ; ensuite elle reste en place à ×1, sans jamais faire reculer le temps. */
 const VIT_CLASSIQUE={e:.8,n:1,h:1.2,x:1.4},VIT_AUTRE={e:1,n:1,h:1,x:1.2};
-['totem','post','rope','shells','raft','bamboo','swim','coconuts','spear'].forEach(g=>{if(GAMES[g])GAMES[g].vit=VIT_CLASSIQUE});
+['totem','post','shells','raft','bamboo','swim','coconuts','spear'].forEach(g=>{if(GAMES[g])GAMES[g].vit=VIT_CLASSIQUE});
+/* v2.126 : le Tir à la corde a ses niveaux (ROPE), sans horloge accélérée */
+if(GAMES.rope)GAMES.rope.vit={e:1,n:1,h:1,x:1};
 if(GAMES.climb)GAMES.climb.vit={e:1,n:1,h:1,x:1};
 if(GAMES.edible)GAMES.edible.vit={e:1,n:1,h:1,x:1};if(GAMES.wood)GAMES.wood.vit={e:1,n:1,h:1,x:1};if(GAMES.fish)GAMES.fish.vit={e:1,n:1,h:1,x:1};if(GAMES.shelter)GAMES.shelter.vit={e:1,n:1,h:1,x:1};if(GAMES.fire)GAMES.fire.vit={e:1,n:1,h:1,x:1};/* v2.122 *//* v2.121 *//* v2.119 : Expert à part *//* v2.118 : Expert est un palier à part *//* v2.117 : Expert est un palier à part *//* v2.116 : Expert est un palier à part */
 const vitesseEpreuve=(g,lv)=>((GAMES[g]&&GAMES[g].vit)||VIT_AUTRE)[lv]||1;
@@ -5814,7 +5868,7 @@ const SCORE_RULES={
   fire:()=>L("Rub at the right rhythm (the green band narrows with the level) to get an ember, then hold 3 s of blowing in the green. Limits: ember within 15 / 12 / 10 / 9 s, fire within 30 / 25 / 21 / 18 s by level. Lit fast (under 12 / 10 / 8.4 / 7.2 s): 1 log, otherwise 2. Record: best time.","Frottez au bon rythme (la bande verte se resserre avec le niveau) pour obtenir la braise, puis tenez 3 s de souffle dans le vert. Limites : braise en 15 / 12 / 10 / 9 s, feu en 30 / 25 / 21 / 18 s selon le niveau. Allumé vite (sous 12 / 10 / 8,4 / 7,2 s) : 1 bûche, sinon 2. Record : le meilleur temps."),
   totem:()=>L("Sequences repeated ÷ 6 × 100. 6 sequences in a row = 100.","Séquences réussies ÷ 6 × 100. 6 séquences d'affilée = 100.","Secuencias repetidas ÷ 6 × 100. 6 secuencias seguidas = 100."),
   post:()=>L("Seconds held ÷ 30 × 100. 30 s = 100.","Secondes tenues ÷ 30 × 100. 30 s = 100.","Segundos aguantados ÷ 30 × 100. 30 s = 100."),
-  rope:()=>L("Based on your pace over 8 s: 2 pulls/s = 0, 9 pulls/s = 100.","Selon votre rythme sur 8 s : 2 tractions/s = 0, 9 tractions/s = 100.","Según tu ritmo durante 8 s: 2 tirones/s = 0, 9 tirones/s = 100."),
+  rope:()=>L("On « ho »: dark green +10 cm, light green +6 cm, off-beat −4 cm, missed 0; the rival pulls 8.5 / 9 / 9 / 8 cm per beat by level. Won at +50 cm, lost at −50 cm, otherwise the flag's side at the end. Record: the biggest gap.","Au « hisse » : vert foncé +10 cm, vert clair +6 cm, contretemps −4 cm, temps manqué 0 ; le rival tire 8,5 / 9 / 9 / 8 cm par temps selon le niveau. Gagné à +50 cm, perdu à −50 cm, sinon le côté du foulard à la fin. Record : le plus grand écart."),
   shells:()=>L("All the shells (16 in a game; 12 to 20 in Training, by level): 100 if fast, less as time goes by. Time's up: up to 30 by shells collected.","Tous les coquillages (16 en partie ; de 12 à 20 à l'entraînement selon le niveau) : 100 si c'est rapide, puis moins avec le temps. Temps écoulé : jusqu'à 30 selon les coquillages ramassés.","Todas las conchas (16 en partida; de 12 a 20 en el entrenamiento según el nivel): 100 si es rápido, y menos con el tiempo. Tiempo agotado: hasta 30 según las conchas recogidas."),
   spear:()=>L("Each throw: 100 within 3 % of the centre, then −3.7 pts per % off. Score = average of the 5 throws.","Chaque lancer : 100 à moins de 3 % du centre, puis −3,7 pts par % d'écart. Score = moyenne des 5 lancers.","Cada lanzamiento: 100 a menos del 3 % del centro, luego −3,7 pts por cada % de desvío. Puntuación = media de los 5 lanzamientos."),
   raft:()=>L("12 pts per log lashed in 25 s (9 logs = 100).","12 pts par rondin attaché en 25 s (9 rondins = 100).","12 pts por tronco atado en 25 s (9 troncos = 100)."),
@@ -5856,10 +5910,10 @@ async function trainGame(g){const lv=tlvGet(),key=recKey(g,lv),best0=bestGet()[k
     <div class="row"><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><button class="btn ghost" data-act="back">${L("Back","Retour","Volver")}</button></div>`);
   if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('sv_')){try{localStorage.setItem(SHEL_TV,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('wv_')){try{localStorage.setItem(WOOD_TV,a.slice(3))}catch(e){}return trainGame(g)}
   TLV=lv;let sc;window.__rounds=null;try{await countdown(true);horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
-  const dg=g==='dagger',cl=g==='climb'||g==='fire',wd=g==='wood',fs=g==='fish',sh=g==='shelter',val=dg?window.__lastDigs:cl?(gave?null:g==='fire'?(window.__lastFire&&window.__lastFire.lit?window.__lastFire.t:null):window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
+  const dg=g==='dagger',cl=g==='climb'||g==='fire',wd=g==='wood',fs=g==='fish',sh=g==='shelter',rp=g==='rope',val=rp?(gave?null:window.__lastRope):dg?window.__lastDigs:cl?(gave?null:g==='fire'?(window.__lastFire&&window.__lastFire.lit?window.__lastFire.t:null):window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
   const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(recLow(g)?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}
   try{const o=JSON.parse(localStorage.getItem('aventuriers-njplayed')||'{}');if(NJK.includes(g)){o[g]=1;localStorage.setItem('aventuriers-njplayed',JSON.stringify(o));if(NJK.every(k=>o[k])){const a=achGet();if(!a.alltrades)unlock({human:true,name:L("Training","Entraînement"),id:-1},'alltrades')}}}catch(e){}
-  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}
+  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):rp?(val!=null?ropeTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}
     ${(()=>{const R=!gave&&(g==='spear'||g==='bamboo')&&Array.isArray(window.__rounds)&&window.__rounds.length?window.__rounds:null;return scoreBox(g,false,R?`${g==='spear'?L("Throws","Lancers","Lanzamientos"):L("Pours","Versements","Vertidos")} : ${R.join(' · ')} → ${L("average","moyenne","media")} ${sc}`:'')})()}
     <div class="row"><button class="btn" data-act="again">${L("Play again","Rejouer","Volver a jugar")}</button><button class="btn ghost" data-act="list">${L("Other challenges","Autres épreuves","Otras pruebas")}</button></div>`);
   if(b==='again')return trainGame(g);trainScreen(true)}
@@ -5890,7 +5944,7 @@ function gameSpear(){return miniJeu(j=>{
 const MGH={fire:()=>L("Rub left-right, then tap Blow to stay in the green.","Frottez de gauche à droite, puis tapez Souffler pour rester dans le vert."),
   totem:()=>L("Watch the order, then tap the totems in the same order.","Regardez l'ordre, puis touchez les totems dans le même ordre."),
   post:()=>L("Keep your finger inside the ring. Do not lift it.","Gardez le doigt dans l'anneau, sans le lever."),
-  rope:()=>L("Tap Pull as fast as you can.","Tapez Tirer le plus vite possible."),
+  rope:()=>L("Pull on « ho »: dark green = perfect.","Tirez au « hisse » : vert foncé = parfait."),
   edible:()=>L("Eat or Leave. Raw meat or fish: leave it.","Manger ou Laisser. Viande ou poisson cru : laissez."),
   raft:()=>L("Tap the arrows in the order shown.","Tapez les flèches dans l'ordre affiché."),
   bamboo:()=>L("Hold Pour, let go on the line.","Maintenez Verser, relâchez sur le trait."),
@@ -7556,7 +7610,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.125 · 2026-11-12';
+const APP_VER='2.126 · 2026-11-12';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
