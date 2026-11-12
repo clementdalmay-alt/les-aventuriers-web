@@ -3071,7 +3071,7 @@ function ACHS(){const a=[];
   [['blackvote',"From beyond","Depuis l'au-delà","Your black vote sends its target home.","Votre vote noir fait partir sa cible."],['linkedwin',"Linked fates","Destins liés","Win a challenge with your linked-fates partner.","Gagnez une épreuve avec votre binôme des destins liés."],
    ['elimwin',"Not today","Pas aujourd'hui","Win an elimination challenge.","Gagnez une épreuve éliminatoire."],['swap',"New colours","Nouvelles couleurs","Live through a tribe swap.","Vivez une redistribution des tribus."],['revote',"Saved by the second vote","Sauvé au second vote","Survive a tie at the Conseil.","Survivez à une égalité au Conseil."],['dagger1',"The first dagger","Le premier poignard","Find the first dagger when four castaways remain.","Trouvez le premier poignard quand il reste quatre aventuriers."]].forEach(([id,en,fr,den,dfr])=>a.push({id,g:'twist',en,fr,den,dfr}));
   [['champion',"Return of the champion","Le retour du champion","Win playing one of your saved castaways.","Gagnez en jouant l'un de vos aventuriers enregistrés."],['talent',"Born talent","Talent naturel","Start a game with a characteristic of 90 or more.","Commencez une partie avec une caractéristique à 90 ou plus."],['underdog','Underdog','Outsider',"Win with low dice: an average base under 45.","Gagnez avec de petits dés : une base moyenne sous 45."],['mini',"Pocket edition","Format poche","Win a game with 10 castaways.","Gagnez une partie à 10 aventuriers."],['legend',"Giant killer","Tombeur de légende","Win a game against a saved castaway who has already won.","Gagnez une partie face à un aventurier enregistré qui a déjà gagné."]].forEach(([id,en,fr,den,dfr])=>a.push({id,g:'rank',en,fr,den,dfr}));
-  [['campace',"Master hand","Main de maître","Score 90 or more in a camp mini-game.","Faites 90 ou plus à un mini-jeu de camp."],['camp4',"Camp all-rounder","Homme à tout faire","Play all four camp mini-games.","Jouez aux quatre mini-jeux de camp."]]
+  [['campace',"Master hand","Main de maître","Get the best result in a camp mini-game: every catch, 4 logs, the extra ration, no missed knot or a fast fire.","Faites le meilleur résultat à un jeu de camp : toutes les prises, 4 bûches, la ration en plus, aucun nœud raté ou un feu rapide."],['camp4',"Camp all-rounder","Homme à tout faire","Play all four camp mini-games.","Jouez aux quatre mini-jeux de camp."]]
    .forEach(([id,en,fr,den,dfr])=>a.push({id,g:'camp',en,fr,den,dfr}));
   [['relaywin',"Baton carrier","Porteur de témoin","Win a relay challenge with your tribe.","Gagnez une épreuve en relais avec votre tribu."],['puzzlewin',"The brain of the team","Le cerveau de l'équipe","Win a team challenge as the puzzle solver.","Gagnez une épreuve d'équipe en tant que solveur du casse-tête."],['tugteam',"All together","Tous ensemble","Win a team tug of war.","Gagnez un tir à la corde en équipe."],['blackball',"Black ball","Boule noire","Draw a black ball and sit out a challenge.","Tirez une boule noire et restez sur le banc."],['fastfwd','In a hurry',"Pressé","Use fast forward.","Utilisez l'avance rapide."],['item',"Treasure hunter","Chasseur de trésor","Find a double vote or a veto in the forest.","Trouvez un double vote ou un veto dans la forêt."],['dblvote',"Twice as strong","Double peine","Use a double vote at a Conseil.","Utilisez un double vote au Conseil."],['vetoed',"Right of veto","Droit de veto","Cancel someone's vote with a veto.","Annulez le vote de quelqu'un avec un veto."],['loyal',"Loyal to the end","Fidèle jusqu'au bout","Keep 3 promises made to your allies.","Tenez 3 promesses faites à vos alliés."],['savior',"Guardian angel","Ange gardien","Save someone else with your collier.","Sauvez quelqu'un d'autre avec votre collier."],['firekeeper',"Fire keeper","Gardien du feu","Save someone who had votes against them with the Sacred fire.","Sauvez avec le Feu sacré quelqu'un qui avait des votes contre lui."],['hijack',"Ballot thief","Voleur de bulletin","Hijack a ballot at a Conseil.","Détournez un bulletin au Conseil."],['duelwin',"Last one standing","Dernier debout","Win a duel on the exiles' island.","Gagnez un duel sur l'île des bannis."],['comeback',"Back from the dead","Le revenant","Come back into the game from the exiles' island.","Revenez dans le jeu depuis l'île des bannis."],['dilemma3',"Matter of conscience","Cas de conscience","Settle 3 camp dilemmas.","Tranchez 3 dilemmes au camp."],['mission5','On a mission',"En mission","Complete 5 daily missions.","Réussissez 5 missions du jour."],['auction','Sold!',"Adjugé !","Win a lot at the auction.","Remportez un lot aux enchères."],['jurypitch',"Closing argument",'Plaidoirie',"Win a juror's vote with your answer at the final.","Gagnez la voix d'un juré grâce à votre réponse en finale."],['confess',"Face to camera","Face caméra",'Record 5 confessionals.','Enregistrez 5 confessionnaux.'],['compat',"Hometown heroes","Les gars du pays","Form an alliance with someone from your country.","Formez une alliance avec quelqu'un de votre pays."],['pillar',"Pillar of the camp","Pilier du camp","Be the hardest worker of your tribe 3 days in a row.","Soyez le plus travailleur de votre tribu 3 jours de suite."],['share',"Postcard from the island","Carte postale de l'île","Share a finished game.","Partagez une partie terminée."],['jurorq',"The juror's question","La question du juré","Ask your own question to the finalists as a juror.","Posez votre propre question aux finalistes en tant que juré."],['nostop','Autopilot',"Pilote automatique","Simulate at least two days without stopping at decisions.","Simulez au moins deux jours sans vous arrêter aux décisions."],['hearth',"Keeper of the flame","Gardien du foyer","Keep your tribe's fire lit five evenings in a row.","Gardez le feu de votre tribu allumé cinq soirs de suite."],['lynx',"Lynx eye","Œil de lynx","Search the jungle three times in the same day.","Fouillez la jungle trois fois dans la même journée."],['alltrades',"Jack of all trades","Touche-à-tout","Play each of the 10 new challenges at least once.","Jouez au moins une fois à chacune des 10 nouvelles épreuves."],['pace5','In a hurry',"Pressé de rentrer","Win a game at the Fast pace.","Gagnez une partie au rythme Rapide."],['curious',"Curious mind",'Curieux',"Read 5 action descriptions with the ⓘ button.","Lisez 5 descriptions d'actions avec le bouton ⓘ."],['globetrot',"Storm globetrotter","Globe-trotteur des tempêtes","Live an island-specific event on 3 different islands.","Vivez un événement propre à l'île sur 3 îles différentes."],['diary',"Dear diary","Cher journal","Read your journal after 5 days on the island.","Relisez votre journal après 5 jours sur l'île."],['palm',"Coconut shaker","Secoueur de cocotier","Get a coconut by shaking the palm tree at camp.","Faites tomber une noix de coco en secouant le cocotier du camp."],['cry',"Battle cry","Cri de ralliement","Choose your tribe's war cry.","Choisissez le cri de guerre de votre tribu."],['ambiance',"Island soundtrack","Bande-son de l'île","Play a full day with the island soundscape on.","Jouez une journée entière avec l'ambiance de l'île activée."],['naming','Godparent','Parrain',"Your choice wins the vote for the merged tribe's name.","Votre choix remporte le vote du nom de la tribu réunifiée."],['style','Makeover','Relooking',"Start a game with a castaway whose look you designed.","Lancez une partie avec un aventurier dont vous avez choisi l'apparence."],['tuto',"Ready to land","Prêt à débarquer","Finish the tutorial.","Terminez le tutoriel."],['totem',"Curse breaker","Briseur de malédiction","Survive a Conseil holding the cursed totem.","Survivez à un Conseil avec le totem maudit."],['ambassador','Diplomat','Diplomate',"As an ambassador, get someone from the other tribe eliminated.","En ambassadeur, faites éliminer quelqu'un de l'autre tribu."],['judge',"The judge","Le juge","Take away someone's vote from the judgement island.","Retirez un droit de vote depuis l'île du jugement."],['malus',"Bottom of the class","Lanterne rouge","Finish last in a penalty challenge.","Finissez dernier d'une épreuve à malus."],['season',"Season finale","Fin de saison","Complete a 3-game season.","Terminez une saison de 3 parties."],['seasonobj',"All-Star","All-Star","Win an All-Stars game.","Gagnez une partie All-Stars."],['allstars','All-Star','All-Star',"Win an All-Stars game.","Gagnez une partie All-Stars."],['code',"Challenge accepted","Défi relevé","Play a friend's challenge code.","Jouez le code de défi d'un ami."],['share',"Word of mouth","Bouche à oreille","Share your season recap.","Partagez votre récapitulatif."],['secretobj',"Mission impossible","Mission secrète","Achieve your secret objective.","Réussissez votre objectif secret."],['rival',"Sworn enemies","Ennemis jurés","Have a named rival.","Ayez un rival désigné."],['rivalbeat',"Last word","Le dernier mot","Outlast your rival.","Survivez plus longtemps que votre rival."],['doctor',"Hanging on","Tenir bon","Get the doctor's green light to carry on.","Obtenez le feu vert du médecin pour continuer."],['morale',"Good vibes","Bonne ambiance","Keep your tribe's morale at its best (😄).","Portez le moral de votre tribu au plus haut (😄)."],['redo',"Once more","Encore une fois","Repeat a camp action with the Again button.","Refaites une action de camp avec le bouton Refaire."]]
    .forEach(([id,en,fr,den,dfr])=>a.push({id,g:'feat',en,fr,den,dfr}));
@@ -3684,14 +3684,19 @@ function nightLearning(){allyDecay();rivalCheck(S.ds&&S.ds.lines);const hs=S.pla
 const mood=v=>v>25?[L("Close ally","Allié proche","Aliado cercano"),'good']:v>8?[L("Friendly","Amical","Amistoso"),'good']:v>-8?[L("Neutral","Neutre","Neutral"),'ok']:v>-25?[L("Wary","Méfiant","Desconfiado"),'bad']:[L("Hostile","Hostile","Hostil"),'bad'];
 const bondGain=p=>({charismatic:22,chief:16,strategic:16,shy:11,competitor:14,hothead:10,manipulator:18,loyal:16,survivor:13,carer:20,joker:20,lone:8,shirker:12}[p.arch]||14)+(perk(p)==='talker'?5:0);
 const away=p=>(S.away||[]).includes(p.id);
+/* v2.125 : les jours de Conseil, la tribu qui ne va pas au Conseil a aussi son troisième moment (« Soir au camp ») */
+const toConseil=p=>S.merged||!S.pendingImm||!S.pendingImm.voters||S.pendingImm.voters.includes(p.id);
+const whenOf=(p,w)=>w==='tc'&&!toConseil(p)?'ev':w;
 const whenLabel=w=>w==='tc'?L("Back at camp before the Council","Retour au camp avant le Conseil","De vuelta al campamento antes del Consejo"):w==='pm'?L("Afternoon at camp","Après-midi au camp","Tarde en el campamento"):w==='ev'?L("Evening at camp","Soirée au camp","Tarde en el campamento"):L("Morning camp","Matin au camp","Mañana en el campamento");
-const PACES={5:{am:2,pm:1,ev:1,tc:1},7:{am:3,pm:1,ev:2,tc:1},9:{am:3,pm:2,ev:2,tc:2}},BASEA=PACES[9];let PACE_NEXT=null;
+/* v2.125 : vrais 5 / 7 / 9 actions par jour (matin · après-midi · soir ou avant le Conseil, jamais les deux le même jour ; avant : 4 / 5-6 / 7).
+   AIR = tours des aventuriers virtuels et travail de référence d'un moment (inchangés) ; paceMul ramène le travail du joueur à cette référence. */
+const PACES={5:{am:2,pm:2,ev:1,tc:1},7:{am:3,pm:2,ev:2,tc:2},9:{am:3,pm:3,ev:3,tc:3}},AIR={am:3,pm:2,ev:2,tc:2},BASEA=AIR;let PACE_NEXT=null;
 const pace=()=>S&&PACES[S.pace]?S.pace:9;
 const ACTIONS=new Proxy({},{get:(o,k)=>PACES[pace()][k]});
 const paceMul=w=>BASEA[w]/PACES[pace()][w];
 const PACEN={5:()=>L("Fast","Rapide"),7:()=>L("Balanced","Équilibré"),9:()=>L("Full","Complet")};
 function paceSnap(p){const t=tk(p),o={};for(const q of S.players){o['a'+q.id]=S.aff[q.id][p.id];o['b'+q.id]=S.aff[p.id][q.id]}return{t,food:S.food[t]||0,meals:MEALS(t),wood:W(t),sh:SH(t),en:p.energy,mot:p.mot,w:{...wrec(p.id)},aff:o}}
-function paceApply(p,b,mul){if(mul<=1)return;const t=b.t,k=mul-1,rr=v=>{const x=v*k;return Math.floor(x)+(Math.random()<x-Math.floor(x)?1:0)};
+function paceApply(p,b,mul){if(mul===1)return;/* v2.125 : mul < 1 aussi (rythme 9 : chaque action pèse un peu moins) */const t=b.t,k=mul-1,rr=v=>{const x=v*k;return Math.floor(x)+(Math.random()<x-Math.floor(x)?1:0)};
   const df=(S.food[t]||0)-b.food;if(df>0)S.food[t]+=rr(df);const dm=MEALS(t)-b.meals;if(dm>0)S.meals[t]+=rr(dm);const dw=W(t)-b.wood;if(dw>0&&!p._woodPace)addWood(t,rr(dw));delete p._woodPace;const ds=SH(t)-b.sh;if(ds>0)addSh(t,Math.round(ds*k));
   const de=p.energy-b.en;if(de)p.energy=clamp(Math.round(p.energy+de*k));if(p.mot!=null&&b.mot!=null){const dmo=p.mot-b.mot;if(dmo)p.mot=clamp(Math.round(p.mot+dmo*k))}
   const w=wrec(p.id);for(const key in b.w){const d=(w[key]||0)-(b.w[key]||0);if(d>0)w[key]+=d*k}
@@ -3746,14 +3751,14 @@ async function campPhase(when,lines){
 storyTick();
 
   let C=S.camp&&S.camp.when===when&&S.camp.day===S.day?S.camp:null;
-  if(!C)C=S.camp={when,day:S.day,r:0,order:shuffle(humansAlive().filter(x=>!away(x)&&(when!=='tc'||S.merged||!S.pendingImm||!S.pendingImm.voters||S.pendingImm.voters.includes(x.id)))).map(p=>p.id),fin:[],acted:[]};
+  if(!C)C=S.camp={when,day:S.day,r:0,order:shuffle(humansAlive().filter(x=>!away(x))).map(p=>p.id),fin:[],acted:[]};
   const multi=C.order.length>1;
-  for(;C.r<BASEA[when];C.r++){
+  for(;C.r<Math.max(AIR[when],ACTIONS[when]);C.r++){
     if(C.r<ACTIONS[when])for(const id of C.order){const p=P(id);if(C.fin.includes(id)||C.acted.includes(id)||!p.alive)continue;
-      if(C.r===0||multi)await passPhone(p,whenLabel(when));VIEW=p.id;
+      if(C.r===0||multi)await passPhone(p,whenLabel(whenOf(p,when)));VIEW=p.id;
       const pb=paceSnap(p);const cont=await humanCamp(p,when,ACTIONS[when]-C.r);VIEW=null;paceApply(p,pb,paceMul(when));S.stratLk=S.stratLk||{};S.stratLk[p.id]=S.day;STRAT_PEND=null;
       C.acted.push(id);if(!cont)C.fin.push(id)}
-    aiCamp(lines);C.acted=[];
+    if(C.r<AIR[when])aiCamp(lines);C.acted=[];
   }
   S.camp=null;if(when==="ev")S.banner=null;if(when==='am')S.introBox=null;
 }
@@ -3779,9 +3784,9 @@ async function humanCamp(p,when,left){musicSet('camp');
   if(left===ACTIONS[when]&&when==='am')await maybeDilemma(p,tk(p),tribeMembers(tk(p)).filter(m=>m.id!==p.id));
   if(DAG4())dag4Clear();
   save();
-  const t=tk(p),mates=tribeMembers(t).filter(m=>m.id!==p.id),wl=whenLabel(when);
+  const t=tk(p),mates=tribeMembers(t).filter(m=>m.id!==p.id),wl=whenLabel(whenOf(p,when));
   const myNotes=left===ACTIONS[when]&&when==='am'?(S.wx&&S.wx.notes||[]).filter(n=>n.t===t):[];
-  const _dt=dayType(S.day),nextLbl=when==='tc'?L("Go to the Council","Aller au Conseil","Ir al Consejo"):when==='ev'?L("Go to sleep","Aller dormir","Ir a dormir"):when==='am'?(_dt.includes('C')?L("Go to the confort challenge","Aller à l'épreuve de confort","Ir a la prueba de recompensa"):L("End the morning","Finir la matinée","Terminar la mañana")):_dt.includes('I')?L("Go to the immunity challenge","Aller à l'épreuve d'immunité","Ir a la prueba de inmunidad"):_dt.includes('T')?L("Go to the Council","Aller au Conseil","Ir al Consejo"):L("End the afternoon","Finir l'après-midi","Terminar la tarde");
+  const _dt=dayType(S.day),nextLbl=when==='tc'&&whenOf(p,when)==='tc'?L("Go to the Council","Aller au Conseil","Ir al Consejo"):whenOf(p,when)==='ev'?L("Go to sleep","Aller dormir","Ir a dormir"):when==='am'?(_dt.includes('C')?L("Go to the confort challenge","Aller à l'épreuve de confort","Ir a la prueba de recompensa"):L("End the morning","Finir la matinée","Terminar la mañana")):_dt.includes('I')?L("Go to the immunity challenge","Aller à l'épreuve d'immunité","Ir a la prueba de inmunidad"):_dt.includes('T')?L("Go to the Council","Aller au Conseil","Ir al Consejo"):L("End the afternoon","Finir l'après-midi","Terminar la tarde");
   const _lm=p._lastMsg;S.seen=S.seen||{};const news=((S.feed||{})[t]||[]).filter(e=>e.n&&e.n>(S.seen[p.id]||0)&&e.id!==p.id&&e.d===S.day).slice(-6);S.seen[p.id]=S.feedN||0;
   const awayIds=(S.away||[]).filter(id=>P(id).tribe===t||S.merged),backIds=S.back&&(S.back.d===S.day||(S.back.d===S.day-1&&when==='am'))?S.back.ids.filter(id=>P(id).alive&&id!==p.id&&(P(id).tribe===t)):[];
   const newsBox=`${todayBox(p,t,news.length,news.some(e=>['water','fire','sick'].includes(e.k)||(e.k==='shelter'&&SH(t)>=100)))}${awayIds.length?`<p class="secret">🏝️ ${L(`Away on the reward: ${awayIds.map(id=>esc(P(id).name)).join(', ')}. They are back before the immunity challenge.`,`Partis en récompense : ${awayIds.map(id=>esc(P(id).name)).join(', ')}. Ils reviennent avant l'épreuve d'immunité.`,`De excursión por la recompensa: ${awayIds.map(id=>esc(P(id).name)).join(', ')}. Vuelven antes de la prueba de inmunidad.`)}</p>`:''}${backIds.length?`<p class="secret">🏝️ ${L(`${backIds.map(id=>esc(P(id).name)).join(' and ')} ${backIds.length>1?'are':'is'} back from the reward, rested and well fed.`,`${backIds.map(id=>esc(P(id).name)).join(' et ')} ${backIds.length>1?'sont revenus':'est revenu'} de la récompense, reposé${backIds.length>1?'s':''} et rassasié${backIds.length>1?'s':''}.`,`${backIds.map(id=>esc(P(id).name)).join(' y ')} ${backIds.length>1?'han vuelto':'ha vuelto'} de la recompensa, descansado${backIds.length>1?'s':''} y bien comido${backIds.length>1?'s':''}.`)}</p>`:''}`;
@@ -3867,7 +3872,7 @@ async function humanCamp(p,when,left){musicSet('camp');
     msg=got?L(`You found <b>${plantN(k).toLowerCase()}</b>.${PLANTS[k].food?` The tribe gains ${got-1} ration${got-1===1?'':'s'}.`:''}${PLANTS[k].en?` You feel the energy coming back.`:''}`,`Vous avez trouvé : <b>${plantN(k).toLowerCase()}</b>.${PLANTS[k].food?` La tribu gagne ${got-1} ration${got-1>1?'s':''}.`:''}${PLANTS[k].en?` Vous retrouvez de l'énergie.`:''}`,`Has encontrado: <b>${plantN(k).toLowerCase()}</b>.${PLANTS[k].food?` La tribu gana ${got-1} ración${got-1===1?'':'es'}.`:''}${PLANTS[k].en?` Sientes que recuperas energía.`:''}`)+(fast?' '+L("Fast climb: one extra ration.","Montée rapide : une ration de plus."):'')
       :L(`You searched for ${plantN(k).toLowerCase()} for hours and came back with nothing.`,`Vous avez cherché (${plantN(k).toLowerCase()}) pendant des heures, sans rien trouver.`,`Has buscado (${plantN(k).toLowerCase()}) durante horas y vuelves sin nada.`);
   }else if(act==='wood'){
-    p.energy-=8;const mg=await campMini(p,'wood');const wet=S.wx&&(S.wx.type==='rain'||S.wx.type==='storm');/* v2.75 : 4 bûches pour un mini-jeu ≥ 95 ; le message donne le total réel, rythme du jour compris */const base=Math.max(1,Math.round(((mg!=null?(mg>=95?4:mg>=80?3:mg>=45?2:1):(Math.random()<.5+(st(p,'str')-55)/150?3:2))-(wet?1:0))*effOf(p))),pm=paceMul(when),extra=pm>1?Math.round(base*(pm-1)):0,n=base+extra;addWood(t,n);credit(p,'wood',base);if(extra)p._woodPace=1;if(Math.random()<.03)sicken(p,'cut',L(`${p.name} cut a hand on a branch and the wound got infected.`,`${p.name} s'est entaillé${p.g==='f'?'e':''} la main sur une branche et la plaie s'est infectée.`,`${p.name} se cortó la mano con una rama y la herida se infectó.`));
+    p.energy-=8;const mg=await campMini(p,'wood');const wet=S.wx&&(S.wx.type==='rain'||S.wx.type==='storm');/* v2.75 : 4 bûches pour un mini-jeu ≥ 95 ; le message donne le total réel, rythme du jour compris */const base=Math.max(1,Math.round(((mg!=null?(mg>=95?4:mg>=80?3:mg>=45?2:1):(Math.random()<.5+(st(p,'str')-55)/150?3:2))-(wet?1:0))*effOf(p))),pm=paceMul(when),extra=pm!==1?Math.max(1-base,Math.round(base*(pm-1))):0,n=base+extra;addWood(t,n);credit(p,'wood',base);if(extra)p._woodPace=1;if(Math.random()<.03)sicken(p,'cut',L(`${p.name} cut a hand on a branch and the wound got infected.`,`${p.name} s'est entaillé${p.g==='f'?'e':''} la main sur une branche et la plaie s'est infectée.`,`${p.name} se cortó la mano con una rama y la herida se infectó.`));
     msg=L(`You dragged back ${n} log${n>1?'s':''}${wet?'. Everything is soaked, so less was usable':''}. The tribe now has ${W(t)}.`,`Vous rapportez ${n} bûche${n>1?'s':''}${wet?'. Tout est trempé, une partie est inutilisable':''}. La tribu en a maintenant ${W(t)}.`,`Traes ${n} tronco${n>1?'s':''}${wet?'. Todo está empapado, así que se aprovecha menos':''}. La tribu tiene ahora ${W(t)}.`);
   }else if(act==='fire'&&W(t)<1){msg=L("There is no dry wood at camp. Gather wood first.","Pas de bois sec au camp. Ramassez d'abord du bois.","No hay leña seca en el campamento. Recoge leña primero.")
   }else if(act==='fire'){
@@ -3879,7 +3884,7 @@ async function humanCamp(p,when,left){musicSet('camp');
     <button class="btn" data-act="go">${L("Pick up the wood","Prendre le bois","Coger la madera")}</button>`);
     /* v2.122 : le feu prend au camp si et seulement s'il prend dans le jeu ; 2 bûches, 1 seule s'il est allumé vite (FM.fast) */
     await countdown();let raw=await withGiveUp(gameFire());const LF=window.__lastFire;
-    if(raw>=0&&LF&&LF.lit){const fast=LF.t<FM.fast;let k=1;if(!fast&&W(t)>=1){addWood(t,-1);k=2}const s=nf(LF.t.toFixed(1)),n=fast?1:2;S.fire[t]=true;credit(p,'fire',1);fireLogs(p,k);unlock(p,'fire');tribeMembers(t).forEach(m=>{if(m.id!==p.id)mutual(p.id,m.id,4)});msg=L(`<b>Fire!</b> Lit in ${s} s, ${n===1?'just one log':'two logs'}. The tribe cheers, and they won't forget who lit it.`,`<b>Le feu !</b> Allumé en ${s} s, ${n===1?'une seule bûche':'deux bûches'}. La tribu exulte, et n'oubliera pas qui l'a allumé.`)}
+    if(raw>=0&&LF&&LF.lit){const fast=LF.t<FM.fast;if(fast)unlock(p,'campace');let k=1;if(!fast&&W(t)>=1){addWood(t,-1);k=2}const s=nf(LF.t.toFixed(1)),n=fast?1:2;S.fire[t]=true;credit(p,'fire',1);fireLogs(p,k);unlock(p,'fire');tribeMembers(t).forEach(m=>{if(m.id!==p.id)mutual(p.id,m.id,4)});msg=L(`<b>Fire!</b> Lit in ${s} s, ${n===1?'just one log':'two logs'}. The tribe cheers, and they won't forget who lit it.`,`<b>Le feu !</b> Allumé en ${s} s, ${n===1?'une seule bûche':'deux bûches'}. La tribu exulte, et n'oubliera pas qui l'a allumé.`)}
     else msg=L("Plenty of smoke, no flame. One log burned for nothing.","Beaucoup de fumée, pas de flamme. Une bûche brûlée pour rien.");}
   }else if(act==='craft'){
     p.energy-=10;(S.trap=S.trap||{})[t]=true;wrec(p.id).score+=6;motv(p,1);feedAdd(p,'craft');
@@ -4204,6 +4209,14 @@ function campView(t,when,me){const sh=SH(t),fire=S.fire[t],water=HW(t),food=S.fo
   if(wx==='storm')g+=`<rect class="cv-flash" width="360" height="170" fill="#fff" opacity="0" pointer-events="none"/>`;
   const svg=`<svg viewBox="0 0 360 170" class="cvivant" role="img" aria-label="${L("Your camp","Votre camp")}">${g}</svg>`;
   return `<details class="campd" data-keep="camp" ${keepGet().camp!==0?'open':''}><summary>🏝️ ${L("The camp","Le camp")}</summary><figure class="campscene">${svg}</figure><p class="campinfo muted">${L("Tap an element of the camp or a castaway.","Touchez un élément du camp ou un aventurier.")}</p></details>`}
+/* v2.125 : « Main de maître » = le meilleur résultat du jeu, dans son unité, et non plus la note interne ≥ 90 :
+   Pêche toutes les prises, Bois 4 bûches, Cueillette avec la ration en plus, Abri sans nœud raté ; Feu rapide (humanCamp, act 'fire') */
+function campAce(p,kind,sc){try{
+  if(kind==='fish')return window.__lastFish!=null&&window.__lastFish>=3+(S.kit&&S.kit[tk(p)]?1:0);
+  if(kind==='wood')return window.__lastWood>=4;
+  if(kind==='climb')return window.__lastClimb!=null&&sc>=80;
+  if(kind==='shelter')return !!window.__lastShelter&&window.__lastShelter.miss===0;
+  }catch(e){}return false}
 async function campMini(p,kind){LASTMG=null;window.__mgCampP=p;if(SET.campmg==='quick'||S.quick||SIMR||AUTO)return null;
   /* v2.75 : l'abri a son schéma, son rappel et un essai qui ne compte pas */
   const demo=kind==='shelter',campH=`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${CAMPMG_N[kind]()}</h1><p>${gR(kind)}</p><!--trynote-->
@@ -4213,7 +4226,7 @@ async function campMini(p,kind){LASTMG=null;window.__mgCampP=p;if(SET.campmg==='
   if(a==='try'){window.__poison=false;await countdown();const _tr=await lancerMiniJeu(kind);window.__poison=false;a=await ask(mgTryDone(campH,_tr))}
   if(a==='mgback')return campRetour();if(a!=='mgplay')return null;
   await countdown();let sc=await lancerMiniJeu(kind);if(sc<0)return null;LASTMG=sc;
-  if(sc>=90)unlock(p,'campace');
+  if(campAce(p,kind,sc))unlock(p,'campace');
   try{const k='aventuriers-campmg',o=JSON.parse(localStorage.getItem(k)||'{}');o[kind]=1;localStorage.setItem(k,JSON.stringify(o));if(['fish','wood','shelter','climb'].every(x=>o[x]))unlock(p,'camp4')}catch(e){}
   return sc}
 const campMgRow=()=>`<div class="field"><span class="lbl">${L("Camp mini-games","Mini-jeux au camp","Minijuegos en el campamento")}</span><div class="flagrow">${[['ask','🎮',L("Offer them","Les proposer","Proponerlos")],['quick','⚡',L("Always quick","Toujours vite","Siempre rápido")]].map(([k,i,n])=>`<button data-campmg="${k}" class="${(SET.campmg||'ask')===k?'on':''}">${i} <span>${n}</span></button>`).join('')}</div></div>`;
@@ -4230,12 +4243,12 @@ function campTabs(){try{const w=$app.querySelector('.wrap');if(!w||!w.querySelec
   defs.forEach(([c,ic,n])=>{const d=kids.find(x=>c==='reads'?/^🤔/.test((x.querySelector('summary')||{}).textContent?.trim()||''):x.classList.contains(c));if(!d)return;if(c==='mystats'){d.remove();return}
     const sm=d.querySelector(':scope > summary'),st=sm?sm.textContent.trim():'';let lbl=n,icon=ic;
     if(c==='wxd'){const m=st.match(/^(\S+)\s.*?(-?\d+\s?°C)/);icon=m?m[1]:'⛅';lbl=m?m[2].replace(/\s/,' '):n}
-    let bdg='';if(c==='mission'){const m=st.match(/(\d+\/\d+|✓)/);if(m)bdg=m[1]}
+    let bdg='';if(c==='mission'){const m=st.match(/(\d+\/\d+(?: %| \S+)?|✓)/);if(m)bdg=m[1]}
     const warn=c==='eyed'&&!!(sm&&sm.querySelector('.mood.bad'))||c==='mystats'&&d.classList.contains('sick');const unread=c==='news'&&d.dataset.unread==='1';
     tabs.push({c,icon,lbl,d,warn,unread,bdg})});
   if(tabs.length<2)return;if(CTAB_SEL&&!tabs.some(t=>t.c===CTAB_SEL))CTAB_SEL=null;
   const bar=document.createElement('div');bar.className='ctabs';bar.setAttribute('role','tablist');
-  bar.innerHTML=tabs.map(t=>`<button type="button" role="tab" class="ctab${t.c===CTAB_SEL?' on':''}${t.warn?' warn':''}${t.unread?' unread':''}" data-ctab="${t.c}" aria-selected="${t.c===CTAB_SEL}">${t.icon} ${esc(t.lbl)}${t.bdg?`<i class="mbadge${t.bdg==='✓'||/^(\d+)\/\1$/.test(t.bdg)?' ok':''}">${t.bdg}</i>`:''}</button>`).join('');
+  bar.innerHTML=tabs.map(t=>`<button type="button" role="tab" class="ctab${t.c===CTAB_SEL?' on':''}${t.warn?' warn':''}${t.unread?' unread':''}" data-ctab="${t.c}" aria-selected="${t.c===CTAB_SEL}">${t.icon} ${esc(t.lbl)}${t.bdg?`<i class="mbadge${t.bdg==='✓'||/^(\d+)\/\1(?:\D|$)/.test(t.bdg)?' ok':''}">${t.bdg}</i>`:''}</button>`).join('');
   const panel=document.createElement('div');panel.className='ctpanel';tabs.forEach(t=>{const box=document.createElement('div');box.className='ctp '+t.c+(t.c===CTAB_SEL?' on':'');[...t.d.childNodes].forEach(n=>{if(!(n.nodeType===1&&n.tagName==='SUMMARY'))box.appendChild(n)});t.d.remove();panel.appendChild(box)});
   const ag=w.querySelector(':scope > .agroups');ag.after(bar);bar.after(panel);
   const il=w.querySelector(':scope > .infolbl');if(il)il.remove()}catch(e){}}
@@ -4453,7 +4466,8 @@ function lancerMiniJeu(g){return withGiveUp((PLAYG[g]||PLAYG.post)())}
    Le feu prend au camp si et seulement s'il prend ici : atouts et météo agissent dans le jeu et sont annoncés (fireMods).
    Niveaux appliqués en partie comme à l'Entraînement (fireLv lit S.diff) ; Expert : zone 54-70 et rafales. Seuil « rapide »
    (1 bûche au lieu de 2) : FIRE.fast. window.__lastFire = {lit, t} ; score rendu inchangé (allumé 60 + rapidité). */
-const FIRE={zone:{e:[35,85],n:[40,80],h:[46,74],x:[54,70]},fast:{e:10,n:11,h:12,x:13},
+const FIRE={zone:{e:[35,85],n:[40,80],h:[46,74],x:[54,70]},fast:{e:12,n:10,h:8.4,x:7.2},/* v2.125 : « rapide » = 40 % de la limite du feu (avant 10 / 11 / 12 / 13 s) */
+  
   /* v2.123 : frotter au bon rythme (largeurs de planche par seconde) ; dans la bande, la braise vient en T s */
   rub:{e:[.5,3.2],n:[.7,2.6],h:[.9,2.2],x:[1,1.8]},rubT:{e:4,n:5,h:6,x:7},
   /* v2.123 : limites par niveau [braise, feu] en secondes (avant : 20 et 32 partout) */
@@ -4466,7 +4480,7 @@ function fireMods(p){const lv=fireLv(),z=FIRE.zone[lv]||FIRE.zone.n;let mul=1,wi
   /* v2.124 : au camp, le geste s'apprend : jusqu'aux 60 % de la partie, braise jusqu'à 40 % plus rapide, bande du rythme et zone verte plus larges */
   const ex=p&&INGAME&&S?clamp((S.day-1)/Math.max(6,((S.totalDays||20)*.6)),0,1):0,rb=FIRE.rub[lv]||FIRE.rub.n;wid+=Math.round(8*ex);
   return{lv,mul:Math.max(.7,mul),dec,rub:[rb[0]*(1-.3*ex),rb[1]*(1+.3*ex)],rubT:(FIRE.rubT[lv]||5)*(1-.4*ex),lim:FIRE.lim[lv]||FIRE.lim.n,z:[clamp(z[0]-wid,5,60),clamp(z[1]+wid,40,95)],fast:FIRE.fast[lv]||12}}
-const fireModsTxt=m=>L(`Heat ×${m.mul.toFixed(2)} · cools ${m.dec}%/s · green zone ${m.z[0]} to ${m.z[1]}%${m.lv==='x'?' · gusts':''} · fast under ${m.fast} s`,`Chaleur ×${nf(m.mul.toFixed(2))} · retombe ${m.dec} %/s · zone verte ${m.z[0]} à ${m.z[1]} %${m.lv==='x'?' · rafales':''} · rapide sous ${m.fast} s`);
+const fireModsTxt=m=>L(`Heat ×${m.mul.toFixed(2)} · cools ${m.dec}%/s · green zone ${m.z[0]} to ${m.z[1]}%${m.lv==='x'?' · gusts':''} · fast under ${m.fast} s`,`Chaleur ×${nf(m.mul.toFixed(2))} · retombe ${m.dec} %/s · zone verte ${m.z[0]} à ${m.z[1]} %${m.lv==='x'?' · rafales':''} · rapide sous ${nf(m.fast)} s`);
 /* aventurier assis de profil (tourné vers la droite) : « rub » pousse le bâton dans la rainure (tip = bout du bâton), « blow » penché vers la braise */
 function fireFig(col,pose,tip){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${I}" stroke-width="${w+3.4}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const arm=(sx,sy,hx,hy,w)=>{const a=26,b=26,dx=hx-sx,dy=hy-sy,d=Math.min(a+b-.5,Math.hypot(dx,dy)),c=(a*a+d*d-b*b)/(2*a*d),an=Math.atan2(dy,dx)+Math.acos(clamp(c,-1,1)),ex=sx+a*Math.cos(an),ey=sy+a*Math.sin(an);return L(`M${sx} ${sy} L${ex} ${ey} L${hx} ${hy}`,w)};
@@ -4529,7 +4543,7 @@ function gameFire(){return miniJeu(j=>{const camp=INGAME?window.__mgCampP:null,M
 /* Lot L10 : en finale, l'animateur annonce chaque poignard trouvé (clés dagger.found.*, à valider par Dialogues). */
 const DAGMSG={1:name=>L(`${name} digs up the first dagger. Two left…`,`${name} déterre le premier poignard. Plus que deux…`,`${name} desentierra el primer puñal. Quedan dos…`),2:name=>L(`${name} has the second dagger. Only one left!`,`${name} tient le deuxième poignard. Il n'en reste qu'un !`,`${name} tiene el segundo puñal. ¡Solo queda uno!`),3:name=>L(`${name} takes the last dagger. For whoever has none, the adventure ends here.`,`${name} prend le dernier poignard. Pour celui qui n'en a pas, l'aventure s'arrête ici.`,`${name} se lleva el último puñal. Para quien no tenga, la aventura termina aquí.`),me:()=>L("Your dagger! You stay in the adventure.","Votre poignard ! Vous restez dans l'aventure.","¡Tu puñal! Sigues en la aventura.")};
 function gameDagger(){return miniJeu(j=>{
-  const DLV=(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:(typeof MGLV==='function'?MGLV():'n'),N=({e:8,n:10,h:12,x:14})[DLV]||10,WARM=DLV!=='x',tx=rint(0,N-1),ty=rint(0,N-1);let digs=0;window.__lastDigs=null;
+  const DLV=(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:(typeof MGLVX==='function'?MGLVX():'n'),N=({e:8,n:10,h:12,x:14})[DLV]||10,WARM=DLV!=='x',tx=rint(0,N-1),ty=rint(0,N-1);let digs=0;window.__lastDigs=null;
   let RV=[],FIN=false;const SAID=new Set();try{if(typeof INGAME!=='undefined'&&INGAME&&typeof S!=='undefined'&&S&&typeof alive==='function'){FIN=true;window.__dagAI={};RV=alive().filter(p=>!p.human).map(p=>{const sc=aiScore(p,'dagger');window.__dagAI[p.id]=sc;return{n:p.name,k:Math.max(1,Math.round((100-sc)/4)+1)}})}
     else{const pool=shuffle([...AI_NAMES]);RV=[0,1,2].map(i=>({n:pool[i],k:Math.max(1,Math.round(N*rnd(.7,1.7)))}))}}catch(e){RV=[]}
   const rvRow=()=>RV.length?`<div class="dagrv">${RV.map(r=>{const done=Math.min(digs,r.k),f=digs>=r.k,rem=r.k-digs;return `<span class="dagr ${f?'ok':''}"><b>${rivTete(r.n,22)}${esc(r.n)}</b><i>${f?`🗡️ ${L("found in","trouvé en","encontrado en")} ${r.k}`:`${rem<=1?'🔥':rem<=3?'♨️':rem<=6?'🌡️':'❄️'} ${triesTxt(done)}`}</i></span>`}).join('')}</div>`:'';
@@ -4987,8 +5001,10 @@ return new Promise(res=>{const STAGE=12,FSTAGE=20,LIM=s=>Math.max(.55,1-(s-1)*.1
 })}
 const aiPostTime=a=>+(Math.max(8,18+st(a,'end')*0.42*(0.75+0.25*a.energy/100)+rnd(-6,26))).toFixed(1);
 
-const MGLV=()=>{if(typeof TLV!=='undefined'&&TLV&&!INGAME)return TLV==='x'?'h':TLV;const b=({easy:'e',normal:'n',hard:'h'})[S&&S.diff]||'n';return S&&S.merged&&INGAME?(b==='e'?'n':'h'):b};
+const MGLV=()=>{if(typeof TLV!=='undefined'&&TLV&&!INGAME)return TLV==='x'?'h':TLV;const b=({easy:'e',normal:'n',hard:'h',expert:'h'})[S&&S.diff]||'n';return S&&S.merged&&INGAME?(b==='e'?'n':'h'):b};
 const MD=(e,n,h)=>({e,n,h})[MGLV()];
+/* v2.125 : en partie Expert, les jeux qui ont un palier Expert (camp, Comestible, Poignards) le jouent toute la partie ; les autres jouent Difficile (MGLV) */
+const MGLVX=()=>INGAME&&S&&S.diff==='expert'&&!(typeof TLV!=='undefined'&&TLV)?'x':MGLV();
 const MG_SYM=['🐚','🥥','🐟','🌴','🦀','🔥'];
 function mgMakeSeq(){const LV=MGLV(),[a,b,c,d]=shuffle(MG_SYM);const out=x=>pick(MG_SYM.filter(y=>!x.includes(y)));
   const types=['abab','abcab','aabaa','abbab','count','abccb'];if(LV!=='e')types.push('abcd','aabb','mirror','mirror');
@@ -5041,7 +5057,7 @@ function gameLogs(){return miniJeu(j=>{const Lv=pick(LOG_LEVELS[MGLV()]);const v
    fenêtre 0,3 s, eau trouble, 1 poisson sur 3 gros (ferrer puis garder le doigt appuyé 1 s), sans horloge accélérée.
    window.__lastFish = prises (ou null) ; score interne = prises / essais × 100. */
 const FISH={e:{win:.65,fake:0,extra:0,shadow:.55},n:{win:.5,fake:.3,extra:0,shadow:.45},h:{win:.4,fake:.4,extra:1,shadow:.4},x:{win:.3,fake:.5,extra:1,shadow:.12,big:1/3}};
-const fishLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const fishLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
 const fishTxt=v=>L(`${v?v+' fish':'No fish'}`,`${v?v+' poisson'+(v>1?'s':''):'Aucun poisson'}`);
 function fishFig(col){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${I}" stroke-width="${w+3.4}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   return `<g transform="translate(-58 -62)">`+L('M106 132 L100 150 L96 168',6)+L('M108 132 L116 150 L120 168',6)
@@ -5102,7 +5118,7 @@ function gameFish(){return miniJeu(j=>{const LV=fishLv(),C=FISH[LV]||FISH.n,I='#
    Score interne pour le camp (inchangé : ≥ 95 → 4, ≥ 80 → 3, ≥ 45 → 2, sinon 1) : WOOD_SC[bûches]. window.__lastWood = bûches, ou null. */
 const WOOD={b1:{e:{w:22,sp:1.1},n:{w:17,sp:1.3},h:{w:12,sp:1.6,vary:.6},x:{w:9,sp:1.8,vary:.45,knot:1}},
   b2:{e:{per:1.4,zn:14,zw:40},n:{per:1.2,zn:12,zw:31},h:{per:1,zn:10,zw:24,vary:.25},x:{per:.9,zn:9,zw:20,vary:.3,knotty:.5}}},WOOD_SC=[0,30,60,85,97],WOOD_TV='aventuriers-bois-entrainement';
-const woodLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const woodLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
 const woodTrainVar=()=>{try{return localStorage.getItem(WOOD_TV)==='b2'?'b2':'b1'}catch(e){return'b1'}};
 let WOOD_ALT=null;const woodVar=()=>{if(typeof TLV!=='undefined'&&TLV&&!INGAME)return woodTrainVar();
   /* au camp : alternance, gardée dans le navigateur (hors de S, aucun tirage du jeu) */
@@ -5187,9 +5203,9 @@ function gameWoodSplit(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b2[LV]||WOO
    vert foncé = parfait, vert clair = bien). L'abri du camp est dessiné à son étape (poteaux < 20 %, charpente < 60 %, toit) ;
    chaque nœud pose un bambou ou une palme. Gain par nœud : Parfait 1, Bien 0,7, Juste 0,4, Raté 0, × valeur d'un nœud
    (shelterKnot : métier « Bricoleur », Force + Survie, fatigue), plus de plancher « Faire vite ».
-   Expert = palier à part : tempo irrégulier, plus de contretemps, 3 nœuds doubles. window.__lastShelter = {q, n, pct}. */
+   Expert = palier à part : tempo irrégulier, plus de contretemps, 3 nœuds doubles. window.__lastShelter = {q, n, pct, miss} (v2.125 : miss = nœuds ratés). */
 const SHELTER={e:{N:10,perf:90,tol:320},n:{N:12,perf:80,tol:280},h:{N:14,perf:70,tol:240},x:{N:14,perf:60,tol:200}},SHEL_TV='aventuriers-abri-entrainement',SHEL_ALT='aventuriers-abri-alt';
-const shelterLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const shelterLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
 const shelterTrainVar=()=>{try{return localStorage.getItem(SHEL_TV)==='r'?'r':'c'}catch(e){return'c'}};
 let SHEL_MEM='c';
 /* au camp : la version à jouer (l'essai garde la même), puis shelterNext() après la vraie partie */
@@ -5212,10 +5228,12 @@ function shelterFig(col,arm){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="
 function gameShelter(){return miniJeu(j=>{const LV=shelterLv(),C=SHELTER[LV]||SHELTER.n,V=shelterVar(),I='#2a1c0d';window.__lastShelter=null;
   const me=window.__mgP||window.__mgCampP,col=me&&me.tribe&&TR[me.tribe]?TR[me.tribe].c:'#f39a2b';
   const camp=INGAME&&window.__mgCampP&&S?window.__mgCampP:null,sh0=camp?SH(tk(camp)):30,step=sh0<20?'p':sh0<60?'c':'t';
-  const {b,dbl}=shelterBeats(LV),used=b.map(()=>false),slots=Array(C.N).fill(0),full=shelterFull(camp);let filled=0,q=0,clock=0,last=null,arm=0,flash=0,ticked=-1;
+  const {b,dbl}=shelterBeats(LV),used=b.map(()=>false),slots=Array(C.N).fill(0),full=shelterFull(camp);let filled=0,q=0,miss=0,clock=0,last=null,arm=0,flash=0,ticked=-1;
   window.__shT={b,used,clock:()=>clock};/* pour les tests */
   const quick=i=>i>0&&b[i]-b[i-1]<.42,pct=()=>Math.round(full*q/b.length*10)/10;
-  screen(`${eb(gN('shelter'))}<h1 class="h">${L("Tie the bamboo in rhythm","Bambous en rythme","Ata los bambúes al ritmo")}</h1><p class="muted">${V==='r'?L("Tap Tie when a marker passes the green (dark green = perfect).","Touchez « Attacher » quand un repère passe dans le vert (vert foncé = parfait)."):L("A circle closes in on the ring on every beat. Tap Tie when it touches.","Un cercle se resserre sur l'anneau à chaque temps. Touchez « Attacher » au moment où il le touche.","Un círculo se cierra sobre el anillo en cada tiempo. Toca «Atar» justo cuando lo toque.")}${LV==='n'?' '+L("The tempo speeds up halfway.","Le tempo accélère à mi-parcours.","El ritmo se acelera a mitad."):LV==='h'?' '+L("The tempo changes and some beats fall off the beat.","Le tempo change et certains temps tombent à contretemps.","El ritmo cambia y algunos tiempos caen a contratiempo."):LV==='x'?' '+L("Irregular tempo; red = double knot (two taps).","Tempo irrégulier ; rouge = nœud double (deux touches)."):''}</p>
+  screen(`${eb(gN('shelter'))}<h1 class="h">${L("Tie the bamboo in rhythm","Bambous en rythme","Ata los bambúes al ritmo")}</h1>${(()=>{/* v2.125 : le geste est dans le rappel (data.MGH.shelter / shelter_rope) ; ici, seulement ce qui change selon la version et le niveau */
+    const t=[V==='r'?L("Dark green = perfect.","Vert foncé = parfait."):'',LV==='n'?L("The tempo speeds up halfway.","Le tempo accélère à mi-parcours.","El ritmo se acelera a mitad."):LV==='h'?L("The tempo changes and some beats fall off the beat.","Le tempo change et certains temps tombent à contretemps.","El ritmo cambia y algunos tiempos caen a contratiempo."):LV==='x'?L("Irregular tempo; red = double knot (two taps).","Tempo irrégulier ; rouge = nœud double (deux touches)."):''].filter(Boolean).join(' ');
+    return t?`<p class="muted">${t}</p>`:''})()}
     <div class="mgabri" id="as"><svg viewBox="0 0 320 210" id="asv" aria-hidden="true"></svg></div>
     <p class="lbl">${L("Knots","Nœuds","Nudos")} <b class="num" id="ak">0</b>/${C.N} · ${L("Shelter","Abri")} <b class="num" id="ap">+0 %</b></p>
     <button class="btn" id="tie" style="padding:26px;font-size:1.25rem">${L("Tie","Attacher","Atar")}</button><p class="fb" id="fb"> </p>`);
@@ -5244,9 +5262,9 @@ function gameShelter(){return miniJeu(j=>{const LV=shelterLv(),C=SHELTER[LV]||SH
     el('ak').textContent=filled;el('ap').textContent='+'+nf(pct().toFixed(1))+' %';say(k===1?L("Perfect","Parfait","Perfecto"):k===.7?L("Good","Bien","Bien"):L("Just","Juste","Justo"))};
   [el('tie'),el('as')].forEach(x=>x.addEventListener('pointerdown',e=>{e.preventDefault();tie()}));el('tie').onclick=e=>{if(e.detail===0)tie()};
   const loop=now=>{if(j.fini||!document.getElementById('asv'))return;if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;arm=Math.max(0,arm-dt);flash=Math.max(0,flash-dt*3);
-    b.forEach((x,i)=>{if(!used[i]&&clock>x+C.tol/1000){used[i]=true;if(!dbl.includes(i)){slots[Math.min(filled,slots.length-1)]=0;filled++;el('ak').textContent=filled}say(L("Missed","Raté","Fallo"))}});
+    b.forEach((x,i)=>{if(!used[i]&&clock>x+C.tol/1000){used[i]=true;miss++;if(!dbl.includes(i)){slots[Math.min(filled,slots.length-1)]=0;filled++;el('ak').textContent=filled}say(L("Missed","Raté","Fallo"))}});
     const cur=b.filter(x=>x<=clock).length-1;if(cur>ticked){ticked=cur;flash=1;try{sfx('tap')}catch(_){}}
-    if(used.every(Boolean)&&clock>b[b.length-1]+.4){j.fini=true;const v=pct();window.__lastShelter={q,n:b.length,pct:v};draw();say(shelterTxt(v));j.fin(Math.round(q/b.length*100),900);return}
+    if(used.every(Boolean)&&clock>b[b.length-1]+.4){j.fini=true;const v=pct();window.__lastShelter={q,n:b.length,pct:v,miss};draw();say(shelterTxt(v));j.fin(Math.round(q/b.length*100),900);return}
     draw();requestAnimationFrame(loop)};
   draw();requestAnimationFrame(loop)})}
 /* v2.116 : Cueillette. Cocotier penché dessiné et grimpeur adulte de profil (planche validée le 10/11) ;
@@ -5254,7 +5272,7 @@ function gameShelter(){return miniJeu(j=>{const LV=shelterLv(),C=SHELTER[LV]||SH
    Score : en haut sous le seuil (75 / 70 / 65 / 60 % de T) = 80 à 100 ; en haut au-delà = 60 à 80 ; pas en haut = jusqu'à 45.
    Au camp : cueillir = en haut (score ≥ 50) ; fruit en plus sous le seuil (score ≥ 80). window.__lastClimb = temps, ou null. */
 const CLIMB={top:{e:24,n:28,h:32,x:36},seuil:{e:.75,n:.70,h:.65,x:.60},gust:{n:[2200,3800],h:[2200,3800],x:[1600,2800]},nut:{h:[1800,3200,750],x:[1400,2400,600]}};
-const climbLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const climbLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
 const climbSeuil=(lv,T)=>T*(CLIMB.seuil[lv]||.7);
 const climbTxt=v=>L(`${nf(v.toFixed(1))} s`,`${nf(v.toFixed(1))} s`,`${nf(v.toFixed(1))} s`);
 const CLIMB_TRUNK='M34 300 C38 220 64 140 104 70';
@@ -5376,7 +5394,7 @@ function teamNote(sc,win){const T=TEAMS.get(sc);if(!T)return'';let h='';
   if(T.sit.length)h+=`<p class="hint">⚫ ${L("Sat out (black ball)","Sur le banc (boule noire)","En el banquillo (bola negra)")} : ${T.sit.map(id=>esc(P(id).name)).join(', ')}</p>`;
   return h}
 
-Object.assign(ACH_ES,{campace:["Mano maestra","Consigue 90 o más en un minijuego del campamento."],camp4:['Manitas',"Juega a los cuatro minijuegos del campamento."],relaywin:["Portador del testigo","Gana una prueba de relevos con tu tribu."],puzzlewin:["El cerebro del equipo","Gana una prueba por equipos resolviendo el rompecabezas."],tugteam:['Todos a una',"Gana una prueba de tira y afloja por equipos."],blackball:["Bola negra","Saca una bola negra y quédate en el banquillo."]});
+Object.assign(ACH_ES,{campace:["Mano maestra","Consigue el mejor resultado en un minijuego del campamento: todas las capturas, 4 troncos, la ración extra, ningún nudo fallado o un fuego rápido."],camp4:['Manitas',"Juega a los cuatro minijuegos del campamento."],relaywin:["Portador del testigo","Gana una prueba de relevos con tu tribu."],puzzlewin:["El cerebro del equipo","Gana una prueba por equipos resolviendo el rompecabezas."],tugteam:['Todos a una',"Gana una prueba de tira y afloja por equipos."],blackball:["Bola negra","Saca una bola negra y quédate en el banquillo."]});
 
 const triesTxt=n=>L(`${n} ${n>1?'tries':'try'}`,`${n} essai${n>1?'s':''}`,`${n} intento${n>1?'s':''}`);
 const bestGet=()=>{try{return JSON.parse(localStorage.getItem('aventuriers-best')||'{}')||{}}catch(e){return{}}};
@@ -5425,7 +5443,7 @@ const EDCARDS=[['coco',null,"A ripe coconut","Une noix de coco mûre",1,'ev','co
 const EDPAIRS=[[22, 23], [24, 25], [26, 27], [28, 29], [30, 31]];
 const EDLV={e:{n:10,t:4000,ev:10,et:0,pi:0,pen:0,bdg:1,pairs:0},n:{n:12,t:3000,ev:7,et:4,pi:1,pen:0,bdg:1,pairs:0},h:{n:14,t:2500,ev:4,et:6,pi:4,pen:1,bdg:1,pairs:0},x:{n:16,t:2000,ev:2,et:6,pi:8,pen:1,bdg:0,pairs:2}};
 const ED_VUS='aventuriers-comestible-vus';
-const edLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const edLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLVX();
 function edIco(k){const s=(typeof ICONES!=='undefined'&&ICONES[k])||EDIC[k]||'';return `<span class="dico edico"><svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">${s}</svg></span>`}
 function edDeck(lv){const R=EDLV[lv]||EDLV.n,pl=new Set((S&&S.loc&&INGAME?LOC(S.loc).plants:[])||[]);
   let v={n:0,c:{}};try{v=JSON.parse(localStorage.getItem(ED_VUS)||'null')||v}catch(e){}v.n=(v.n||0)+1;v.c=v.c||{};
@@ -5793,7 +5811,7 @@ function horlogeVitesse(f){try{
     if(raf)window.requestAnimationFrame=cb=>raf.call(window,()=>cb(HORLOGE.now()))}
   HORLOGE.b=HORLOGE.now();HORLOGE.r=HORLOGE.pn();HORLOGE.f=f}catch(e){}}
 const SCORE_RULES={
-  fire:()=>L("Rub at the right rhythm (the green band narrows with the level) to get an ember, then hold 3 s of blowing in the green. Limits: ember within 15 / 12 / 10 / 9 s, fire within 30 / 25 / 21 / 18 s by level. Lit fast (10 / 11 / 12 / 13 s): 1 log, otherwise 2. Record: best time.","Frottez au bon rythme (la bande verte se resserre avec le niveau) pour obtenir la braise, puis tenez 3 s de souffle dans le vert. Limites : braise en 15 / 12 / 10 / 9 s, feu en 30 / 25 / 21 / 18 s selon le niveau. Allumé vite (10 / 11 / 12 / 13 s) : 1 bûche, sinon 2. Record : le meilleur temps."),
+  fire:()=>L("Rub at the right rhythm (the green band narrows with the level) to get an ember, then hold 3 s of blowing in the green. Limits: ember within 15 / 12 / 10 / 9 s, fire within 30 / 25 / 21 / 18 s by level. Lit fast (under 12 / 10 / 8.4 / 7.2 s): 1 log, otherwise 2. Record: best time.","Frottez au bon rythme (la bande verte se resserre avec le niveau) pour obtenir la braise, puis tenez 3 s de souffle dans le vert. Limites : braise en 15 / 12 / 10 / 9 s, feu en 30 / 25 / 21 / 18 s selon le niveau. Allumé vite (sous 12 / 10 / 8,4 / 7,2 s) : 1 bûche, sinon 2. Record : le meilleur temps."),
   totem:()=>L("Sequences repeated ÷ 6 × 100. 6 sequences in a row = 100.","Séquences réussies ÷ 6 × 100. 6 séquences d'affilée = 100.","Secuencias repetidas ÷ 6 × 100. 6 secuencias seguidas = 100."),
   post:()=>L("Seconds held ÷ 30 × 100. 30 s = 100.","Secondes tenues ÷ 30 × 100. 30 s = 100.","Segundos aguantados ÷ 30 × 100. 30 s = 100."),
   rope:()=>L("Based on your pace over 8 s: 2 pulls/s = 0, 9 pulls/s = 100.","Selon votre rythme sur 8 s : 2 tractions/s = 0, 9 tractions/s = 100.","Según tu ritmo durante 8 s: 2 tirones/s = 0, 9 tirones/s = 100."),
@@ -6686,8 +6704,10 @@ function missionOf(p,mates){S.mis=S.mis||{};let m=S.mis[p.id];if(m&&m.d===S.day)
 const missionTxt=m=>m.k==='bond'?L(`Spend time with ${esc(P(m.who).name)}`,`Passez du temps avec ${esc(P(m.who).name)}`):MISSIONS[m.k][1]();
 function missionProg(p,m){if(m.k==='bond')return p._lastBond===m.who&&p._lastBondD===S.day?1:0;if(m.k==='watch')return p.nightPlan&&p.nightPlan.d===S.day&&p.nightPlan.k==='watch'?1:0;return Math.max(0,Math.round(wrec(p.id)[m.k]-m.base))}
 function missionCheck(p){const m=S.mis&&S.mis[p.id];if(!m||m.done||m.d!==S.day)return;if(missionProg(p,m)>=MISSIONS[m.k][0]){m.done=true;motv(p,5);p.energy=clamp(p.energy+4);p.misN=(p.misN||0)+1;if(p.misN>=5)unlock(p,'mission5');toast('🎯 '+L("Mission accomplished","Mission accomplie"),missionTxt(m)+' · +5 '+L("motivation","motivation"))}}
+/* v2.125 : l'unité suit le compteur (« 3/10 % » et non « 3/10 », qui faisait croire à 10 missions) */
+const MIS_U={shelter:' %',fish:' 🐟',wood:' 🪵'};
 function missionLine(p,mates){if(S.merged&&alive().length<=4)return'';const m=missionOf(p,mates);missionCheck(p);const g=MISSIONS[m.k][0],pr=Math.min(g,missionProg(p,m));
-  return `<details class="mission ${m.done?'done':''}" data-keep="mission" ${keepOpen('mission')}><summary>🎯 <b>${L("Mission","Mission")}</b> · ${m.done?'✓':`${pr}/${g}`}</summary><p>${missionTxt(m)}</p></details>`}
+  return `<details class="mission ${m.done?'done':''}" data-keep="mission" ${keepOpen('mission')}><summary>🎯 <b>${L("Mission","Mission")}</b> · ${m.done?'✓':`${pr}/${g}${MIS_U[m.k]||''}`}</summary><p>${missionTxt(m)}</p></details>`}
 
 const LOTS=[['meal','🍗',()=>L("A hot meal","Un repas chaud"),()=>L("+25 energy","+25 d'énergie")],['letter','✉️',()=>L("A letter from home","Une lettre de la famille"),()=>L("+15 motivation","+15 de motivation")],['clue','🗺️',()=>L("A clue to the immunity collar","Un indice sur le collier"),()=>L("Your next jungle search finds the immunity collar if it is hidden","Votre prochaine fouille trouve le collier s'il est caché")],['myst','🎁',()=>L("Mystery lot","Lot mystère"),()=>L("A feast… or a trap","Un festin… ou un piège")]];
 async function auction(q,lines){S.auction=true;const ps=alive();ps.forEach(p=>p.cash=100);const won=[];
@@ -7536,7 +7556,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.124 · 2026-11-12';
+const APP_VER='2.125 · 2026-11-12';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8788,7 +8808,7 @@ try{window.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','ArrowLeft'
 try{document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.ovl.gm [data-pid]');if(!t||e.target.closest('[data-act]')||e.target.closest('summary')||e.defaultPrevented)return;e.stopPropagation();showProfile(+t.dataset.pid)},true)}catch(e){}
 try{document.addEventListener('click',e=>{const s=e.target.closest&&e.target.closest('.sbi,.sbday[data-tip]');if(!s)return;e.stopPropagation();toast(s.textContent.trim()||'·',s.dataset.tip||'')},true);
   document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const s=e.target.closest&&e.target.closest('.sbi,.sbday[data-tip]');if(s){e.preventDefault();toast(s.textContent.trim(),s.dataset.tip||'')}})}catch(e){}
-try{document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ctab');if(!b)return;e.preventDefault();const c=b.dataset.ctab;CTAB_SEL=CTAB_SEL===c?null:c;if(c==='news'&&CTAB_SEL==='news'){try{S._newsSeen=S._news.h.length}catch(_){}b.classList.remove('unread')}
+try{document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ctab');if(!b)return;e.preventDefault();const c=b.dataset.ctab;/* v2.125 : un onglet reste toujours ouvert (toucher l'onglet ouvert ne le ferme plus) */CTAB_SEL=c;if(c==='news'&&CTAB_SEL==='news'){try{S._newsSeen=S._news.h.length}catch(_){}b.classList.remove('unread')}
   const bar=b.parentElement,panel=bar.nextElementSibling;bar.querySelectorAll('.ctab').forEach(x=>{const on=x.dataset.ctab===CTAB_SEL;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});
   if(panel)panel.querySelectorAll(':scope > .ctp').forEach(d=>{const k=[...d.classList].find(k=>['news','histd','campd','wxd','mission','objd','today','mystats','eyed','reads','reld','jrnd'].includes(k));d.classList.toggle('on',k===CTAB_SEL)});
   if(CTAB_SEL&&panel)try{panel.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(_){}})}catch(e){}
