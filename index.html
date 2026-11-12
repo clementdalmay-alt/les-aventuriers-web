@@ -2237,6 +2237,9 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 .fdots span{display:inline-flex;gap:6px}
 .fdots i{width:14px;height:14px;border-radius:50%;background:var(--line);border:2px solid var(--ink,#2a1c0d)}
 .fdots i.ok{background:var(--good)}.fdots i.ko{background:var(--bad)}.fdots i.cur{background:var(--torch)}
+/* v2.121 : Construire l'abri dessiné (abri à son étape, aventurier, rythme en cercles ou sur la corde) */
+.mgabri{position:relative;border-radius:12px;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.mgabri svg{display:block;width:100%;height:auto;max-height:28vh}
 </style>
 
 <div id="app"></div>
@@ -3719,7 +3722,10 @@ function searchWater(p){const t=tk(p);S.wTries=S.wTries||{};const tries=S.wTries
 const SH=t=>(!S.shelter||S.shelter[t]==null)?100:S.shelter[t];
 const addSh=(t,v)=>{if(!S.shelter)S.shelter={A:100,B:100,M:100};S.shelter[t]=clamp(SH(t)+v)};
 const shTxt=t=>{const v=SH(t);return v>=100?L("solid shelter","abri solide","refugio sólido"):v>=40?L(`shelter ${v}%`,`abri ${v} %`,`refugio ${v} %`):v>0?L(`shelter started (${v}%)`,`abri commencé (${v} %)`,`refugio empezado (${v} %)`):L("no shelter","pas d'abri","sin refugio")};
-function buildShelter(p,mg){const t=tk(p);let n=Math.round(12+(st(p,'str')+st(p,'surv')-110)/6+rnd(0,8)+(perk(p)==='handy'?6:0));if(mg!=null)n=Math.round(n*Math.max(1,0.55+mg/100*0.9));/* v2.75 : jouer ne rapporte jamais moins que « Faire vite » */n=Math.max(1,Math.round(n*effOf(p)));addSh(t,n);p.energy-=10;return n}
+function buildShelter(p,mg){const t=tk(p);
+  /* v2.121 : avec le mini-jeu, chaque nœud compte (Parfait 1, Bien 0,7, Juste 0,4) × shelterFull, sans plancher */
+  if(mg!=null){const L=window.__lastShelter,q=L?L.q/L.n:mg/100,n=Math.max(0,Math.round(shelterFull(p)*q));addSh(t,n);p.energy-=10;return n}
+  let n=Math.round(12+(st(p,'str')+st(p,'surv')-110)/6+rnd(0,8)+(perk(p)==='handy'?6:0));if(mg!=null)n=Math.round(n*Math.max(1,0.55+mg/100*0.9));/* v2.75 : jouer ne rapporte jamais moins que « Faire vite » */n=Math.max(1,Math.round(n*effOf(p)));addSh(t,n);p.energy-=10;return n}
 async function campPhase(when,lines){
 storyTick();
 
@@ -3833,7 +3839,7 @@ async function humanCamp(p,when,left){musicSet('camp');
     msg=k===2?L("A hot meal. You feel your strength coming back (+15 energy).","Un repas chaud. Vous sentez vos forces revenir (+15 d'énergie).","Una comida caliente. Sientes que recuperas fuerzas (+15 de energía)."):k===1?L("You chewed a raw ration. Better than nothing (+6 energy).","Vous avez mâché une ration crue. Mieux que rien (+6 d'énergie).","Has masticado una ración cruda. Mejor que nada (+6 de energía)."):L("There is nothing to eat.","Il n'y a rien à manger.","No hay nada que comer.");
   }
   else if(act==='shelter'){
-    const mg=await campMini(p,'shelter');const n=buildShelter(p,mg);credit(p,'shelter',n);
+    const mg=await campMini(p,'shelter');if(mg!=null)shelterNext();const n=buildShelter(p,mg);credit(p,'shelter',n);
     if(SH(t)>=100)unlock(p,'roof');
     msg=SH(t)>=100?L("You tied the last palm leaves on the roof. <b>The shelter is finished.</b>","Vous attachez les dernières palmes sur le toit. <b>L'abri est terminé.</b>","Has atado las últimas hojas de palma al techo. <b>El refugio está terminado.</b>"):L(`You cut bamboo and wove palm leaves. The shelter is now at ${SH(t)}% (+${n}).`,`Vous coupez du bambou et tressez des palmes. L'abri est à ${SH(t)} % (+${n}).`,`Has cortado bambú y trenzado hojas de palma. El refugio está al ${SH(t)} % (+${n}).`);
   }
@@ -4183,7 +4189,7 @@ function campView(t,when,me){const sh=SH(t),fire=S.fire[t],water=HW(t),food=S.fo
   return `<details class="campd" data-keep="camp" ${keepGet().camp!==0?'open':''}><summary>🏝️ ${L("The camp","Le camp")}</summary><figure class="campscene">${svg}</figure><p class="campinfo muted">${L("Tap an element of the camp or a castaway.","Touchez un élément du camp ou un aventurier.")}</p></details>`}
 async function campMini(p,kind){LASTMG=null;window.__mgCampP=p;if(SET.campmg==='quick'||S.quick||SIMR||AUTO)return null;
   /* v2.75 : l'abri a son schéma, son rappel et un essai qui ne compte pas */
-  const demo=kind==='shelter',campH=`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${CAMPMG_N[kind]()}</h1><p>${gR(kind)}</p>${demo?mgDemo(kind):''}<!--trynote-->
+  const demo=kind==='shelter',campH=`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${CAMPMG_N[kind]()}</h1><p>${gR(kind)}</p><!--trynote-->
     <div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu","Jugar al minijuego"),L("Your score decides the result: a great game brings back more.","Votre score décide du résultat : une belle partie rapporte plus.","Tu puntuación decide el resultado: una buena partida da más."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite","Hacerlo rápido"),L("The result depends on your characteristics, as before.","Le résultat dépend de vos caractéristiques, comme avant.","El resultado depende de tus características, como antes."))}</div><div class="row">${demo?`<!--try--><button class="btn ghost" data-act="try">🧪 ${L("Practice","Essai","Prueba")}</button>`:''}<button class="btn ghost" data-act="mgback">← ${L("Back","Retour","Volver")}</button></div>
     <p class="hint">${L("You can turn mini-games off in the Settings.","Vous pouvez désactiver les mini-jeux dans les Réglages.","Puedes desactivar los minijuegos en los Ajustes.")}</p>`;
   let a=await ask(campH);
@@ -5124,24 +5130,71 @@ function gameWoodSplit(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b2[LV]||WOO
     else{let per=C.per;if(C.vary)per*=1+C.vary*Math.sin(tt/1000*2.1+n);ph=(ph+dt/per)%1;th=DOWN+(TOP-DOWN)*(.5-.5*Math.cos(2*Math.PI*ph))}
     chips=woodChipsMove(chips,dt);draw();requestAnimationFrame(loop)};
   draw();requestAnimationFrame(loop)})}
-function gameShelter(){return miniJeu(j=>{const LV=MGLV(),N=MD(10,12,14);
-  const iv=[];for(let i=1;i<N;i++){let s=LV==='e'?720:i<N/2?760:600;if(LV==='h'){s=i<N/2?720:580;if(i%4===2||i%5===3)s=Math.round(s/2)}iv.push(s)}
-  const beats=[performance.now()+1100];iv.forEach(x=>beats.push(beats[beats.length-1]+x));const PERF=MD(90,80,70),TOL=MD(320,280,240);
-  screen(`${eb(gN('shelter')+' · '+L(`${N} knots`,`${N} nœuds`,`${N} nudos`))}<h1 class="h">${L("Tie the bamboo in rhythm","Bambous en rythme","Ata los bambúes al ritmo")}</h1><p class="muted">${L("A circle closes in on the ring on every beat. Tap Tie when it touches.","Un cercle se resserre sur l'anneau à chaque temps. Touchez « Attacher » au moment où il le touche.","Un círculo se cierra sobre el anillo en cada tiempo. Toca «Atar» justo cuando lo toque.")}${LV==='n'?' '+L("The tempo speeds up halfway.","Le tempo accélère à mi-parcours.","El ritmo se acelera a mitad."):LV==='h'?' '+L("The tempo changes and some beats fall off the beat.","Le tempo change et certains temps tombent à contretemps.","El ritmo cambia y algunos tiempos caen a contratiempo."):''}</p>
-    <div class="rhythm"><div class="mgring"></div><div class="mgshrink" id="sh"></div></div><button class="btn" id="tie" style="padding:26px;font-size:1.25rem">🪢 ${L("Tie","Attacher","Atar")}</button><p class="fb" id="fb">${L("Knots","Nœuds","Nudos")} : 0/${N}</p>`);
-  const used=new Set();let score=0,count=0,off=0,lastPd=0,ticked=-1,missed=0;
-  /* v2.75 : temps courts (contretemps) annoncés en couleur, tic et flash à chaque temps, « Raté » quand un temps passe sans nœud */
-  const quick=beats.map((b,i)=>i>0&&b-beats[i-1]<420);
-  const _tieF=()=>{const now=performance.now();let bi=-1,bd=1e9;beats.forEach((b,i)=>{const d=Math.abs(now-b);if(d<bd&&!used.has(i)){bd=d;bi=i}});
-    if(bi<0||bd>Math.min(TOL,(bi>0?beats[bi]-beats[bi-1]:999)*0.5)){off++;el('fb').textContent=L("Off the beat! The knot slips.","Hors rythme ! Le nœud se desserre.","¡Fuera de ritmo! El nudo se afloja.");return}
-    used.add(bi);count++;const sc=bd<PERF?100:bd<PERF*2?70:40;score+=sc;el('fb').textContent=`${sc===100?L("Perfect","Parfait","Perfecto"):sc===70?L("Good","Bien","Bien"):L("Just","Juste","Justo")} · ${L("knots","nœuds","nudos")} : ${count}/${N}`};
-  el('tie').addEventListener('pointerdown',e=>{e.preventDefault();lastPd=performance.now();_tieF()});el('tie').onclick=()=>{if(performance.now()-lastPd<600)return;_tieF()};
-  const loop=()=>{if(j.fini)return;const t=performance.now();const s=el('sh');const i=beats.findIndex(b=>b>=t);
-    try{const r=$app.querySelector('.rhythm .mgring');const cur=i<0?N-1:i-1;if(cur>ticked){ticked=cur;if(cur>=0){try{sfx('tap')}catch(_){}if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}}
-      for(let q=0;q<N;q++){if(q>=missed&&!used.has(q)&&t>beats[q]+Math.min(TOL,(q>0?beats[q]-beats[q-1]:999)*0.5)){missed=q+1;el('fb').textContent=`${L("Missed","Raté","Fallo")} · ${L("knots","nœuds","nudos")} : ${count}/${N}`}}
-      if(s)s.classList.toggle('quick',i>=0&&!!quick[i])}catch(_){}
-    if(s){let k;if(i<=0)k=i===0?1+(beats[0]-t)/1100*0.9:1;else{const p=(t-beats[i-1])/(beats[i]-beats[i-1]);k=1+(1-p)*0.9}s.style.transform=`translate(-50%,-50%) scale(${k})`}
-    if(t>beats[N-1]+500){j.fini=true;j.fin(Math.round(clamp(score/N-off*8)));return}requestAnimationFrame(loop)};requestAnimationFrame(loop)})}
+/* v2.121 : Construire l'abri (planche « Construire l'abri » du 11/11). Deux versions du rythme, en alternance au camp,
+   au choix à l'Entraînement : « c » cercles (un cercle se resserre sur l'anneau), « r » corde (des repères descendent vers le nœud,
+   vert foncé = parfait, vert clair = bien). L'abri du camp est dessiné à son étape (poteaux < 20 %, charpente < 60 %, toit) ;
+   chaque nœud pose un bambou ou une palme. Gain par nœud : Parfait 1, Bien 0,7, Juste 0,4, Raté 0, × valeur d'un nœud
+   (shelterKnot : métier « Bricoleur », Force + Survie, fatigue), plus de plancher « Faire vite ».
+   Expert = palier à part : tempo irrégulier, plus de contretemps, 3 nœuds doubles. window.__lastShelter = {q, n, pct}. */
+const SHELTER={e:{N:10,perf:90,tol:320},n:{N:12,perf:80,tol:280},h:{N:14,perf:70,tol:240},x:{N:14,perf:60,tol:200}},SHEL_TV='aventuriers-abri-entrainement',SHEL_ALT='aventuriers-abri-alt';
+const shelterLv=()=>(typeof TLV!=='undefined'&&TLV&&!INGAME)?TLV:MGLV();
+const shelterTrainVar=()=>{try{return localStorage.getItem(SHEL_TV)==='r'?'r':'c'}catch(e){return'c'}};
+let SHEL_MEM='c';
+/* au camp : la version à jouer (l'essai garde la même), puis shelterNext() après la vraie partie */
+const shelterVar=()=>{if(typeof TLV!=='undefined'&&TLV&&!INGAME)return shelterTrainVar();try{return localStorage.getItem(SHEL_ALT)==='r'?'r':'c'}catch(e){return SHEL_MEM}};
+const shelterNext=()=>{const v=shelterVar()==='r'?'c':'r';SHEL_MEM=v;try{localStorage.setItem(SHEL_ALT,v)}catch(e){}};
+/* valeur totale si tous les nœuds sont parfaits (avant le rythme du jour) */
+const shelterFull=p=>p?(16+(st(p,'str')+st(p,'surv')-110)/6+(perk(p)==='handy'?6:0))*1.45*effOf(p):16*1.45;
+const shelterTxt=v=>L(`+${v.toFixed(1)} % shelter`,`+${nf(v.toFixed(1))} % d'abri`);
+function shelterBeats(LV){const c=SHELTER[LV]||SHELTER.n,b=[],dbl=[];let t=1.4;
+  for(let i=0;i<c.N;i++){b.push(t);let s;if(LV==='e')s=.72;else if(LV==='n')s=i<c.N/2?.76:.6;else if(LV==='h'){s=i<c.N/2?.72:.58;if(i%4===2||i%5===3)s/=2}else{s=.45+Math.random()*.35;if(i%3===1)s/=2}t+=s}
+  if(LV==='x'){[11,7,3].forEach(i=>{if(i<b.length){b.splice(i+1,0,b[i]+.22);for(let k=i+2;k<b.length;k++)b[k]+=.22}});[4,9,14].forEach(k=>dbl.push(k))}
+  return{b,dbl}}
+function shelterFig(col,arm){const I='#2a1c0d',K='#a8734a',L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${I}" stroke-width="${w+3.4}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<g transform="translate(-60 30)">`+L('M106 132 L100 150 L96 168',6)+L('M108 132 L116 150 L120 168',6)
+   +`<path d="M100 92 Q112 88 116 96 L114 128 L100 130 Q96 110 100 92Z" fill="#efe2c4" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/><path d="M99 122 L115 122 L114 134 L100 135Z" fill="${col}" stroke="${I}" stroke-width="2.2"/>`
+   +`<circle cx="108" cy="78" r="10" fill="${K}" stroke="${I}" stroke-width="2.4"/><path d="M98 75 Q108 66 118 73 L118 77 L98 78Z" fill="${col}" stroke="${I}" stroke-width="2"/><path d="M98 76 L90 81 L93 73Z" fill="${col}" stroke="${I}" stroke-width="1.8"/><circle cx="113.5" cy="79" r="1.4" fill="${I}"/>`
+   +(arm?L('M110 98 L124 92 L136 84',4):L('M110 98 L124 104 L136 100',4))+`</g>`}
+function gameShelter(){return miniJeu(j=>{const LV=shelterLv(),C=SHELTER[LV]||SHELTER.n,V=shelterVar(),I='#2a1c0d';window.__lastShelter=null;
+  const me=window.__mgP||window.__mgCampP,col=me&&me.tribe&&TR[me.tribe]?TR[me.tribe].c:'#f39a2b';
+  const camp=INGAME&&window.__mgCampP&&S?window.__mgCampP:null,sh0=camp?SH(tk(camp)):30,step=sh0<20?'p':sh0<60?'c':'t';
+  const {b,dbl}=shelterBeats(LV),used=b.map(()=>false),slots=Array(C.N).fill(0),full=shelterFull(camp);let filled=0,q=0,clock=0,last=null,arm=0,flash=0,ticked=-1;
+  window.__shT={b,used,clock:()=>clock};/* pour les tests */
+  const quick=i=>i>0&&b[i]-b[i-1]<.42,pct=()=>Math.round(full*q/b.length*10)/10;
+  screen(`${eb(gN('shelter'))}<h1 class="h">${L("Tie the bamboo in rhythm","Bambous en rythme","Ata los bambúes al ritmo")}</h1><p class="muted">${V==='r'?L("Tap Tie when a marker passes the green (dark green = perfect).","Touchez « Attacher » quand un repère passe dans le vert (vert foncé = parfait)."):L("A circle closes in on the ring on every beat. Tap Tie when it touches.","Un cercle se resserre sur l'anneau à chaque temps. Touchez « Attacher » au moment où il le touche.","Un círculo se cierra sobre el anillo en cada tiempo. Toca «Atar» justo cuando lo toque.")}${LV==='n'?' '+L("The tempo speeds up halfway.","Le tempo accélère à mi-parcours.","El ritmo se acelera a mitad."):LV==='h'?' '+L("The tempo changes and some beats fall off the beat.","Le tempo change et certains temps tombent à contretemps.","El ritmo cambia y algunos tiempos caen a contratiempo."):LV==='x'?' '+L("Irregular tempo; red = double knot (two taps).","Tempo irrégulier ; rouge = nœud double (deux touches)."):''}</p>
+    <div class="mgabri" id="as"><svg viewBox="0 0 320 210" id="asv" aria-hidden="true"></svg></div>
+    <p class="lbl">${L("Knots","Nœuds","Nudos")} <b class="num" id="ak">0</b>/${C.N} · ${L("Shelter","Abri")} <b class="num" id="ap">+0 %</b></p>
+    <button class="btn" id="tie" style="padding:26px;font-size:1.25rem">${L("Tie","Attacher","Atar")}</button><p class="fb" id="fb"> </p>`);
+  const sv=el('asv'),say=t=>{const f=el('fb');if(f)f.textContent=t};
+  const shelterSvg=()=>{const X0=90,X1=230,G=196;let g='';const pole=(x,h)=>`<rect x="${x-4}" y="${G-h}" width="8" height="${h}" rx="3" fill="#9fb35a" stroke="${I}" stroke-width="2"/><path d="M${x-4} ${G-h*.5} h8 M${x-4} ${G-h*.8} h8" stroke="#6f8a3a" stroke-width="1.4"/>`;
+    g+=pole(X0,100)+pole(X1,100)+pole(160,118);
+    if(step!=='p')g+=`<path d="M${X0-6} ${G-100} L160 ${G-122} L${X1+6} ${G-100}" fill="none" stroke="${I}" stroke-width="7" stroke-linecap="round"/><path d="M${X0-6} ${G-100} L160 ${G-122} L${X1+6} ${G-100}" fill="none" stroke="#9fb35a" stroke-width="4" stroke-linecap="round"/>`;
+    const n=slots.length;for(let i=0;i<n;i++){const s=slots[i];
+      if(step==='t'){const k=i/(n-1),x=X0+(X1-X0)*k,y=G-100-(1-Math.abs(k-.5)*2)*22,c=s===2?'#4f9a55':s===1?'#5fa865':s===.5?'#86b47a':null;
+        g+=c?`<path d="M${x} ${y-4} q-12 14 -2 34 q12 -16 2 -34Z" fill="${c}" stroke="${I}" stroke-width="1.6"/>`:`<path d="M${x} ${y-4} q-12 14 -2 34 q12 -16 2 -34Z" fill="none" stroke="#97ada2" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/>`}
+      else{const y=G-12-i*(86/(n-1)),c=s===2?'#c4d67a':s===1?'#9fb35a':s===.5?'#7d8d4a':null;
+        g+=c?`<rect x="${X0-2}" y="${y-3}" width="${X1-X0+4}" height="6" rx="3" fill="${c}" stroke="${I}" stroke-width="1.6"/><path d="M${X0-4} ${y-5} l8 10 M${X1-4} ${y-5} l8 10" stroke="#ead8a9" stroke-width="2"/>`:`<rect x="${X0}" y="${y-2}" width="${X1-X0}" height="4" rx="2" fill="none" stroke="#97ada2" stroke-width="1" stroke-dasharray="3 3" opacity=".4"/>`}}
+    return g};
+  const rhythmSvg=()=>{const t=clock;let g='';
+    if(V==='c'){const cx=286,cy=52,R=18,ni=b.findIndex((x,i)=>!used[i]&&x>=t-.05);g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#f39a2b" stroke-width="5"/>`;
+      if(ni>=0){const k=1+Math.max(0,Math.min(1,(b[ni]-t)/.7))*1.1;g+=`<circle cx="${cx}" cy="${cy}" r="${R*k}" fill="none" stroke="${dbl.includes(ni)?'#ef6b5b':quick(ni)?'#f39a2b':'#efe2c4'}" stroke-width="2.4" opacity=".85"/>`}
+      if(flash>0)g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="#f39a2b" opacity="${flash*.5}"/>`}
+    else{const X=286,Y0=14,Y1=176,px=150,zl=C.perf*2/1000*px,zd=C.perf/1000*px;
+      g+=`<path d="M${X} ${Y0} V${Y1+14}" stroke="#ead8a9" stroke-width="5" stroke-dasharray="7 3"/><rect x="${X-16}" y="${Y1-zl}" width="32" height="${zl*2}" rx="6" fill="#6fcf8f" opacity=".85"/><rect x="${X-16}" y="${Y1-zd}" width="32" height="${zd*2}" rx="5" fill="#1f7a45"/><path d="M${X-18} ${Y1} h36" stroke="${I}" stroke-width="2"/>`;
+      b.forEach((x,i)=>{if(used[i])return;const d=x-t;if(d<-.25||d>1.1)return;g+=`<circle cx="${X}" cy="${Y1-d*px}" r="8" fill="${dbl.includes(i)?'#ef6b5b':quick(i)?'#f39a2b':'#6e4b2c'}" stroke="${I}" stroke-width="2"/>`})}
+    return g};
+  const draw=()=>{if(!document.getElementById('asv'))return;sv.innerHTML=`<rect width="320" height="210" fill="#183635"/><rect y="196" width="320" height="14" fill="#e6d6a8"/><path d="M0 196 H320" stroke="${I}" stroke-width="2"/>`+shelterSvg()+shelterFig(col,arm>0)+rhythmSvg()};
+  const tie=()=>{if(j.fini)return;let bi=-1,bd=1e9;b.forEach((x,i)=>{const d=Math.abs(clock-x)*1000;if(!used[i]&&d<bd){bd=d;bi=i}});arm=.15;
+    if(bi<0||bd>Math.min(C.tol,(bi>0?(b[bi]-b[bi-1])*1000:999)*.5+40)){say(L("Off the beat! The knot slips.","Hors rythme ! Le nœud se desserre.","¡Fuera de ritmo! El nudo se afloja."));return}
+    used[bi]=true;const k=bd<=C.perf?1:bd<=C.perf*2?.7:.4;q+=k;if(!dbl.includes(bi)){slots[Math.min(filled,slots.length-1)]=k===1?2:k===.7?1:.5;filled++}
+    el('ak').textContent=filled;el('ap').textContent='+'+nf(pct().toFixed(1))+' %';say(k===1?L("Perfect","Parfait","Perfecto"):k===.7?L("Good","Bien","Bien"):L("Just","Juste","Justo"))};
+  [el('tie'),el('as')].forEach(x=>x.addEventListener('pointerdown',e=>{e.preventDefault();tie()}));el('tie').onclick=e=>{if(e.detail===0)tie()};
+  const loop=now=>{if(j.fini||!document.getElementById('asv'))return;if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;arm=Math.max(0,arm-dt);flash=Math.max(0,flash-dt*3);
+    b.forEach((x,i)=>{if(!used[i]&&clock>x+C.tol/1000){used[i]=true;if(!dbl.includes(i)){slots[Math.min(filled,slots.length-1)]=0;filled++;el('ak').textContent=filled}say(L("Missed","Raté","Fallo"))}});
+    const cur=b.filter(x=>x<=clock).length-1;if(cur>ticked){ticked=cur;flash=1;try{sfx('tap')}catch(_){}}
+    if(used.every(Boolean)&&clock>b[b.length-1]+.4){j.fini=true;const v=pct();window.__lastShelter={q,n:b.length,pct:v};draw();say(shelterTxt(v));j.fin(Math.round(q/b.length*100),900);return}
+    draw();requestAnimationFrame(loop)};
+  draw();requestAnimationFrame(loop)})}
 /* v2.116 : Cueillette. Cocotier penché dessiné et grimpeur adulte de profil (planche validée le 10/11) ;
    résultat en temps ; Expert = palier à part (36 étages, rafales et noix plus fréquentes, sans horloge accélérée).
    Score : en haut sous le seuil (75 / 70 / 65 / 60 % de T) = 80 à 100 ; en haut au-delà = 60 à 80 ; pas en haut = jusqu'à 45.
@@ -5202,7 +5255,7 @@ Object.assign(GAMES,{
   logs:{name:"Log Jam",nf:"Casse-tête des rondins",ne:"El atasco de troncos",stat:'mind',rules:"Slide the logs to free the raft. The fewer moves, the more points.",rf:"Faites glisser les rondins pour libérer le radeau. Moins de coups = plus de points.",re:"Desliza los troncos para liberar la balsa. Cuantos menos movimientos, más puntos."},
   fish:{name:"Fishing",nf:"Pêche",ne:"Pesca",stat:'surv',camp:true,rules:"Strike when the float really dives, not when the fish nibbles. Each catch is one fish.",rf:"Ferrez quand le bouchon plonge vraiment, pas quand le poisson grignote. Chaque prise est un poisson."},
   wood:{name:"Woodcutting",nf:"Bois",ne:"Leña",stat:'str',camp:true,rules:"Two versions in turn: cut the branch in 3 aimed strikes, or split logs in 10 seconds. Each log counts.",rf:"Deux versions, l'une après l'autre : coupez la branche en 3 coups visés, ou fendez des bûches en 10 secondes. Chaque bûche compte."},
-  shelter:{name:"Shelter",nf:"Abri",ne:"Refugio",stat:'surv',camp:true,rules:"Tie the bamboo in rhythm.",rf:"Attachez les bambous en rythme.",re:"Ata los bambúes al ritmo."},
+  shelter:{name:"Shelter",nf:"Abri",ne:"Refugio",stat:'surv',camp:true,rules:"Tie the bamboo in rhythm: each knot raises the shelter.",rf:"Attachez les bambous en rythme : chaque nœud fait monter l'abri."},
   climb:{name:"Palm Climb",nf:"Cueillette",ne:"Trepar al cocotero",stat:'agi',camp:true,rules:"Climb the palm by alternating left and right.",rf:"Grimpez au cocotier en alternant gauche et droite.",re:"Trepa al cocotero alternando izquierda y derecha."}});
 Object.assign(PLAYG,{seq:()=>gameSeq(),calc:()=>gameCalc(),logs:()=>gameLogs(),fish:()=>gameFish(),wood:()=>gameWood(),shelter:()=>gameShelter(),climb:()=>gameClimb()});
 POOL.push('seq','calc','logs');TRAIN.push('seq','calc','logs','fish','wood','shelter','climb');
@@ -5653,7 +5706,7 @@ const TLVN={e:()=>L("Easy","Facile"),n:()=>L("Normal","Normal"),h:()=>L("Hard","
 const tlvGet=()=>{try{const v=localStorage.getItem(TLV_KEY);return ['e','n','h','x'].includes(v)?v:'n'}catch(e){return'n'}};
 const tbk=(g,lv)=>lv==='n'?g:g+'_'+lv;
 /* v2.116 : record de la cueillette en temps (clé à part, les anciens scores sur 100 ne sont pas repris) ; poignards et cueillette : le plus petit gagne */
-const recKey=(g,lv)=>tbk(g==='climb'?'climbT':g==='fish'?'fishN':g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):v,recLow=g=>g==='dagger'||g==='climb';
+const recKey=(g,lv)=>tbk(g==='climb'?'climbT':g==='fish'?'fishN':g==='shelter'?'shelterP'+shelterTrainVar():g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):g==='shelter'?shelterTxt(v):v,recLow=g=>g==='dagger'||g==='climb';
 const TFAM=[['new','🆕',()=>L("New challenges","Nouvelles épreuves"),NJK],['logic','🧠',()=>L("Logic","Logique"),['seq','calc','logs']],['camp','🏝️',()=>L("Camp mini-games","Mini-jeux du camp"),['fish','wood','shelter','climb']],['classic','🔥',()=>L("Classic challenges","Épreuves classiques"),null]];
 /* Groupes de l'entraînement : repliés à chaque arrivée depuis l'accueil, gardés ouverts pendant la visite (retour d'une épreuve). */
 const TROPEN=new Set();
@@ -5674,7 +5727,7 @@ function trainScreen(garder){if(garder!==true)TROPEN.clear();const best=bestGet(
 const VIT_CLASSIQUE={e:.8,n:1,h:1.2,x:1.4},VIT_AUTRE={e:1,n:1,h:1,x:1.2};
 ['fire','totem','post','rope','shells','raft','bamboo','swim','coconuts','spear'].forEach(g=>{if(GAMES[g])GAMES[g].vit=VIT_CLASSIQUE});
 if(GAMES.climb)GAMES.climb.vit={e:1,n:1,h:1,x:1};
-if(GAMES.edible)GAMES.edible.vit={e:1,n:1,h:1,x:1};if(GAMES.wood)GAMES.wood.vit={e:1,n:1,h:1,x:1};if(GAMES.fish)GAMES.fish.vit={e:1,n:1,h:1,x:1};/* v2.119 : Expert à part *//* v2.118 : Expert est un palier à part *//* v2.117 : Expert est un palier à part *//* v2.116 : Expert est un palier à part */
+if(GAMES.edible)GAMES.edible.vit={e:1,n:1,h:1,x:1};if(GAMES.wood)GAMES.wood.vit={e:1,n:1,h:1,x:1};if(GAMES.fish)GAMES.fish.vit={e:1,n:1,h:1,x:1};if(GAMES.shelter)GAMES.shelter.vit={e:1,n:1,h:1,x:1};/* v2.121 *//* v2.119 : Expert à part *//* v2.118 : Expert est un palier à part *//* v2.117 : Expert est un palier à part *//* v2.116 : Expert est un palier à part */
 const vitesseEpreuve=(g,lv)=>((GAMES[g]&&GAMES[g].vit)||VIT_AUTRE)[lv]||1;
 const HORLOGE={f:1,b:0,r:0,pn:null,now:null};
 function horlogeVitesse(f){try{
@@ -5704,7 +5757,7 @@ const SCORE_RULES={
   logs:()=>L("100, minus 6 per move over the minimum, minus a little for slow solving (minimum 10).","100, moins 6 par coup au-delà du minimum, moins un peu si c'est lent (minimum 10).","100, menos 6 por movimiento por encima del mínimo, y un poco menos si es lento (mínimo 10)."),
   fish:()=>L("3 tries (4 with the fishing kit, in a game). Each catch brings back one fish. Record: the most catches.","3 essais (4 avec le kit de pêche, en partie). Chaque prise rapporte un poisson. Record : le plus de prises."),
   wood:()=>L("Two versions, alternating at camp. Cut: 3 strikes, 1 log + 1 per clean cut. Split: 10 s, one log per log split (4 at most). Record: the most logs.","Deux versions, en alternance au camp. Couper : 3 coups, 1 bûche + 1 par coup net. Fendre : 10 s, une bûche par bûche fendue (4 au plus). Record : le plus de bûches."),
-  shelter:()=>L("Each piece: 100 (perfect), 70 or 40 by precision; −8 per piece placed off. Score = average.","Chaque pièce : 100 (parfait), 70 ou 40 selon la précision ; −8 par pièce mal posée. Score = moyenne.","Cada pieza: 100 (perfecta), 70 o 40 según la precisión; −8 por pieza mal colocada. Puntuación = media."),
+  shelter:()=>L("Each knot raises the shelter: Perfect full value, Good 70%, Just 40%, Missed nothing. A knot's value depends on your job (Handy) and your Strength + Survival. Two versions alternate at camp. Record: the most shelter.","Chaque nœud fait monter l'abri : Parfait toute la valeur, Bien 70 %, Juste 40 %, Raté rien. La valeur d'un nœud dépend de votre métier (Bricoleur) et de votre Force + Survie. Deux versions en alternance au camp. Record : le plus d'abri."),
   climb:()=>L("Reach the top within 12 s to pick fruit. One extra fruit under 9 s (Easy), 8.4 s (Normal), 7.8 s (Hard) or 7.2 s (Expert). Record: your best time.","Atteignez le haut en 12 s pour cueillir. Un fruit en plus sous 9 s (Facile), 8,4 s (Normal), 7,8 s (Difficile) ou 7,2 s (Expert). Record : votre meilleur temps."),
   maze:()=>L("Canoe reached: 100, minus points per wall touched and for slow time. Otherwise: up to 55 by how close you got.","Pirogue atteinte : 100, moins des points par mur touché et si c'est lent. Sinon : jusqu'à 55 selon la distance parcourue.","Piragua alcanzada: 100, menos puntos por cada pared tocada y si es lento. Si no: hasta 55 según lo cerca que llegues."),
   dive:()=>L("Treasure brought back to the surface ÷ target × 100.","Trésors remontés à la surface ÷ objectif × 100.","Tesoros subidos a la superficie ÷ objetivo × 100."),
@@ -5727,14 +5780,14 @@ const scoreBox=(g,open,extra)=>`<details class="scoreh" ${open?'open':''}><summa
 async function trainGame(g){const lv=tlvGet(),key=recKey(g,lv),best0=bestGet()[key];
   const a=await ask(`${eb(L("Training","Entraînement")+' · '+TLVN[lv]())}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>
     <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?recTxt(g,best0):'—'}</b></div>${scoreBox(g,false)}
-    <div class="seg">${['e','n','h','x'].map(k=>`<button data-act="lv_${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>${g==='wood'?`<div class="seg wvseg">${['b1','b2'].map(k=>`<button data-act="wv_${k}" class="${k===woodTrainVar()?'on':''}">${k==='b1'?L("Cut","Couper"):L("Split","Fendre")}</button>`).join('')}</div>`:''}
+    <div class="seg">${['e','n','h','x'].map(k=>`<button data-act="lv_${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>${g==='shelter'?`<div class="seg wvseg">${['c','r'].map(k=>`<button data-act="sv_${k}" class="${k===shelterTrainVar()?'on':''}">${k==='c'?L("Circles","Cercles"):L("Rope","Corde")}</button>`).join('')}</div>`:''}${g==='wood'?`<div class="seg wvseg">${['b1','b2'].map(k=>`<button data-act="wv_${k}" class="${k===woodTrainVar()?'on':''}">${k==='b1'?L("Cut","Couper"):L("Split","Fendre")}</button>`).join('')}</div>`:''}
     <div class="row"><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><button class="btn ghost" data-act="back">${L("Back","Retour","Volver")}</button></div>`);
-  if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('wv_')){try{localStorage.setItem(WOOD_TV,a.slice(3))}catch(e){}return trainGame(g)}
+  if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('sv_')){try{localStorage.setItem(SHEL_TV,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('wv_')){try{localStorage.setItem(WOOD_TV,a.slice(3))}catch(e){}return trainGame(g)}
   TLV=lv;let sc;window.__rounds=null;try{await countdown(true);horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
-  const dg=g==='dagger',cl=g==='climb',wd=g==='wood',fs=g==='fish',val=dg?window.__lastDigs:cl?(gave?null:window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sc;
+  const dg=g==='dagger',cl=g==='climb',wd=g==='wood',fs=g==='fish',sh=g==='shelter',val=dg?window.__lastDigs:cl?(gave?null:window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
   const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(recLow(g)?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}
   try{const o=JSON.parse(localStorage.getItem('aventuriers-njplayed')||'{}');if(NJK.includes(g)){o[g]=1;localStorage.setItem('aventuriers-njplayed',JSON.stringify(o));if(NJK.every(k=>o[k])){const a=achGet();if(!a.alltrades)unlock({human:true,name:L("Training","Entraînement"),id:-1},'alltrades')}}}catch(e){}
-  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}
+  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}
     ${(()=>{const R=!gave&&(g==='spear'||g==='bamboo')&&Array.isArray(window.__rounds)&&window.__rounds.length?window.__rounds:null;return scoreBox(g,false,R?`${g==='spear'?L("Throws","Lancers","Lanzamientos"):L("Pours","Versements","Vertidos")} : ${R.join(' · ')} → ${L("average","moyenne","media")} ${sc}`:'')})()}
     <div class="row"><button class="btn" data-act="again">${L("Play again","Rejouer","Volver a jugar")}</button><button class="btn ghost" data-act="list">${L("Other challenges","Autres épreuves","Otras pruebas")}</button></div>`);
   if(b==='again')return trainGame(g);trainScreen(true)}
@@ -5775,7 +5828,7 @@ const MGH={fire:()=>L("Rub left-right, then tap Blow to stay in the green.","Fro
   coconuts:()=>L("Tap the coconuts before they roll away.","Touchez les noix de coco avant qu'elles roulent."),
   dagger:()=>L("Dig. 🔥 very close, ❄️ far away.","Creusez. 🔥 tout près, ❄️ loin."),
   shells:()=>L("Tap 1, 2, 3… up to 16.","Touchez 1, 2, 3… jusqu'à 16."),
-  shelter:()=>L("Tap “Tie” when the circle meets the ring. Orange = quick beat.","Touchez « Attacher » quand le cercle touche l'anneau. Orange = temps rapide.")};
+  shelter:()=>shelterVar()==='r'?L("Tap Tie when a marker passes the green. Red = double knot.","Touchez « Attacher » quand un repère passe dans le vert. Rouge = nœud double."):L("Tap “Tie” when the circle meets the ring. Orange = quick beat.","Touchez « Attacher » quand le cercle touche l'anneau. Orange = temps rapide.")};
 let MGHINT=null;
 /* animated demo of the gesture */
 function mgDemo(g){const F=(x,y,anim)=>`<g><circle cx="${x}" cy="${y}" r="9" fill="var(--torch)" opacity=".85">${anim}</circle><circle cx="${x}" cy="${y}" r="15" fill="none" stroke="var(--torch)" stroke-width="2" opacity="0">${anim}<animate attributeName="opacity" values="0;.6;0" dur="1s" repeatCount="indefinite"/></circle></g>`;
@@ -7427,7 +7480,7 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.120 · 2026-11-11';
+const APP_VER='2.121 · 2026-11-11';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
