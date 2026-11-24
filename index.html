@@ -2321,6 +2321,25 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 /* 14 niveau conseillé */
 .lvsug{margin-top:2px}
 .lvsug .linkb{appearance:none;border:0;background:none;color:var(--torch);font:inherit;font-weight:700;text-decoration:underline;padding:6px 4px;min-height:44px;cursor:pointer}
+/* v2.132, lot B (revue 9 axes du 23/11, idée 26) : animation de victoire propre à chaque jeu revu */
+.mgwin{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none;animation:mgw-out 1.7s ease forwards}
+.mgwin svg{width:min(46vw,180px);height:auto;overflow:visible;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));animation:mgw-in .35s cubic-bezier(.3,1.5,.5,1)}
+.mgwin .mwh{fill:rgba(11,28,31,.85);stroke:var(--torch);stroke-width:2;stroke-dasharray:6 7;transform-origin:40px 60px;animation:mgw-spin 1.7s linear}
+.mgwin .mwr{transform-origin:40px 92px;animation:mgw-rise .7s .1s cubic-bezier(.3,1.4,.5,1) both}
+.mgwin .mwp{animation:mgw-pop .5s var(--d,0ms) cubic-bezier(.3,1.6,.5,1) both}
+.mgwin .mwj{animation:mgw-jump .9s .1s ease-in-out both}
+.mgwin .mwg{transform-origin:40px 80px;animation:mgw-grow .8s ease-out both}
+.mgwin .mwd{animation:mgw-drop .6s .15s ease-in both}
+.mgwin .mwf{transform-origin:40px 28px;animation:mgw-flag .5s .5s ease-in-out 2 alternate}
+@keyframes mgw-in{from{transform:scale(.6);opacity:0}}
+@keyframes mgw-out{0%,75%{opacity:1}100%{opacity:0}}
+@keyframes mgw-spin{to{transform:rotate(90deg)}}
+@keyframes mgw-rise{from{transform:scaleY(0)}}
+@keyframes mgw-pop{from{transform:translateY(22px);opacity:0}}
+@keyframes mgw-jump{0%{transform:translateY(30px)}50%{transform:translateY(-14px)}100%{transform:translateY(0)}}
+@keyframes mgw-grow{from{transform:scale(.3);opacity:.2}}
+@keyframes mgw-drop{from{transform:translateY(-34px);opacity:0}}
+@keyframes mgw-flag{to{transform:scaleX(.8)}}
 </style>
 
 <div id="app"></div>
@@ -2526,6 +2545,8 @@ const SKIN=['#f6d6bd','#eab995','#cf946a','#a8714a','#7e4c2d','#5b3621'];
 const HAIR=['#1d1712','#3b2617','#6b4423','#9a4a22','#d2ad62','#2b1d14'];
 const SHIRT=['#2f5d62','#5b4a3a','#3d4f7a','#7a3d3d','#4f6b3a','#6a5a7e','#8a6a2f'];
 function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+/* v2.132 (revue 9 axes du 23/11, idée 25) : au fil des jours (EV, 0 → 1 en 12 jours), en plus des coups de soleil,
+   griffures et barbe naissante : peau bronzée, tee-shirt délavé puis taché, bandana et casquette qui pâlissent. */
 function face(p,size=40,extra=''){
   const EV=p.__ev!=null?p.__ev:(INGAME?evOf(p):0);
   const LK=lookOf(p),g=p.g||'x',skin=SKIN[LK.sk]||SKIN[0],hc=LK.hc,hs=LK.hs,beard=g==='m'&&LK.bd&&LK.bd!=='none'?LK.bd:null,glasses=!!LK.gl,acc=LK.ac||'none',bandana=acc==='bandana',shirt=LK.sh;
@@ -2549,11 +2570,11 @@ function face(p,size=40,extra=''){
   const FID=(()=>{try{return INGAME&&S&&S.players&&p&&p.id!=null&&S.players[p.id]&&S.players[p.id].name===p.name?` data-fid="${p.id}"`:''}catch(_){return ''}})();
   return `<svg class="face ${extra}"${FID} viewBox="0 0 64 64" width="${size}" height="${size}" style="box-shadow:0 0 0 2px ${col}" aria-hidden="true">
     <rect width="64" height="64" fill="var(--panel-2)"/>${back}
-    <rect x="27" y="40" width="10" height="9" fill="${skin}"/><path d="M8 64 Q10 49 32 48 Q54 49 56 64Z" fill="${shirt}"/>
+    <rect x="27" y="40" width="10" height="9" fill="${skin}"/><path d="M8 64 Q10 49 32 48 Q54 49 56 64Z" fill="${shirt}"/>${EV>0?`<path d="M8 64 Q10 49 32 48 Q54 49 56 64Z" fill="#e6d6a8" opacity="${(.3*EV).toFixed(2)}"/>`:''}${EV>.4?`<ellipse cx="24" cy="59" rx="4" ry="2.2" fill="#6b4a32" opacity="${(.35*EV).toFixed(2)}"/><ellipse cx="41" cy="61.5" rx="3" ry="1.6" fill="#6b4a32" opacity="${(.3*EV).toFixed(2)}"/>`:''}
     <circle cx="19" cy="31" r="3" fill="${skin}"/><circle cx="45" cy="31" r="3" fill="${skin}"/>
-    <ellipse cx="32" cy="30" rx="${(13+(p.age&&p.age<25?.5:0)-1.3*EV*(p.build==='strong'?.6:1)).toFixed(2)}" ry="15" fill="${skin}"/>${EV>0?`<ellipse cx="25" cy="35" rx="3" ry="1.8" fill="#d9573b" opacity="${(.28*EV).toFixed(2)}"/><ellipse cx="39" cy="35" rx="3" ry="1.8" fill="#d9573b" opacity="${(.28*EV).toFixed(2)}"/><path d="M29 26.5 L30 27.5 M23 38 l1.2 .6" stroke="#6b4a32" stroke-width="1.1" opacity="${(.45*EV).toFixed(2)}"/><circle cx="38" cy="39" r=".9" fill="#6b4a32" opacity="${(.4*EV).toFixed(2)}"/>${p.energy!=null&&p.energy<35?`<path d="M24 34.2 q3 1.4 6 0 M34 34.2 q3 1.4 6 0" stroke="#4b3a5e" stroke-width="1.2" fill="none" opacity=".55"/>`:''}${EV>.55?`<path d="M20 58 l3 -4 l2 4 M42 60 l2 -5 l3 4" stroke="rgba(0,0,0,.45)" stroke-width="1.3" fill="none"/>`:''}`:''}
+    <ellipse cx="32" cy="30" rx="${(13+(p.age&&p.age<25?.5:0)-1.3*EV*(p.build==='strong'?.6:1)).toFixed(2)}" ry="15" fill="${skin}"/>${EV>0?`<ellipse cx="32" cy="30" rx="13" ry="15" fill="#5a3218" opacity="${(.13*EV).toFixed(2)}"/><circle cx="19" cy="31" r="3" fill="#5a3218" opacity="${(.13*EV).toFixed(2)}"/><circle cx="45" cy="31" r="3" fill="#5a3218" opacity="${(.13*EV).toFixed(2)}"/>`:''}${EV>0?`<ellipse cx="25" cy="35" rx="3" ry="1.8" fill="#d9573b" opacity="${(.28*EV).toFixed(2)}"/><ellipse cx="39" cy="35" rx="3" ry="1.8" fill="#d9573b" opacity="${(.28*EV).toFixed(2)}"/><path d="M29 26.5 L30 27.5 M23 38 l1.2 .6" stroke="#6b4a32" stroke-width="1.1" opacity="${(.45*EV).toFixed(2)}"/><circle cx="38" cy="39" r=".9" fill="#6b4a32" opacity="${(.4*EV).toFixed(2)}"/>${p.energy!=null&&p.energy<35?`<path d="M24 34.2 q3 1.4 6 0 M34 34.2 q3 1.4 6 0" stroke="#4b3a5e" stroke-width="1.2" fill="none" opacity=".55"/>`:''}${EV>.55?`<path d="M20 58 l3 -4 l2 4 M42 60 l2 -5 l3 4" stroke="rgba(0,0,0,.45)" stroke-width="1.3" fill="none"/>`:''}`:''}
     ${AGEF(p)}${MOODSICK(p)}${stub?`<path d="${beardP.full}" ${F} opacity="${stub}"/>`:''}${beard?`<path d="${beardP[beard]}" ${F}/>`:''}
-    ${front}${bandana?`<path d="M18.6 25 Q32 14 45.4 25 L45.6 28.2 Q32 19 18.4 28.2Z" fill="${col}"/>`:''}${acc==='cap'?`<path d="M18 26 Q18 10.5 32 10.5 Q46 10.5 46 26 Q32 19.5 18 26Z" fill="${col}"/><path d="M43 23.5 Q52 21.5 57 25.5 Q50 27.5 44.5 26.5Z" fill="${col}" opacity=".8"/>`:''}
+    ${front}${bandana?`<path d="M18.6 25 Q32 14 45.4 25 L45.6 28.2 Q32 19 18.4 28.2Z" fill="${col}" opacity="${(1-.35*EV).toFixed(2)}"/>`:''}${acc==='cap'?`<g opacity="${(1-.35*EV).toFixed(2)}"><path d="M18 26 Q18 10.5 32 10.5 Q46 10.5 46 26 Q32 19.5 18 26Z" fill="${col}"/><path d="M43 23.5 Q52 21.5 57 25.5 Q50 27.5 44.5 26.5Z" fill="${col}" opacity=".8"/></g>`:''}
     ${EV>.3&&hs!=='bald'?`<path d="M28 13.5 q1 -4 3 -5 M35 13.5 q2 -3 5 -3" stroke="${hc}" stroke-width="1.4" fill="none" opacity="${Math.min(1,EV).toFixed(2)}"/>`:''}
     <path d="${(()=>{const fx=p.__ev!=null?null:moodFx(p);return fx&&fx.sad?'M24 26.8 L30 25 M34 25 L40 26.8':brows})()}" stroke="${hc==='#bdb8b0'?'#7a756e':hc}" opacity="${p.age>=55?.6:1}" stroke-width="${p.age>=55?1.3:1.6}" fill="none" stroke-linecap="round"/>
     <circle cx="27" cy="31" r="1.7" fill="${ink}"/><circle cx="37" cy="31" r="1.7" fill="${ink}"/>${(()=>{const fx=p.__ev!=null?null:moodFx(p);if(!fx)return'';let o='';
@@ -4599,7 +4620,7 @@ function gameFire(){return miniJeu(j=>{const camp=INGAME?window.__mgCampP:null,M
     if(gust>0)for(let i=0;i<4;i++)g+=`<path d="M${320-((clock*260+i*70)%340)} ${40+i*24} q-20 -6 -40 0" fill="none" stroke="#d9efff" stroke-width="2" opacity=".7"/>`;
     sv.innerHTML=g;el('tm').textContent=nf(clock.toFixed(1))+' / '+(phase===1?M.lim[0]:M.lim[1])+' s';
     if(phase===1){gb.style.width=heat+'%';el('gv').textContent=Math.round(heat)+' %'}else{gb.style.width=air+'%';el('gv').textContent=Math.round(air)+' %';const pf=Math.min(1,prog/3);el('pb').style.width=pf*100+'%';el('pv').textContent=Math.round(pf*100)+' %'}};
-  const end=(ok,score,msg)=>{j.fini=true;lit=ok;window.__lastFire={lit:ok,t:Math.round(clock*10)/10};el('ft').textContent=msg;el('blow').hidden=true;draw();j.fin(Math.round(clamp(score)),1500)};
+  const end=(ok,score,msg)=>{j.fini=true;lit=ok;window.__lastFire={lit:ok,t:Math.round(clock*10)/10};el('ft').textContent=msg;el('blow').hidden=true;draw();j.fin(Math.round(clamp(score)),1500+mgWin('fire',ok))};
   bd.addEventListener('pointerdown',e=>{if(phase!==1)return;down=true;lastX=e.clientX;try{bd.setPointerCapture(e.pointerId)}catch(_){}});
   bd.addEventListener('pointermove',e=>{if(!down||phase!==1)return;const dx=Math.abs(e.clientX-lastX);lastX=e.clientX;const r=bd.getBoundingClientRect();dist+=dx/(r.width||300);if(dx>2)moved=true;stick=124+Math.abs(((e.clientX-r.left)/r.width*320)%52-26)});
   const up=()=>{down=false};bd.addEventListener('pointerup',up);bd.addEventListener('pointercancel',up);
@@ -4684,6 +4705,22 @@ function totemSvg(k){const I='#2a1c0d',W='#a8734a',W2='#8a5b2a',c=TOTC[k];
 const totemPiece=k=>`<div class="mtp" data-k="${k}"><svg viewBox="0 0 46 19" aria-hidden="true"><rect x="1" y="1" width="44" height="17" rx="4" fill="#a8734a" stroke="#2a1c0d" stroke-width="1.8"/><g class="mtf"><rect x="1" y="1" width="44" height="5" rx="3" fill="${TOTC[k]}" stroke="#2a1c0d" stroke-width="1.4"/><circle cx="16" cy="10.5" r="2.2" fill="#2a1c0d"/><circle cx="30" cy="10.5" r="2.2" fill="#2a1c0d"/><path d="M18 15 H28" stroke="#2a1c0d" stroke-width="1.6"/></g><path class="mtb" d="M6 6 Q23 9 40 6 M6 12 Q23 15 40 12" fill="none" stroke="#8a5b2a" stroke-width="1.6"/></svg></div>`;
 function totemDrum(k){if(!SET.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const c=AC,t=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=[110,147,196,262][k];
   o.type='sine';o.frequency.setValueAtTime(f*1.6,t);o.frequency.exponentialRampToValueAtTime(f,t+.12);g.gain.setValueAtTime(.45,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.36)}catch(e){}}
+/* v2.132 (revue 9 axes du 23/11, idée 26) : animation de victoire propre à chaque jeu revu, posée au-dessus de la scène
+   pendant ~1,2 s quand le jeu est réussi (mât qui se dresse, panier qui déborde, corde au sol…). Renvoie le délai à ajouter
+   avant l'écran de résultat ; rien sans écran ni avec « réduire les animations » (le jeu ne change pas). */
+const MGWIN={
+  totem:`<g class="mwr">${[0,1,2,3,4].map(i=>`<rect x="22" y="${82-i*15}" width="36" height="14" rx="3" fill="#a8734a" stroke="#2a1c0d" stroke-width="2"/><rect x="22" y="${82-i*15}" width="36" height="4" rx="2" fill="${TOTC[i%4]}"/><circle cx="33" cy="${90-i*15}" r="1.8" fill="#2a1c0d"/><circle cx="47" cy="${90-i*15}" r="1.8" fill="#2a1c0d"/>`).join('')}</g>`,
+  shells:`<path d="M14 58 H66 L60 92 H20Z" fill="#c8954f" stroke="#2a1c0d" stroke-width="2.4" stroke-linejoin="round"/><path d="M17 68 H63 M18 79 H62" stroke="#8a5b2a" stroke-width="1.6"/>${[[26,1],[40,0],[54,2],[33,1],[47,0]].map(([x,k],i)=>`<g class="mwp" style="--d:${i*90}ms"><ellipse cx="${x}" cy="54" rx="7" ry="6" fill="${['#f3c9a0','#f0b8a8','#efe2c4'][k]}" stroke="#2a1c0d" stroke-width="1.8"/></g>`).join('')}`,
+  rope:`<path d="M6 80 Q24 74 40 82 Q58 90 74 78" fill="none" stroke="#c8a25a" stroke-width="5" stroke-linecap="round" class="mwd"/><path d="M38 70 L44 88" stroke="#d9534f" stroke-width="5" stroke-linecap="round" class="mwd"/><path d="M40 20 V60" stroke="#2a1c0d" stroke-width="2.4"/><path d="M40 20 L62 28 L40 36Z" fill="#f39a2b" stroke="#2a1c0d" stroke-width="2" class="mwf"/>`,
+  fire:`<path d="M24 88 L56 80 M24 80 L56 88" stroke="#8a5b2a" stroke-width="5" stroke-linecap="round"/><path class="mwg" d="M40 78 C24 70 26 48 36 36 C36 48 44 50 44 40 C54 50 58 66 40 78Z" fill="#f39a2b" stroke="#2a1c0d" stroke-width="2"/><path class="mwg" d="M40 76 C33 70 34 60 39 54 C40 61 45 62 45 57 C48 64 47 72 40 76Z" fill="#ffd36b"/>`,
+  wood:[0,1,2,3].map(i=>`<g class="mwp" style="--d:${i*120}ms"><rect x="${i%2?26:18}" y="${84-Math.floor(i/1)*12}" width="40" height="11" rx="5" fill="#a8734a" stroke="#2a1c0d" stroke-width="2"/><circle cx="${i%2?62:58}" cy="${89.5-i*12}" r="4" fill="#e2c08a" stroke="#2a1c0d" stroke-width="1.6"/></g>`).join(''),
+  fish:`<path d="M4 86 Q40 78 76 86" stroke="#3e8fb0" stroke-width="4" fill="none"/><g class="mwj"><path d="M28 50 Q40 38 54 50 Q40 62 28 50Z" fill="#7f9fb3" stroke="#2a1c0d" stroke-width="2"/><path d="M54 50 L64 42 L64 58Z" fill="#7f9fb3" stroke="#2a1c0d" stroke-width="2"/><circle cx="34" cy="48" r="1.8" fill="#2a1c0d"/></g>`,
+  shelter:`<path d="M16 90 V62 M64 90 V62" stroke="#8a5b2a" stroke-width="4"/><path class="mwr" d="M8 64 L40 36 L72 64Z" fill="#6aa66a" stroke="#2a1c0d" stroke-width="2.4" stroke-linejoin="round"/><path d="M28 90 V72 H52 V90" fill="#a8734a" stroke="#2a1c0d" stroke-width="2"/>`,
+  climb:`<path d="M44 92 Q40 60 46 30" stroke="#8a5b2a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M46 30 Q30 22 20 30 M46 30 Q62 22 72 30 M46 30 Q40 14 30 12" stroke="#6aa66a" stroke-width="4" fill="none" stroke-linecap="round"/><g class="mwj"><circle cx="30" cy="70" r="7" fill="#7a5230" stroke="#2a1c0d" stroke-width="2"/></g>`,
+  edible:`<path d="M14 58 H66 L60 92 H20Z" fill="#c8954f" stroke="#2a1c0d" stroke-width="2.4" stroke-linejoin="round"/>${[['#e9b84a',26],['#d9534f',40],['#6aa66a',54]].map(([c,x],i)=>`<g class="mwp" style="--d:${i*110}ms"><circle cx="${x}" cy="54" r="8" fill="${c}" stroke="#2a1c0d" stroke-width="1.8"/></g>`).join('')}`};
+function mgWin(g,ok){try{if(!ok||!MGWIN[g]||typeof document==='undefined'||!document.body||matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;
+  const d=document.createElement('div');d.className='mgwin mgwin-'+g;d.setAttribute('aria-hidden','true');
+  d.innerHTML=`<svg viewBox="0 0 80 100"><circle class="mwh" cx="40" cy="60" r="38"/>${MGWIN[g]}</svg>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1700);return 900}catch(e){return 0}}
 function gameTotem(){return miniJeu(j=>{
   const LV=totemLv(),N=TOTCF.n[LV],S0=TOTCF.s[LV],P=INGAME?window.__mgP:null,M=totemMods(P),mt=totemModsTxt(M,P);window.__lastTotem=null;
   screen(`${eb(gN('totem'))}<div class="mthud"><span>${L("Round","Manche")} <b class="num" id="mtr">1/${N}</b></span><span>${L("Won","Réussies")} <b class="num" id="mtok">0</b></span>${M.joker?`<span id="mtj" title="${L("Form joker","Joker de forme")}">🃏</span>`:''}<span class="big-time" id="tm">${climbTxt(0)}</span></div>
@@ -4705,7 +4742,7 @@ function gameTotem(){return miniJeu(j=>{
     await wait(hold);if(j.fini)return;fall();await wait(650);if(j.fini)return;mast.innerHTML='';mast.className='mtmast';
     acc=true;clk=mgFrameClock(0);el('fb').textContent=L("Rebuild the pole, from the bottom up","Reconstruisez le mât, du bas vers le haut")}
   function stop(){acc=false;if(clk)tot+=clk()/1000;clk=null;el('tm').textContent=climbTxt(Math.round(tot*10)/10)}
-  function next(){r++;hud();if(r>=N){setTimeout(()=>{j.fini=true;const t=Math.round(tot*10)/10;window.__lastTotem={ok,n:N,t,lv:LV};el('fb').textContent=L("Challenge over","Fin de l'épreuve");j.fin(totScore(ok,t,LV),1000)},700);return}
+  function next(){r++;hud();if(r>=N){setTimeout(()=>{j.fini=true;const t=Math.round(tot*10)/10;window.__lastTotem={ok,n:N,t,lv:LV};el('fb').textContent=L("Challenge over","Fin de l'épreuve");j.fin(totScore(ok,t,LV),1000+mgWin('totem',ok>=Math.ceil(N/2)))},700);return}
     seq.push(rint(0,3));setTimeout(show,1000)}
   pads.forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(!acc||j.fini)return;const k=+b.dataset.k;b.classList.add('lit');totemDrum(k);setTimeout(()=>b.classList.remove('lit'),160);
     if(seq[inp]!==k){b.classList.add('wrong');setTimeout(()=>b.classList.remove('wrong'),260);njBuzz(40);
@@ -4778,7 +4815,7 @@ function gameRope(){return miniJeu(j=>{const LV=ropeLv(),C=ROPE[LV]||ROPE.n,RT=w
     const ph=run?clamp((clock-(next-beatLen))/beatLen,0,1):0,zd=C.perf/1000/beatLen*40,zl=zd*2;
     o+=`<g transform="translate(300 18)"><rect x="-8" y="0" width="16" height="70" rx="6" fill="#0b1c1f" opacity=".6"/><rect x="-8" y="${60-zl}" width="16" height="${zl*2}" rx="4" fill="#6fcf8f" opacity=".85"/><rect x="-8" y="${60-zd}" width="16" height="${zd*2}" rx="3" fill="#1f7a45"/><rect id="rdot" data-j="${jerkNext?1:0}" x="-13" y="${2.5+ph*56}" width="26" height="3" rx="1.5" fill="${jerkNext?'#ef6b5b':'#efe2c4'}" stroke="${I}" stroke-width="1.2"/></g>`;
     sv.innerHTML=o;el('rk').textContent=Math.min(k,C.n)+(k>C.n?' +'+(k-C.n):'');el('rg').textContent=(gap>0?'+':'')+Math.round(gap)+' cm'};
-  const end=()=>{run=false;j.fini=true;const g=Math.round(gap);window.__lastRope=g;draw();el('rc').textContent=' ';el('fb').textContent=team&&g===0?L("Draw: each tribe's best scores break the tie.","Égalité : les meilleurs scores de chaque tribu départagent."):ropeTxt(g);j.fin(Math.round(clamp(sum/Math.max(1,k)*10)),1100)};
+  const end=()=>{run=false;j.fini=true;const g=Math.round(gap);window.__lastRope=g;draw();el('rc').textContent=' ';el('fb').textContent=team&&g===0?L("Draw: each tribe's best scores break the tie.","Égalité : les meilleurs scores de chaque tribu départagent."):ropeTxt(g);j.fin(Math.round(clamp(sum/Math.max(1,k)*10)),1100+mgWin('rope',g>0))};
   const beat=()=>{if(!used){pull(0);el('fb').textContent=L("Missed beat","Temps manqué")}if(jerkNext&&!held){pull(-12);el('fb').textContent=L("Jerk: −12 cm","À-coup : −12 cm")}
     k++;used=false;held=false;rlean=jerkNext?20:10;
     /* v2.126 : égalité à la fin = un temps de plus, jusqu'à ce qu'un camp gagne (choix de Clément du 12/11, 15 h 20 ; arrêt de sûreté à 20 temps de plus) */
@@ -4845,7 +4882,7 @@ function gameShells(){return miniJeu(j=>{
   let next=1,pen=0,clk=null,t=0,mixAt=MR?1+rint(MR[0],MR[1]):0;const box=el('cqg');
   const tick=()=>{if(j.fini)return;if(clk){t=clk()/1000+pen;el('tm').textContent=climbTxt(t);if(t>=LIM){finish(false);return}}requestAnimationFrame(tick)};requestAnimationFrame(tick);
   function finish(ok){j.fini=true;const got=next-1;t=Math.min(t,LIM);el('tm').textContent=climbTxt(t);window.__lastShells={t:Math.round(t*10)/10,got,n:NS,lv:LV,done:ok};
-    el('fb').textContent=ok?L("Basket full!","Panier plein !"):L("Time's up","Temps écoulé");j.fin(ok?shScore(t,LV):Math.round(shScore(LIM,LV)*got/NS),1000)}
+    el('fb').textContent=ok?L("Basket full!","Panier plein !"):L("Time's up","Temps écoulé");j.fin(ok?shScore(t,LV):Math.round(shScore(LIM,LV)*got/NS),1000+mgWin('shells',ok))}
   function mix(){const bs=[...box.children],r=new Map(bs.map(b=>[b,b.getBoundingClientRect()]));shuffle(bs).forEach(b=>box.appendChild(b));
     bs.forEach(b=>{const a=r.get(b),c=b.getBoundingClientRect();b.style.transition='none';b.style.transform=`translate(${a.left-c.left}px,${a.top-c.top}px)`;b.offsetWidth;b.style.transition='';b.style.transform=''})}
   function fly(b){try{const sv=b.querySelector('svg'),a=sv.getBoundingClientRect(),k=$app.querySelector('.cqbk').getBoundingClientRect(),cl=sv.cloneNode(true);cl.classList.add('cqfly');
@@ -5317,7 +5354,7 @@ function gameFish(){return miniJeu(j=>{const LV=fishLv(),C=FISH[LV]||FISH.n,I='#
   const plan=()=>{const e=[];let t=.9+Math.random()*.7;const k=1+Math.floor(Math.random()*3)+C.extra;for(let i=0;i<k;i++){e.push({t,type:Math.random()<C.fake?'fake':'nib'});t+=.6+Math.random()*.5}e.push({t,type:'dive',big:!!(C.big&&Math.random()<C.big)});return e};
   const start=()=>{ev=plan();et=0;phase='wait';dip=0;ripple=0;bend=0;catchT=null;hold=null;sh={x:330,y:150,big:ev[ev.length-1].big};say(L("Patience…","Patience…","Paciencia…"));dots()};
   const endTry=(ok,msg)=>{res.push(ok);phase='pause';pauseT=1.1;say(msg);dots()};
-  const finish=()=>{const n=res.filter(Boolean).length;window.__lastFish=n;j.fini=true;dots();say(fishTxt(n));j.fin(Math.round(n/N*100),900)};
+  const finish=()=>{const n=res.filter(Boolean).length;window.__lastFish=n;j.fini=true;dots();say(fishTxt(n));j.fin(Math.round(n/N*100),900+mgWin('fish',n>=2))};
   const draw=()=>{if(!document.getElementById('fsv'))return;
     let g=`<rect width="320" height="200" fill="#183635"/><circle cx="268" cy="34" r="12" fill="#e6bf35" opacity=".85"/><rect y="${SURF}" width="320" height="${200-SURF}" fill="${LV==='x'?'#2a5560':'#2f6f86'}"/><rect y="${SURF+40}" width="320" height="${160-SURF}" fill="#1d4f5c" opacity=".7"/>`;
     for(let i=0;i<6;i++){const x=(i*60+clock*14)%360-20;g+=`<path d="M${x} ${SURF+8+i%3*14} q8 -4 16 0" stroke="#d9efff" stroke-width="1.2" fill="none" opacity=".35"/>`}
@@ -5391,7 +5428,7 @@ function gameWoodCut(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b1[LV]||WOOD.
   const strike=()=>{if(lock||j.fini)return;lock=true;drop=true;const inZ=pos>=zone&&pos<=zone+w,onKnot=knot!=null&&Math.abs(pos-knot)<3.5,net=inZ&&!onKnot;
     if(net){nets++;marks.push(pos);woodChipsAdd(chips,xz(pos),108,8)}
     el('fb').textContent=net?L("Clean cut","Coup net"):onKnot?L("The knot made the blade slip","Le nœud fait riper la lame"):L("The blade slipped","La lame a ripé");hit++;el('wk').textContent=hit;el('wn').textContent=nets;
-    setTimeout(()=>{drop=false;if(hit>=N){split=true;cutAt=marks.length?marks[marks.length-1]:50;draw();const n=1+nets;window.__lastWood=n;j.fini=true;el('fb').textContent=woodTxt(n);j.fin(WOOD_SC[n],900)}else{newZone();lock=false}},600)};
+    setTimeout(()=>{drop=false;if(hit>=N){split=true;cutAt=marks.length?marks[marks.length-1]:50;draw();const n=1+nets;window.__lastWood=n;j.fini=true;el('fb').textContent=woodTxt(n);j.fin(WOOD_SC[n],900+mgWin('wood',n>=3))}else{newZone();lock=false}},600)};
   el('cut').addEventListener('pointerdown',e=>{e.preventDefault();strike()});el('cut').onclick=strike;el('ws').addEventListener('pointerdown',e=>{e.preventDefault();strike()});
   const loop=t=>{if(j.fini&&!chips.length)return;if(last==null)last=t;const dt=Math.min(.05,(t-last)/1000);last=t;
     let sp=C.sp+hit*.2;if(C.vary)sp*=1+C.vary*Math.sin(t/1000*(LV==='x'?2.9:2.3))*Math.sin(t/1000*.9+1);
@@ -5425,7 +5462,7 @@ function gameWoodSplit(){return miniJeu(j=>{const LV=woodLv(),C=WOOD.b2[LV]||WOO
     if(hits>0)g+=`<path d="M${LX} 96 L${LX-3} ${104+hits*8} L${LX+2} ${110+hits*10} L${LX-1} ${116+hits*10}" fill="none" stroke="${WOOD_INK}" stroke-width="2.4"/>`;
     for(let i=0;i<need;i++)g+=`<circle cx="${LX-6*(need-1)+i*12}" cy="84" r="4" fill="${i<hits?'#6fcf8f':'#28494a'}" stroke="${WOOD_INK}" stroke-width="1.4"/>`;return g};
   const draw=()=>{if(!document.getElementById('wsv'))return;sv.innerHTML=woodGround()+woodStump(LX-26,52)+logUp()+woodFig(col)+arm()+gauge()+woodChips(chips)};
-  const end=()=>{j.fini=true;const k=Math.max(1,Math.min(4,n));window.__lastWood=k;el('wt').textContent=nf('0.0')+' s';el('fb').textContent=woodTxt(k);draw();j.fin(WOOD_SC[k],900)};
+  const end=()=>{j.fini=true;const k=Math.max(1,Math.min(4,n));window.__lastWood=k;el('wt').textContent=nf('0.0')+' s';el('fb').textContent=woodTxt(k);draw();j.fin(WOOD_SC[k],900+mgWin('wood',k>=3))};
   const strike=()=>{if(j.fini||strikeT>0||stuck>0||splitT>0)return;const z=zoneOf(),early=ph<.5;strikeT=.12;
     after=()=>{if(z){hits+=z;woodChipsAdd(chips,LX,96,z===2?11:6);if(hits>=need){n++;el('wn').textContent=n;splitT=1;el('fb').textContent=L("Log split","Bûche fendue")}else el('fb').textContent=z===2?L("Perfect strike","Frappe parfaite"):L("Cut halfway","Entaillée à moitié")}
       else{stuck=.8;el('fb').textContent=early?L("Too early: axe stuck","Trop tôt : hache plantée"):L("Too late: axe stuck","Trop tard : hache plantée")}}};
@@ -5504,7 +5541,7 @@ function gameShelter(){return miniJeu(j=>{const LV=shelterLv(),C=SHELTER[LV]||SH
   const loop=now=>{if(j.fini||!document.getElementById('asv'))return;if(last==null)last=now;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;arm=Math.max(0,arm-dt);flash=Math.max(0,flash-dt*3);
     b.forEach((x,i)=>{if(!used[i]&&clock>x+C.tol/1000){used[i]=true;miss++;if(!dbl.includes(i)){slots[Math.min(filled,slots.length-1)]=0;filled++;el('ak').textContent=filled}say(L("Missed","Raté","Fallo"))}});
     const cur=b.filter(x=>x<=clock).length-1;if(cur>ticked){ticked=cur;flash=1;try{sfx('tap')}catch(_){}}
-    if(used.every(Boolean)&&clock>b[b.length-1]+.4){j.fini=true;const v=pct();window.__lastShelter={q,n:b.length,pct:v,miss};draw();say(shelterTxt(v));j.fin(Math.round(q/b.length*100),900);return}
+    if(used.every(Boolean)&&clock>b[b.length-1]+.4){j.fini=true;const v=pct();window.__lastShelter={q,n:b.length,pct:v,miss};draw();say(shelterTxt(v));j.fin(Math.round(q/b.length*100),900+mgWin('shelter',q/b.length>=.7));return}
     draw();requestAnimationFrame(loop)};
   draw();requestAnimationFrame(loop)})}
 /* v2.116 : Cueillette. Cocotier penché dessiné et grimpeur adulte de profil (planche validée le 10/11) ;
@@ -5546,7 +5583,7 @@ function gameClimb(){return miniJeu(j=>{const LV=climbLv(),TOP=CLIMB.top[LV]||28
       fb(L(`At the top in ${nf(secs.toFixed(1))} s!`,`En haut en ${nf(secs.toFixed(1))} s !`,`¡Arriba en ${nf(secs.toFixed(1))} s!`)+(secs<=SEUIL?' '+L("Fast enough for an extra fruit.","Assez vite pour un fruit en plus."):''))}
     else fb(L(`Time's up: not at the top (${h}/${TOP}).`,`Temps écoulé : pas en haut (${h}/${TOP}).`));
     const sc=win?(secs<=SEUIL?80+20*(SEUIL-secs)/SEUIL:60+20*(T-secs)/(T-SEUIL)):h/TOP*45;
-    j.fin(Math.round(clamp(sc,0,100)),1000)};
+    j.fin(Math.round(clamp(sc,0,100)),1000+mgWin('climb',win))};
   const btn=s=>$app.querySelector(`[data-s="${s}"]`);
   const sched=(fn,ms)=>tm.push(setTimeout(()=>{if(!j.fini)fn()},ms));
   const G=CLIMB.gust[LV],N=CLIMB.nut[LV];
@@ -5706,7 +5743,7 @@ function gameEdible(){return miniJeu(j=>{const LV=edLv(),R=EDLV[LV]||EDLV.n,TT=R
   const show=()=>{const c=deck[i];el('eico').innerHTML=edIco(c[0])+(R.bdg&&c[1]?`<span class="edbdg">${edIco(c[1])}</span>`:'');el('enm').textContent=L(c[2],c[3]);el('cnt').textContent=i+1;t0=performance.now();lock=false;el('fb').textContent=' '};
   const answer=v=>{if(lock||j.fini)return;lock=true;const c=deck[i],right=v===c[4];if(v===1&&!c[4])window.__poison=true;if(right)ok++;else if(R.pen&&v===1)ok=Math.max(0,ok-1);el('okn').textContent=ok;
     el('fb').textContent=v===-1?L("Too slow!","Trop lent !"):right?L("Good call.","Bien vu."):c[4]?L("That was safe to eat.","C'était comestible."):L("Bad idea: you would have been sick.","Mauvaise idée : vous auriez été malade.");
-    i++;setTimeout(()=>{if(i>=deck.length){j.fini=true;j.fin(Math.round(ok/deck.length*100))}else show()},700)};
+    i++;setTimeout(()=>{if(i>=deck.length){j.fini=true;j.fin(Math.round(ok/deck.length*100),mgWin('edible',ok/deck.length>=.8)||undefined)}else show()},700)};
   el('eat').onclick=()=>answer(1);el('leave').onclick=()=>answer(0);
   const tick=()=>{if(j.fini)return;if(!lock){const f=(performance.now()-t0)/TT;el('tb').style.width=Math.max(0,100-f*100)+'%';if(f>=1)answer(-1)}requestAnimationFrame(tick)};
   show();requestAnimationFrame(tick)})}
@@ -7824,7 +7861,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.131 · 2026-11-23';
+const APP_VER='2.132 · 2026-11-23';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
