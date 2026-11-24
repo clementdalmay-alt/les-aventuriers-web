@@ -2340,6 +2340,11 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 @keyframes mgw-grow{from{transform:scale(.3);opacity:.2}}
 @keyframes mgw-drop{from{transform:translateY(-34px);opacity:0}}
 @keyframes mgw-flag{to{transform:scaleX(.8)}}
+/* v2.134 : « Essai » à gauche de « C'est parti » sur la présentation d'une épreuve en solo, sur une seule ligne */
+.bbar:has(> .tryb){display:flex;flex-wrap:nowrap;gap:8px;align-items:stretch}
+#app .bbar > .btn.tryb{flex:0 0 auto !important;width:auto !important;max-width:34%;padding-left:14px;padding-right:14px;white-space:nowrap}
+#app .bbar:has(> .tryb) > .btn[data-act="go"]{flex:1 1 0 !important;width:auto !important;min-width:0}
+#app .bbar:has(> .tryb) > .autob{flex:0 0 56px !important;width:56px !important}
 </style>
 
 <div id="app"></div>
@@ -3660,6 +3665,10 @@ function highlights(p){if(S.day>=5&&moraleOf(tk(p))>=68)unlock(p,'morale');const
 
 
 let PRECHOICE=null,STASH=false,BREAK=null;
+/* v2.134 (remarque de Clément du 24/11 « Essai ne fonctionne pas ») : sur la présentation d'une épreuve en solo, le bouton de gauche
+   n'est plus « Sauvegarder » (icône seule, pris pour l'essai) mais « 🎯 Essai » : il joue le mini-jeu une fois sans compter
+   (même circuit que l'essai à plusieurs, humanPlay), puis propose « C'est parti ». À plusieurs, Sauvegarder reste. */
+const tryOrSave=()=>S&&S.humans<=1&&humansAlive().length===1?`<button class="btn ghost tryb" data-act="try" data-pre="1">🧪 <span>${L("Trial","Essai")}</span></button>`:saveBtn();
 const autoBtn=()=>S&&S.humans<=1&&humansAlive().length===1?`<button class="btn ghost autob" data-act="auto" data-pre="1" title="${L("Skip: play it for me","Passer : jouer à ma place")}" aria-label="${L("Skip: play it for me","Passer : jouer à ma place")}">⏭️<span class="stx"> ${L("Skip","Passer","Saltar")}</span></button>`:'';
 async function stashOrAsk(fin,html){if(STASH){BREAK={fin,html:html.replace(/<button class="btn" data-act="ok">[\s\S]*?<\/button>/,'').replace(/<p class="eyebrow">[\s\S]*?<\/p>/,'').replace(/<h1 class="h">[\s\S]*?<\/h1>/,'')};return}return ask(html)}
 const breakBox=()=>{if(!BREAK)return'';const b=BREAK;BREAK=null;return `<details class="statd yourscore"><summary>⭐ ${L("Your score","Votre score")} : <b class="num">${scShow(b.fin,S&&S.players.find(x=>x.human))}</b> · ${L("details","détail")}</summary>${b.html}</details>`};
@@ -5030,7 +5039,7 @@ async function confortPhase(q,lines){
     const rk=REWARD_ORDER[(S.day-1)%REWARD_ORDER.length],R={n:REWARDS[rk].n(),d:(RICON[rk]||'')+' '+REWARDS[rk].d()};
     if(!q)await ask(`${eb(DAY()+L(" · Confort challenge"," · Épreuve de confort"," · Prueba de recompensa"))}${soloHead()}<h1 class="h">${gN(g)}</h1>${cryLine()}
       <div class="reward"><span class="lbl">${L("Today's reward","Récompense du jour","Recompensa del día")}</span><b>${R.n}</b><span class="muted">${R.d}</span></div>
-      ${(()=>{const cr=once('confrule',L("Both tribes, everyone plays. Your average score decides who wins the reward.","Les deux tribus, tout le monde joue. La moyenne de chaque tribu décide qui remporte la récompense.","Las dos tribus, todos juegan. La media de cada tribu decide quién gana la recompensa."));return `${host(gossip())}${rulesTeam(g,cr)}`})()}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
+      ${(()=>{const cr=once('confrule',L("Both tribes, everyone plays. Your average score decides who wins the reward.","Les deux tribus, tout le monde joue. La moyenne de chaque tribu décide qui remporte la récompense.","Las dos tribus, todos juegan. La media de cada tribu decide quién gana la recompensa."));return `${host(gossip())}${rulesTeam(g,cr)}`})()}<div class="bbar">${tryOrSave()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
     const sc=await playTeam(g,KIND_C(),q);
     const A=tribeAvg(sc,'A'),B=tribeAvg(sc,'B'),win=tieWin(sc,A,B);challengeFeel(sc,win,false);teamStreak(win);tribeMembers(win).forEach(p=>p.tw=(p.tw||0)+1);
     let got=R.n;
@@ -5051,7 +5060,7 @@ async function confortPhase(q,lines){
   if(S.day%2===0)return lettersReward(g,q,lines,startBtn);
   if(!q)await ask(`${eb(DAY()+L(" · Confort challenge"," · Épreuve de confort"," · Prueba de recompensa"))}${soloHead()}<h1 class="h">${gN(g)}</h1>
     <div class="reward"><span class="lbl">${L("Today's reward","Récompense du jour","Recompensa del día")}</span><b>${L("A trip to a neighbouring island","Une escapade sur une île voisine","Una excursión a una isla vecina")}</b><span class="muted">${L("A hot meal, a shower and a bed. The winner chooses one castaway to bring along.","Un repas chaud, une douche et un lit. Le vainqueur choisit un aventurier pour l'accompagner.","Una comida caliente, una ducha y una cama. El ganador elige a un aventurero que le acompañe.")}</span><span class="effl">⚡ +25 · ✊ +8 ${L("for both","pour les deux")} · 🤝 +20 ${L("between them","entre eux")} · 😒 −3 ${L("from the others","des autres")}</span></div>
-    ${rulesTeam(g)}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
+    ${rulesTeam(g)}<div class="bbar">${tryOrSave()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
   const sc=await playAll(g,KIND_C());
   const rank=alive().sort((a,b)=>sc[b.id]-sc[a.id]||Math.random()-.5),w=rank[0];
   if(!q)await ask(`${eb(L("Confort · Results","Confort · Résultats","Recompensa · Resultados"))}<h1 class="h">${L(`${esc(w.name)} wins the trip`,`${esc(w.name)} remporte l'escapade`,`${esc(w.name)} gana la excursión`)}</h1><div class="results">${scoreRows(sc,rank,w.id)}</div><button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
@@ -5070,7 +5079,7 @@ autoStop('letters',L("here are the letters from home.","voici les lettres de la 
 
   if(!q)await ask(`${eb(DAY()+L(" · Confort challenge"," · Épreuve de confort"," · Prueba de recompensa"))}${soloHead()}<h1 class="h">${gN(g)}</h1>
     <div class="reward"><span class="lbl">${L("Today's reward","Récompense du jour","Recompensa del día")}</span><b>${L("Letters from home","Les lettres de la famille","Las cartas de casa")}</b><span class="muted">${L("The winner reads a letter from their loved ones and chooses one castaway to receive theirs too.","Le vainqueur lit une lettre de ses proches et choisit un aventurier qui recevra aussi la sienne.","El ganador lee una carta de sus seres queridos y elige a un aventurero que también recibirá la suya.")}</span></div>
-    ${rulesTeam(g)}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
+    ${rulesTeam(g)}<div class="bbar">${tryOrSave()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
   const sc=await playAll(g,KIND_C());
   const rank=alive().sort((a,b)=>sc[b.id]-sc[a.id]||Math.random()-.5),w=rank[0],others=alive().filter(p=>p.id!==w.id);
   if(!q)await ask(`${eb(L("Confort · Results","Confort · Résultats","Recompensa · Resultados"))}<h1 class="h">${L(`${esc(w.name)} wins the letters`,`${esc(w.name)} remporte les lettres`,`${esc(w.name)} gana las cartas`)}</h1><div class="results">${scoreRows(sc,rank,w.id)}</div><button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
@@ -5098,7 +5107,7 @@ async function immunityPhase(q,lines,sameDay=true){
   const g=gameOf('i');
   if(!q)await ask(`${eb(DAY()+L(" · Immunity challenge"," · Épreuve d'immunité"," · Prueba de inmunidad"))}${soloHead()}<h1 class="h">${gN(g)}</h1>${cryLine()}${flavor('imm')}${S.merged&&S.malusD===S.day?`<p class="secret">⚠️ ${L("Penalty challenge: whoever finishes last gets a vote against them at the next Council.","Épreuve à malus : le dernier recevra un vote contre lui au prochain Conseil.")}</p>`:''}
     ${host(S.merged&&linkedOn('i')?L("Linked fates: you play in pairs. The pair with the best average wins immunity, and both partners are safe at the next Council.","Destins liés : vous jouez par deux. Le binôme avec la meilleure moyenne remporte l'immunité, et les deux partenaires sont protégés au prochain Conseil.","Destinos unidos: jugáis por parejas. La pareja con mejor media gana la inmunidad y ambos están a salvo en el próximo Consejo."):S.merged?L(`From now on it's every castaway for themselves. The winner wears the immunity collar at the next Council, ${tn}.`,`Désormais, c'est chacun pour soi. Le vainqueur portera le collier d'immunité au prochain Conseil, ${tn}.`,`A partir de ahora es cada uno por su cuenta. El ganador llevará el collar de inmunidad en el próximo Consejo, ${tn}.`):`${gossip()} ${L(`This one is for immunity. The losing tribe goes to the Council ${tn}.`,`Cette épreuve est pour l'immunité. La tribu perdante ira au Conseil ${tn}.`,`Esta prueba es por la inmunidad. La tribu perdedora irá al Consejo ${tn}.`)}`)}
-    ${rulesTeam(g)}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${humansAlive().length?L("Let's go!","C'est parti !","¡Vamos!"):L("Watch the challenge","Regarder l'épreuve","Ver la prueba")}</button></div>`);
+    ${rulesTeam(g)}<div class="bbar">${tryOrSave()}${autoBtn()}<button class="btn" data-act="go">${humansAlive().length?L("Let's go!","C'est parti !","¡Vamos!"):L("Watch the challenge","Regarder l'épreuve","Ver la prueba")}</button></div>`);
   const sc=S.merged?await playAll(g,KIND_I()):await playTeam(g,KIND_I(),q);
   if(S.merged&&S.malusD===S.day){const ps=alive().filter(p=>sc[p.id]!=null).sort((a,b)=>sc[a.id]-sc[b.id]);if(ps[0]){S.malus=[{to:ps[0].id}];const m=L(`⚠️ ${esc(ps[0].name)} finished last and will receive a penalty vote at the Council.`,`⚠️ ${esc(ps[0].name)} termine ${ps[0].g==='f'?'dernière':'dernier'} et recevra un vote malus au Conseil.`);lines.push(m);if(!q)FLASH=(FLASH?FLASH+'<br>':'')+m;if(ps[0].human)unlock(ps[0],'malus')}}
   if(!S.merged){
@@ -5705,7 +5714,7 @@ async function linkedConfort(g,q,lines,startBtn){
   if(!q)await ask(`${eb(DAY()+L(" · Confort challenge"," · Épreuve de confort"," · Prueba de recompensa"))}${soloHead()}<h1 class="h">${gN(g)}</h1>
     <div class="reward"><span class="lbl">${L("Today's reward","Récompense du jour","Recompensa del día")}</span><b>${L("A trip for two","Une escapade à deux","Una excursión para dos")}</b><span class="muted">${L("The winning pair leaves camp together: a hot meal, a shower and a night in a real bed.","Le binôme gagnant quitte le camp ensemble : un repas chaud, une douche et une nuit dans un vrai lit.","La pareja ganadora deja el campamento junta: una comida caliente, una ducha y una noche en una cama de verdad.")}</span></div>
     ${host(L("Linked fates: you play in pairs. The pair with the best average wins.","Destins liés : vous jouez par deux. Le binôme avec la meilleure moyenne gagne.","Destinos unidos: jugáis por parejas. Gana la pareja con mejor media."))}
-    ${rulesTeam(g)}<div class="bbar">${saveBtn()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
+    ${rulesTeam(g)}<div class="bbar">${tryOrSave()}${autoBtn()}<button class="btn" data-act="go">${startBtn()}</button></div>`);
   const sc=await playAll(g,KIND_C()),r=pairRank(sc),w=r[0],ws=w.ids.map(P);toTeam(sc,w.ids);
   ws.forEach(p=>{p.energy=clamp(p.energy+25);motv(p,8);unlock(p,'linkedwin')});r.slice(1).forEach(x=>x.ids.forEach(id=>motv(P(id),-2)));
   ws.forEach(a=>ws.forEach(b=>{if(a.id<b.id)mutual(a.id,b.id,12)}));S.away=[...w.ids];
@@ -7861,7 +7870,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.133 · 2026-11-24';
+const APP_VER='2.134 · 2026-11-24';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
