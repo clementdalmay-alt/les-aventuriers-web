@@ -2299,6 +2299,28 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 @media (prefers-reduced-motion:reduce){.mtt,.mtmast.fall .mtp{transition:none}.mtp.in,.mtt.wrong{animation:none}}
 /* résultats longs (« 8/9 · 28,9 s ») : la colonne du score s'élargit au besoin */
 .ranks li{grid-template-columns:2em 1fr auto minmax(3em,max-content)}
+/* v2.131, lot A (revue 9 axes du 23/11) */
+/* 1 Succès : tuiles fixes ; le panneau de la catégorie ouverte prend toute la largeur sous sa ligne */
+.achgrid{grid-auto-flow:row}
+.achgrid > details.achg[open]{grid-column:auto;border-color:var(--torch)}
+.achgrid > .achp{grid-column:1/-1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px 12px}
+.achgrid > .achp[hidden]{display:none}
+.achgrid > details.achg{scroll-margin-top:12px}
+.wrap:has(> .achgrid) > .achgrid{margin-bottom:12px}
+/* 8 Entraînement : courbe des 5 derniers essais */
+.trhs{display:inline-block;vertical-align:middle}
+.trhs svg{width:96px;height:22px;display:block;overflow:visible}
+.trhs polyline{fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.trhs circle{fill:var(--muted)}.trhs circle.last{fill:var(--torch)}
+.trhl{display:flex;align-items:center;gap:8px}
+/* 7 en-tête du classement : unité du résultat */
+.ranks li.rkh{color:var(--muted);font-size:.8rem;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:4px;background:none}
+.ranks li.rkh .num{text-align:right}
+/* 9 cause de l'élimination */
+.pwhy{font-size:.9em}
+/* 14 niveau conseillé */
+.lvsug{margin-top:2px}
+.lvsug .linkb{appearance:none;border:0;background:none;color:var(--torch);font:inherit;font-weight:700;text-decoration:underline;padding:6px 4px;min-height:44px;cursor:pointer}
 </style>
 
 <div id="app"></div>
@@ -3135,9 +3157,17 @@ function markIsland(id){try{const k='aventuriers-islands',o=JSON.parse(localStor
 function achScreen(){const a=achGet(),all=ACHS(),got=all.filter(x=>a[x.id]).length;
   const G={camp:L("Camp life","Vie au camp","Vida en el campamento"),island:L("Islands","Îles","Islas"),char:L("Characters","Caractères","Personajes"),rank:L("Rankings","Classements","Clasificaciones"),days:L("Days on the island","Jours sur l'île","Días en la isla"),feat:L("Feats","Exploits","Hazañas"),twist:L("Twists","Rebondissements","Giros"),career:L("Career","Carrière")};{const GI={camp:'🏕️',island:'🏝️',char:'🎭',rank:'🏅',days:'📅',feat:'⚡',twist:'🔀',career:'🎖️'};Object.keys(G).forEach(k=>{if(GI[k])G[k]=GI[k]+' '+G[k]})}
   screen(`${langToggle()}${eb(L("Achievements","Succès","Logros"))}<h1 class="h">${L(`${got} of ${all.length} unlocked`,`${got} sur ${all.length} débloqués`,`${got} de ${all.length} desbloqueados`)}</h1><p class="hint">${L("Saved on this device, for every player who plays on it.","Enregistrés sur cet appareil, pour tous les joueurs qui l'utilisent.","Guardados en este dispositivo, para todos los jugadores que lo usen.")}</p>${careerBox()}
-    <div class="achgrid">${Object.keys(G).map(g=>`<details class="achg"><summary><span class="achi">${G[g].split(' ')[0]}</span><span class="achn">${G[g].split(' ').slice(1).join(' ')}</span> <span class="muted num">${all.filter(x=>x.g===g&&a[x.id]).length}/${all.filter(x=>x.g===g).length}</span></summary><ul class="achs">${all.filter(x=>x.g===g).map(x=>`<li class="${a[x.id]?'on':''}"><span class="medal" aria-hidden="true"></span><div><b>${L(x.en,x.fr,x.es)}</b><span class="muted">${L(x.den,x.dfr,x.des)}${a[x.id]?` · ${esc(a[x.id].who)}`:''}</span></div></li>`).join('')}</ul></details>`).join('')}</div>
+    <div class="achgrid">${Object.keys(G).map((g,i)=>`<details class="achg" data-i="${i}"><summary aria-controls="achp${i}"><span class="achi">${G[g].split(' ')[0]}</span><span class="achn">${G[g].split(' ').slice(1).join(' ')}</span> <span class="muted num">${all.filter(x=>x.g===g&&a[x.id]).length}/${all.filter(x=>x.g===g).length}</span></summary></details>`).join('')}${Object.keys(G).map((g,i)=>`<div class="achp" id="achp${i}" hidden><ul class="achs">${all.filter(x=>x.g===g).map(x=>`<li class="${a[x.id]?'on':''}"><span class="medal" aria-hidden="true"></span><div><b>${L(x.en,x.fr,x.es)}</b><span class="muted">${L(x.den,x.dfr,x.des)}${a[x.id]?` · ${esc(a[x.id].who)}`:''}</span></div></li>`).join('')}</ul></div>`).join('')}</div>
     <div class="row stickb"><button class="btn ghost" id="back">${L("Back","Retour","Volver")}</button></div>`);
-  wireLang(achScreen);el('back').onclick=home}
+  wireLang(achScreen);el('back').onclick=home;achWire()}
+/* v2.131 (revue 9 axes du 23/11, idée 1) : les tuiles des catégories gardent leur place ; la catégorie ouverte se déplie
+   dans un panneau pleine largeur juste sous sa ligne de tuiles (ordre de grille calculé), une seule à la fois, et l'écran
+   défile jusqu'à elle, au-dessus de la barre « Retour ». */
+function achWire(){const grid=document.querySelector('.achgrid');if(!grid)return;const ds=[...grid.querySelectorAll('details.achg')];
+  ds.forEach((d,i)=>{d.style.order=i*2;d.addEventListener('toggle',()=>{const p=document.getElementById('achp'+i);if(!p)return;
+    if(d.open){ds.forEach(o=>{if(o!==d&&o.open)o.open=false});const cols=Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(' ').length),end=Math.min(ds.length-1,Math.floor(i/cols)*cols+cols-1);
+      p.style.order=end*2+1;p.hidden=false;requestAnimationFrame(()=>{try{d.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}catch(e){}})}
+    else p.hidden=true})})}
 const ACH_ES={globe:["Trotamundos","Juega en las nueve islas."],chars5:["Mil caras","Gana con 5 caracteres distintos."],win:["El gran ganador","Gana una partida."],unan:["Por unanimidad","Gana con todos los votos del jurado."],
   final2:["Finalista","Llega a la final a dos."],final3:["Los postes","Llega a los tres últimos."],merge:["Reunificado","Llega a la reunificación."],firstout:["Primera antorcha apagada","Sé el primer expulsado."],
   days7:["Una semana","Aguanta 7 días en el juego."],days14:["Dos semanas","Aguanta 14 días en el juego."],days21:["Tres semanas","Aguanta 21 días en el juego."],days30:["Treinta días","Aguanta 30 días en el juego."],long:["La gran travesía","Gana una partida de 40 días."],
@@ -3594,7 +3624,7 @@ async function doctorVisit(q,lines,ctx){if(S.duel||S.docDone||!ctx||!ctx.voters|
   const p=pool.sort((a,b)=>a.energy-b.energy)[0];S.docDone=true;const out=!p.human||Math.random()<0.5;
   if(!q||p.human)await ask(`${eb(L("Medical visit","Visite médicale"))}<h1 class="h">${L("The doctor is here","Le médecin est là")}</h1>${host(L(`Before the Council, the doctor examined ${esc(p.name)}, who is exhausted.`,`Avant le Conseil, le médecin a examiné ${esc(p.name)}, à bout de forces.`))}<p class="secret">${out?L(`Verdict: ${esc(p.name)} cannot go on. It is a medical withdrawal, and there is no Council tonight.`,`Verdict : ${esc(p.name)} ne peut pas continuer. C'est un abandon médical, et il n'y a pas de Conseil ce soir.`):L(`Verdict: ${esc(p.name)} can carry on, with care. The Council takes place as planned.`,`Verdict : ${esc(p.name)} peut continuer, avec prudence. Le Conseil a lieu comme prévu.`)}</p><button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
   if(!out){p.energy=clamp(p.energy+15);if(p.human)unlock(p,'doctor');return false}
-  outPlayer(p);p.medical=true;lines.push(L(`🩺 ${esc(p.name)} left the game on medical advice.`,`🩺 ${esc(p.name)} a quitté l'aventure sur avis médical.`));tribeMembers(tk(p)).forEach(m=>motv(m,-4));
+  outPlayer(p,'medic');p.medical=true;lines.push(L(`🩺 ${esc(p.name)} left the game on medical advice.`,`🩺 ${esc(p.name)} a quitté l'aventure sur avis médical.`));tribeMembers(tk(p)).forEach(m=>motv(m,-4));
   if(!q&&p.human&&!humansAlive().length)await ask(`${eb(L("Out of the game","Hors du jeu"))}<h1 class="h">${L("Medical withdrawal","Abandon médical")}</h1><p>${L("Your adventure stops here. The computer castaways play on.","Votre aventure s'arrête ici. Les aventuriers virtuels continuent.")}</p><button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
   return true}
 function highlights(p){if(S.day>=5&&moraleOf(tk(p))>=68)unlock(p,'morale');const t=tk(p),ms=tribeMembers(t),f=((S.feed||{})[t]||[]).filter(e=>e.d===S.day);
@@ -4952,8 +4982,8 @@ const youRank=(sc,ps)=>{const r=[...ps].filter(p=>sc[p.id]!=null).sort((a,b)=>sc
 const tribeRes=(A,B,win)=>[['A',A],['B',B]].sort((u,v)=>v[1]-u[1]).map(([t,v])=>`<div class="res ${t===win?'win':''}"><b>${TR[t].n}</b><span class="num">${scAvg(v,v===A?B:A)}</span>${bar(v)}</div>`).join('');
 const indiv=sc=>{const ps=alive().filter(p=>sc[p.id]!=null).sort((a,b)=>sc[b.id]-sc[a.id]),g=new Map(ps.map((p,i)=>[p.id,i+1]));
   const mine=ps.filter(p=>p.human).map(p=>`<p class="yrank">⭐ ${esc(p.name)} : ${S.merged?`<b>${ordN(g.get(p.id))}</b> ${L("of","sur","de")} ${ps.length}`:`<b>${ordN(ps.filter(x=>tk(x)===tk(p)).indexOf(p)+1)}</b> ${L("in the tribe","de la tribu","de la tribu")} · ${ordN(g.get(p.id))} ${L("overall","au global","en general")} (${L("of","sur","de")} ${ps.length})`}</p>`).join('');
-  const row=(p,i,show)=>`<li class="${p.human?'me':''}" data-pid="${p.id}"><span class="num rk">${i+1}</span><b class="rkn">${face(p,26)}${esc(p.name)}</b>${show?`<span class="muted">${L("overall","global","general")} ${g.get(p.id)}/${ps.length}</span>`:'<span></span>'}<span class="num">${scShow(sc[p.id],p)}</span></li>`;
-  return `${S.merged?podium(sc):''}${breakBox()}${mine}<details class="statd"><summary>${L("Individual scores","Scores individuels","Puntuaciones individuales")}</summary>${S.merged?`<ol class="ranks">${ps.map((p,i)=>row(p,i,false)).join('')}</ol>`:['A','B'].map(t=>{const ms=ps.filter(p=>tk(p)===t);return ms.length?`<p class="lbl" style="margin-top:10px">${trName(t)}</p><ol class="ranks">${ms.map((p,i)=>row(p,i,true)).join('')}</ol>`:''}).join('')}</details>`};
+  const row=(p,i,show)=>`<li class="${p.human?'me':''}" data-pid="${p.id}"><span class="num rk">${i+1}</span><b class="rkn">${face(p,26)}${esc(p.name)}</b>${show?`<span class="muted">${L("overall","global","general")} ${g.get(p.id)}/${ps.length}</span>`:'<span></span>'}<span class="num">${scShow(sc[p.id],p,true)}</span></li>`,head=`<li class="rkh" aria-hidden="true"><span></span><span>${L("Adventurer","Aventurier")}</span><span></span><span class="num">${scUnit()}</span></li>`;
+  return `${S.merged?podium(sc):''}${breakBox()}${mine}<details class="statd"><summary>${L("Individual scores","Scores individuels","Puntuaciones individuales")}</summary>${S.merged?`<ol class="ranks">${head}${ps.map((p,i)=>row(p,i,false)).join('')}</ol>`:['A','B'].map(t=>{const ms=ps.filter(p=>tk(p)===t);return ms.length?`<p class="lbl" style="margin-top:10px">${trName(t)}</p><ol class="ranks">${head}${ms.map((p,i)=>row(p,i,true)).join('')}</ol>`:''}).join('')}</details>`};
 const KIND_C=()=>L("Confort","Confort","Recompensa"), KIND_I=()=>L("Immunity","Immunité","Inmunidad");
 async function confortPhase(q,lines){
   if(AUTO&&AUTO.k==='confort'&&S.merged&&!q)stopAuto(L("here is the confort challenge.","voici l'épreuve de confort."));
@@ -5623,7 +5653,7 @@ if(dagger)autoStop('dagger',L("here are the daggers.","voici les poignards."));
   const sc=await playAll(g,L("Elimination","Éliminatoire","Eliminación"));
   const rank=alive().sort((a,b)=>sc[b.id]-sc[a.id]||Math.random()-.5),w=rank[0],e=rank[rank.length-1];
   unlock(w,dagger?'dagger1':'elimwin');motv(w,6);rank.slice(1,-1).forEach(p=>motv(p,2));
-  outPlayer(e);
+  outPlayer(e,'elim');
   lines.push(L((""+((dagger)?`Orienteering: <b>${esc(e.name)}</b> did not find a dagger in time and leaves the adventure. Joins the jury.`:`<b>${esc(e.name)}</b> finished last in the elimination challenge and left the island. Joins the jury.`)),(""+((dagger)?`Épreuve d'orientation : <b>${esc(e.name)}</b> n'a pas trouvé de poignard à temps et quitte l'aventure. Rejoint le jury.`:`<b>${esc(e.name)}</b> termine ${e.g==='f'?'dernière':'dernier'} de l'épreuve éliminatoire et quitte l'île. Rejoint le jury.`)),(""+((dagger)?`Prueba de orientación: <b>${esc(e.name)}</b> no encontró ningún puñal a tiempo y abandona la aventura. Entra en el jurado.`:`<b>${esc(e.name)}</b> terminó ${e.g==='f'?'última':'último'} en la prueba de eliminación y abandona la isla. Entra en el jurado.`))));
   if(!q)await ask(`${eb(L("Elimination · Results","Éliminatoire · Résultats","Eliminación · Resultados"))}<h1 class="h">${L(`${esc(e.name)} finishes last`,`${esc(e.name)} termine ${e.g==='f'?'dernière':'dernier'}`,`${esc(e.name)} termina ${e.g==='f'?'última':'último'}`)}</h1>
     <div class="results">${scoreRows(sc,rank,w.id)}</div>
@@ -6063,20 +6093,29 @@ const SCORE_RULES={
 };
 const scoreRule=g=>{const r=SCORE_RULES[g];return r?r():L("Score from 0 to 100 based on how well you do.","Note de 0 à 100 selon votre performance.","Puntuación de 0 a 100 según tu actuación.")};
 const scoreBox=(g,open,extra)=>`<details class="scoreh" ${open?'open':''}><summary>📏 ${L("How it's scored","Comment c'est noté","Cómo se puntúa")}</summary><p>${scoreRule(g)}</p>${extra?`<p class="muted" style="margin-top:6px">${extra}</p>`:''}${['climb','fire','wood','fish','shelter','shells'].includes(g)?'':`<p class="muted" style="margin-top:6px">${L("Every challenge gives 0 to 100. In a full game, your characteristics and energy then adjust it.","Chaque épreuve donne une note de 0 à 100. En partie, vos caractéristiques et votre énergie l'ajustent ensuite.","Cada prueba da una puntuación de 0 a 100. En una partida, tus características y tu energía la ajustan después.")}</p>`}</details>`;
-async function trainGame(g){const lv=tlvGet(),key=recKey(g,lv),best0=bestGet()[key];
-  const a=await ask(`${eb(L("Training","Entraînement")+' · '+TLVN[lv]())}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>
-    <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?recTxt(g,best0):'—'}</b></div>${scoreBox(g,false)}
+/* v2.131 (revue 9 axes du 23/11, idées 2 et 8) : « Rejouer » relance directement le même jeu au même niveau ;
+   les 5 derniers essais de chaque jeu et niveau (clé du navigateur aventuriers-essais) sont tracés sous le record. */
+const TRH_KEY='aventuriers-essais';
+const trhGet=()=>{try{return JSON.parse(localStorage.getItem(TRH_KEY)||'{}')}catch(e){return{}}};
+function trhAdd(key,v){try{const o=trhGet();o[key]=[...(o[key]||[]),v].slice(-5);localStorage.setItem(TRH_KEY,JSON.stringify(o))}catch(e){}}
+/* courbe des derniers essais : en haut = mieux (inversée pour les jeux où le plus petit gagne) */
+function trhSpark(g,key){const v=trhGet()[key]||[];if(v.length<2)return'';const lo=recLow(g),mn=Math.min(...v),mx=Math.max(...v),W=120,H=28,
+  y=x=>mx===mn?H/2:(lo?(x-mn)/(mx-mn):(mx-x)/(mx-mn))*(H-6)+3,pts=v.map((x,i)=>[Math.round(i*(W-8)/(v.length-1))+4,Math.round(y(x))]);
+  return `<span class="trhs" title="${L("Last 5 tries","5 derniers essais")}"><svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${i===pts.length-1?3.5:2.5}"${i===pts.length-1?' class="last"':''}/>`).join('')}</svg></span>`}
+async function trainGame(g,direct){const lv=tlvGet(),key=recKey(g,lv),best0=bestGet()[key];
+  const a=direct?'go':await ask(`${eb(L("Training","Entraînement")+' · '+TLVN[lv]())}<h1 class="h">${gN(g)}</h1><p>${gR(g)}</p>
+    <div class="kv"><span>${L("Rewards","Récompense")}</span><b>${STAT_IC[GAMES[g].stat]||''} ${cap1(statN(GAMES[g].stat))}</b><span>${L("Level","Niveau")}</span><b>${TLVN[lv]()}</b><span>${L("Your best","Votre record")}</span><b>${best0!=null?recTxt(g,best0):'—'}</b>${trhSpark(g,key)?`<span>${L("Last 5 tries","5 derniers essais")}</span><b>${trhSpark(g,key)}</b>`:''}</div>${scoreBox(g,false)}
     <div class="seg">${['e','n','h','x'].map(k=>`<button data-act="lv_${k}" class="${k===lv?'on':''}">${TLVN[k]()}</button>`).join('')}</div>${g==='shelter'?`<div class="seg wvseg">${['c','r'].map(k=>`<button data-act="sv_${k}" class="${k===shelterTrainVar()?'on':''}">${k==='c'?L("Circles","Cercles"):L("Rope","Corde")}</button>`).join('')}</div>`:''}${g==='wood'?`<div class="seg wvseg">${['b1','b2'].map(k=>`<button data-act="wv_${k}" class="${k===woodTrainVar()?'on':''}">${k==='b1'?L("Cut","Couper"):L("Split","Fendre")}</button>`).join('')}</div>`:''}
     <div class="row"><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><button class="btn ghost" data-act="back">${L("Back","Retour","Volver")}</button></div>`);
   if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('sv_')){try{localStorage.setItem(SHEL_TV,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('wv_')){try{localStorage.setItem(WOOD_TV,a.slice(3))}catch(e){}return trainGame(g)}
   TLV=lv;let sc;window.__rounds=null;try{await countdown(true);horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
   const dg=g==='dagger',cq=g==='shells',cl=g==='climb'||g==='fire'||cq,wd=g==='wood',fs=g==='fish',sh=g==='shelter',rp=g==='rope',tm=g==='totem',val=tm?(gave||!window.__lastTotem?null:totRec(window.__lastTotem.ok,window.__lastTotem.t)):rp?(gave?null:window.__lastRope):dg?window.__lastDigs:cl?(gave?null:cq?(window.__lastShells&&window.__lastShells.done?window.__lastShells.t:null):g==='fire'?(window.__lastFire&&window.__lastFire.lit?window.__lastFire.t:null):window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
-  const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(recLow(g)?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}
+  const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(recLow(g)?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}if(!gave&&val!=null)trhAdd(key,val);
   try{const o=JSON.parse(localStorage.getItem('aventuriers-njplayed')||'{}');if(NJK.includes(g)){o[g]=1;localStorage.setItem('aventuriers-njplayed',JSON.stringify(o));if(NJK.every(k=>o[k])){const a=achGet();if(!a.alltrades)unlock({human:true,name:L("Training","Entraînement"),id:-1},'alltrades')}}}catch(e){}
-  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):cq?(window.__lastShells?L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`):'—'):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):tm?(val!=null?totemTxt(0,window.__lastTotem):'—'):rp?(val!=null?ropeTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}
+  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):cq?(window.__lastShells?L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`):'—'):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):tm?(val!=null?totemTxt(0,window.__lastTotem):'—'):rp?(val!=null?ropeTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}${trhSpark(g,key)?`<p class="muted trhl">${L("Last 5 tries","5 derniers essais")} ${trhSpark(g,key)}</p>`:''}
     ${(()=>{const R=!gave&&(g==='spear'||g==='bamboo')&&Array.isArray(window.__rounds)&&window.__rounds.length?window.__rounds:null;return scoreBox(g,false,R?`${g==='spear'?L("Throws","Lancers","Lanzamientos"):L("Pours","Versements","Vertidos")} : ${R.join(' · ')} → ${L("average","moyenne","media")} ${sc}`:'')})()}
     <div class="row"><button class="btn" data-act="again">${L("Play again","Rejouer","Volver a jugar")}</button><button class="btn ghost" data-act="list">${L("Other challenges","Autres épreuves","Otras pruebas")}</button></div>`);
-  if(b==='again')return trainGame(g);trainScreen(true)}
+  if(b==='again')return trainGame(g,true);trainScreen(true)}
 let KBC={drag:null,cur:0};
 KBMAP.S='#hook,#cut,#tie,#pull,#pour,#th,#eat,#njd,#njg,#njj';KBMAP.L+=',#njl';KBMAP.R+=',#njr';KBMAP.G+=',.nj-tot';
 
@@ -6687,7 +6726,7 @@ musicSet('conseil');setPhase('conseil');try{S._cvIds=ctx&&ctx.voters?ctx.voters.
   promCheck(votes);votes.filter(v=>v.to!==out&&allied(v.from,v.to)&&(Math.random()<0.4||(betrayLater(v),false))).forEach(v=>{unally(v.from,v.to);mistSet(v.from,v.to);addAff(v.to,v.from,-20);motv(P(v.to),-10);logH(v.from,v.to,`${P(v.to).name} found out ${P(v.from).name} wrote their name. Alliance broken.`,`${P(v.to).name} a découvert que ${P(v.from).name} avait écrit son nom. Alliance rompue.`,`${P(v.to).name} descubrió que ${P(v.from).name} escribió su nombre. Alianza rota.`);tell(v.to,L(`You found out ${esc(P(v.from).name)} wrote your name. Your alliance is over.`,`Vous avez découvert que ${esc(P(v.from).name)} a écrit votre nom. Votre alliance est terminée.`,`Has descubierto que ${esc(P(v.from).name)} escribió tu nombre. Vuestra alianza se ha acabado.`))});
   S.plans={};
   outPlayer(e);votes.filter(v=>v.black&&v.to===out).forEach(v=>unlock(P(v.from),'blackvote'));
-  const partners=[];if(ctx.linked&&S.linked&&!S.linked.done){S.linked.done=true;const pr=S.linked.pairs.find(x=>x.includes(out))||[];pr.filter(id=>id!==out&&P(id).alive).forEach(id=>{const m=P(id);outPlayer(m);partners.push(m)});if(partners.length){S.skipT=(S.skipT||0)+partners.length;lines.push(L(`🔗 Linked fates: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> left the island with ${esc(e.name)}.`,`🔗 Destins liés : <b>${partners.map(m=>esc(m.name)).join(', ')}</b> quitte l'île avec ${esc(e.name)}.`,`🔗 Destinos unidos: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> abandona la isla con ${esc(e.name)}.`))}}
+  const partners=[];if(ctx.linked&&S.linked&&!S.linked.done){S.linked.done=true;const pr=S.linked.pairs.find(x=>x.includes(out))||[];pr.filter(id=>id!==out&&P(id).alive).forEach(id=>{const m=P(id);outPlayer(m,'link');partners.push(m)});if(partners.length){S.skipT=(S.skipT||0)+partners.length;lines.push(L(`🔗 Linked fates: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> left the island with ${esc(e.name)}.`,`🔗 Destins liés : <b>${partners.map(m=>esc(m.name)).join(', ')}</b> quitte l'île avec ${esc(e.name)}.`,`🔗 Destinos unidos: <b>${partners.map(m=>esc(m.name)).join(', ')}</b> abandona la isla con ${esc(e.name)}.`))}}
   {const avg=workAvg(voters),top=[...voters].sort((a,b)=>wrec(b.id).score-wrec(a.id).score)[0];if(top)unlock(top,'hardworker');voters.filter(v=>v.id!==out&&v.alive&&wrec(v.id).score<avg-6).forEach(v=>unlock(v,'lazysurvive'))}
   [...played].forEach(id=>{if(votes.some(v=>v.to===id)){if(fireActive(id))unlock(P(S._fireSaved.by),'firekeeper');else unlock(P(id),'save')}});
   S.players.forEach(p=>p.immune=false);
@@ -6759,7 +6798,8 @@ function voteReact(t,n,i,tot){const last=i===tot;const pool=n>=3?[L(`${esc(t.nam
 // v2.109 (lot Écrans restants) : variante repliée sur une ligne (écran des résultats d'une éliminatoire)
 const stillInFold=()=>`<details class="statd stilld"><summary><span class="rsum">${L("Still in the game","Encore en jeu","Siguen en juego")} · ${alive().length} <span class="muted">· ${alive().map(x=>`<b class="${x.human?'me':''}">${esc(x.name)}</b>`).join(', ')}</span></span></summary><div class="chips" style="margin-top:8px">${alive().map(x=>chip(x)).join('')}</div></details>`;
 const stillIn=()=>`<section><p class="lbl">${L("Still in the game","Encore en jeu","Siguen en juego")} · ${alive().length}</p><div class="chips" style="margin-top:8px">${alive().map(x=>chip(x)).join('')}</div></section>`;
-function outPlayer(e){{const rv=rivalOf(e.id);if(rv&&rv.human)unlock(rv,'rivalbeat')}e.alive=false;e.idol=false;e.immune=false;e.juror=S.merged;S.out.push({id:e.id,day:S.day,place:alive().length+1});if(S.out.length===1)unlock(e,'firstout');
+/* v2.131 : why = cause de l'élimination (vote, link, medic, amb, elim), gardée dans S.out pour le classement final */
+function outPlayer(e,why){{const rv=rivalOf(e.id);if(rv&&rv.human)unlock(rv,'rivalbeat')}e.alive=false;e.idol=false;e.immune=false;e.juror=S.merged;S.out.push({id:e.id,day:S.day,place:alive().length+1,w:why||'vote'});if(S.out.length===1)unlock(e,'firstout');
   if(S.black)S.black=S.black.filter(b=>P(b.to).alive)}
 async function afterOut(e,q,lines){
 if(e&&e.human&&!q&&!AUTO)await whyLost(e);
@@ -6966,7 +7006,7 @@ if(!twOn('amb')||S.ambDone)return;S.ambDone=true;const A=tribeMembers('A'),B=tri
   if(!out){out=pick([a,b]);lines.push(L(`🪨 The ambassadors could not agree: ${esc(out.name)} drew the black stone.`,`🪨 Les ambassadeurs ne se sont pas entendus : ${esc(out.name)} a tiré la pierre noire.`))}
   else lines.push(L(`🤝 The ambassadors agreed: ${esc(out.name)} leaves the adventure.`,`🤝 Les ambassadeurs se sont mis d'accord : ${esc(out.name)} quitte l'aventure.`));
   if(!q)await ask(`${eb(L("The ambassadors","Les ambassadeurs"))}<h1 class="h">${L(`${esc(out.name)} leaves`,`${esc(out.name)} part`)}</h1>${host(lines[lines.length-1])}<button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
-  S.skipT=(S.skipT||0)+1;S.skipWhy='amb';outPlayer(out);await afterOut(out,q,lines)}
+  S.skipT=(S.skipT||0)+1;S.skipWhy='amb';outPlayer(out,'amb');await afterOut(out,q,lines)}
 async function judgeIsland(e,q,lines){if(!twOn('judge')||!S.merged||S.judgeDone||!e.alive===false&&false)return;S.judgeDone=true;const pool=alive();if(!pool.length)return;let t;
   if(e.human&&!S.skip){t=P(+await ask(`${eb(L("Judgement island","Île du jugement"))}<h1 class="h">${L("Your judgement","Votre jugement")}</h1>${host(L("You are the first one out after the merge. Before you go, choose in secret a castaway who will lose their vote at the next Council.",("Vous êtes "+((e.g==='f')?"la première éliminée":"le premier éliminé")+" après la réunification. Avant de partir, choisissez en secret un aventurier qui perdra son droit de vote au prochain Conseil."),("Eres "+((e.g==='f')?"la primera eliminada":"el primer eliminado")+" tras la reunificación. Antes de irte, elige en secreto a un aventurero que perderá su voto en el próximo Consejo.")))}<div class="pick">${pool.map(ppick).join('')}</div>`));unlock(e,'judge')}
   else t=pool.slice().sort((a,b)=>aff(e.id,a.id)-aff(e.id,b.id))[0];
@@ -7132,7 +7172,7 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
     if(pk){mate=Math.random()<.9?pk:others.find(o=>o.id!==pk.id);if(mate.id!==pk.id)S.pactBroken={w:w.id,x:pk.id}}
     else mate=hm&&Math.random()<(DF().mateH||0)?hm:others.sort((a,b)=>jury.reduce((s,j)=>s+appeal(j,a,w.id),0)-jury.reduce((s,j)=>s+appeal(j,b,w.id),0))[0]}
   if(w.human&&S.pact&&S.pact.h===w.id&&mate.id!==S.pact.m&&others.some(o=>o.id===S.pact.m))S.pactBroken={w:w.id,x:S.pact.m};
-  const third=others.find(o=>o.id!==mate.id);third.alive=false;third.juror=true;S.out.push({id:third.id,day:S.day,place:3});
+  const third=others.find(o=>o.id!==mate.id);third.alive=false;third.juror=true;S.out.push({id:third.id,day:S.day,place:3,w:'post'});
   const finals=[w,mate],J=S.players.filter(p=>p.juror);
   await ask(`${eb(L("The final","La finale","La final"))}<h1 class="h">${esc(w.name)} ${L("and","et","y")} ${esc(mate.name)}</h1>
     <p>${L(`${esc(w.name)} chose ${esc(mate.name)}. ${esc(third.name)} joins the jury.`,`${esc(w.name)} a choisi ${esc(mate.name)}. ${esc(third.name)} rejoint le jury.`,`${esc(w.name)} eligió a ${esc(mate.name)}. ${esc(third.name)} entra en el jurado.`)}</p>${S.pactBroken?(x=>`<p class="secret">🤝 ${L(`The jury learns that ${esc(w.name)} broke their pact with ${esc(x.name)}.`,`Le jury apprend que ${esc(w.name)} a rompu son pacte avec ${esc(x.name)}.`)}</p>`)(P(S.pactBroken.x)):''}
@@ -7153,7 +7193,7 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
   if(c0===c1&&!AUTO&&!SIMR)await ask(`${eb(L("The final","La finale"))}<h1 class="h">⚖️ ${L("Tie","Égalité")} ${c0}–${c1}</h1><p class="jtie">${L(`The jury is split. As announced, ${esc(w.name)}, winner of the final posts, takes the tie.`,`Le jury est partagé. Comme annoncé, ${esc(w.name)}, vainqueur des poteaux, remporte l'égalité.`)}</p><button class="btn" data-act="ok">${L("Continue","Continuer","Continuar")}</button>`);
   (S._pitch||[]).forEach(([f,j])=>{if(votes.some(v=>v.from===j&&v.to===f))unlock(P(f),'jurypitch')});S._pitch=[];
   await juryReasons(votes);
-  S.out.push({id:runner.id,day:S.day,place:2});
+  S.out.push({id:runner.id,day:S.day,place:2,w:'jury'});
   {const isl=markIsland(S.loc);S.players.filter(h=>h.human).forEach(h=>{if(isl>=9)unlock(h,'globe');
     const place=h.id===winner.id?1:(S.out.find(o=>o.id===h.id)||{}).place||99;
     if(place<=3)unlock(h,'final3');if(place<=2)unlock(h,'final2');
@@ -7173,8 +7213,10 @@ async function finale(){stopAuto(L("the final is here.","la finale est arrivée.
      classement : podium et place du joueur, le reste replié */
   const hums=S.players.filter(x=>x.human),hid=new Set(hums.map(x=>x.id));const canReplay=!S.story&&!S.daily&&!S.season&&!S.quick&&!!lastSetup();
   /* v2.99 (lot I2, point 9) : classement en barres ; la barre = jours tenus sur l'île (le gagnant va au bout), dans la couleur de la tribu d'origine */
+  /* v2.131 (revue 9 axes du 23/11, idée 9) : cause de chaque élimination à côté du jour */
+  const OUTWHY={vote:['⚖️',()=>L("Council vote","Vote du Conseil")],link:['🔗',()=>L("Linked fates","Destins liés")],medic:['🩺',()=>L("Medical evacuation","Évacuation médicale")],amb:['🤝',()=>L("Ambassadors' choice","Choix des ambassadeurs")],elim:['🗡️',()=>L("Elimination challenge","Épreuve éliminatoire")],post:['🪵',()=>L("Posts","Poteaux")],jury:['📜',()=>L("Jury vote","Vote du jury")]};
   const nbJ=Math.max(1,S.totalDays||S.day||1),placeLi=x=>{const q=P(x.id),j=x.place===1?nbJ:Math.min(nbJ,x.day||S.day),tc=trC(q.tribe0||q.tribe);
-    return `<li class="place pbarl${hid.has(x.id)?' me':''}" data-pid="${q.id}" style="--pw:${Math.round(j/nbJ*100)}%;--tc:${tc}"><b>${x.place}</b><span class="pface">${face(q,26,x.place<=3?'':'gone')}</span><span class="pnm"><b>${oflag(q)}${esc(q.name)}</b> <span class="muted">${archN(q.arch,q.g)}</span></span><span class="pj muted num">${L("D","J","D")}${j}</span></li>`};
+    return `<li class="place pbarl${hid.has(x.id)?' me':''}" data-pid="${q.id}" style="--pw:${Math.round(j/nbJ*100)}%;--tc:${tc}"><b>${x.place}</b><span class="pface">${face(q,26,x.place<=3?'':'gone')}</span><span class="pnm"><b>${oflag(q)}${esc(q.name)}</b> <span class="muted">${archN(q.arch,q.g)}</span></span><span class="pj muted num">${L("D","J","D")}${j}${x.w&&OUTWHY[x.w]?` <span class="pwhy" role="img" aria-label="${OUTWHY[x.w][1]()}" title="${OUTWHY[x.w][1]()}">${OUTWHY[x.w][0]}</span>`:''}</span></li>`};
   const top=places.filter(x=>x.place<=3||hid.has(x.id)),rest=places.filter(x=>!(x.place<=3||hid.has(x.id)));
   ETAB.fin='win';
   screen(`${eb(L("Winner · ","Gagnant · ","Ganador · ")+whereFlag())}${etabsHtml('fin',[['win',L("Winner","Vainqueur","Ganador")],['rank',L("Standings","Classement","Clasificación")],['season',L("Your season","Votre saison","Tu temporada")]])}
@@ -7489,7 +7531,7 @@ function setupScreen(modeArg,sopt={}){SETUPF={step:{},pon:0,open:new Set()};retu
       <label class="field"><span class="lbl">${L("Length of the adventure","Durée de l'aventure","Duración de la aventura")} : <b id="daysv">${days}</b> ${L("days","jours","días")}</span><input id="days" type="range" min="${size}" max="${size*2}" step="1" value="${days}"><span class="rangeb" aria-hidden="true"><span>${size}</span><span>${size*2}</span></span></label>
       `)}${blk(2,'⚖️ '+L("Rules","Règles","Reglas"),`${L(...DIFF[diff].n)} · ${form==='surprise'?L("random tribes","tribus au hasard"):formN(form)} · ${twSum()}`,`
       <label class="field"><span class="lbl">${L("Difficulty","Difficulté","Dificultad")}</span><select id="diff">${Object.keys(DIFF).filter(k=>!DIFF[k].hidden).map(k=>`<option value="${k}" ${diff===k?'selected':''}>${L(...DIFF[k].n)}</option>`).join('')}</select></label>
-      <p class="hint" id="diffh">${L(...DIFF[diff].d)}</p>
+      <p class="hint" id="diffh">${L(...DIFF[diff].d)}</p>${lvSuggestHtml(diff)}
       <label class="field"><span class="lbl">${L("How tribes are formed","Formation des tribus","Cómo se forman las tribus")}</span><select id="form"><option value="surprise" ${form==='surprise'?'selected':''}>🎲 ${L("Surprise me","Au hasard","Sorpréndeme")}</option>${Object.keys(FORMS).map(k=>`<option value="${k}" ${form===k?'selected':''}>${formN(k)}</option>`).join('')}</select></label>
       <p class="hint" id="formh">${formHint(form)}</p>
       <label class="field"><span class="lbl">⏱️ ${L("Pace","Rythme")}</span><select id="pace">${[5,7,9].map(n=>`<option value="${n}" ${paceSel===n?'selected':''}>${PACEN[n]()} · ${L(`${n} actions a day`,`${n} actions par jour`)}</option>`).join('')}</select></label>
@@ -7530,6 +7572,7 @@ function setupScreen(modeArg,sopt={}){SETUPF={step:{},pon:0,open:new Set()};retu
     if(el('np'))el('np').onchange=e=>{read();const n=+e.target.value;while(ps.length<n)ps.push(blankPlayer());ps=ps.slice(0,n);tab=3;draw()};
     $app.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>{read();tmode=b.dataset.tm;tw.rnd=tmode==='rnd';if(tmode!=='custom')Object.keys(TWISTS).forEach(k=>tw[k]=false);draw()});
     if(el('diff'))el('diff').onchange=e=>{el('diffh').textContent=L(...DIFF[e.target.value].d)};
+    {const b=document.querySelector('[data-lvs]');if(b&&el('diff'))b.onclick=()=>{const k=b.dataset.lvs;el('diff').value=k;el('diff').dispatchEvent(new Event('change'))}}
     if(el('form'))el('form').onchange=e=>{el('formh').textContent=formHint(e.target.value)};if(el('size'))el('size').onchange=()=>{read();days=Math.min(size*2,Math.max(size,Math.round(size*1.2)));draw()};
     if(el('loc'))el('loc').onchange=()=>{read();draw()};const _unusedLoc=e=>{el('loch').textContent=e.target.value==='random'?L("A random island. Each island has its own climate, weather, fishing and fruit.","Une île au hasard. Chaque île a son climat, sa météo, sa pêche et ses fruits.","Una isla al azar. Cada isla tiene su clima, su tiempo, su pesca y su fruta."):climateTxt(LOC(e.target.value))};
     if(el('days'))el('days').oninput=e=>{el('daysv').textContent=e.target.value};
@@ -7770,7 +7813,18 @@ async function hostSurprise(q,lines){
 const surpOpen=()=>(S.surp||[]).some(x=>x.k==='open'&&x.d===S.day);
 const geekBody=()=>`<div class="geekb">${L("\n<p class=\"lbl\">Challenge score</p><p><code>score = raw × energy × sport × family × motivation × illness</code></p><ul><li><b>raw</b>: 0 to 100 from the mini-game (or <code>stat × 0.62 + random(0–40)</code> when simulated).</li><li><b>energy</b>: from ×0.75 at 0 energy to ×1 at 100.</li><li><b>sport</b>: +0.5 % per stat point above 55 (−10 % to +20 %).</li><li><b>family</b>: parents and partners up to +6 %.</li><li><b>illness</b>: ×0.85.</li></ul>\n<p class=\"lbl\">Evening meal</p><p><code>need = 2 portions × castaways</code>, a cooked meal = 1.5 portions, a ration = 1.</p><p><code>fullness f = portions eaten ÷ need</code>, then <code>energy = −12 + f × 22</code> (×19 or ×16 with raw food).</p>\n<p class=\"lbl\">Wear and tear</p><ul><li>Maximum energy: <code>100 − 1.5 × (day − 1)</code>, never below 60.</li><li>Each night: −6, plus 1 more every 6 days.</li><li>Fatigue: −25 % camp efficiency below 40 energy, −50 % below 20; thresholds lowered by <code>(endurance − 55) ÷ 5</code>, endurance sports (−5) and Survivalists (−5).</li><li>Experience: fishing and foraging go from 55 % to 100 % success after 8 attempts.</li></ul>\n<p class=\"lbl\">Jungle search</p><p><code>chance = (0.18 × difficulty + (strategy − 55) ÷ 300 + (survival − 55) ÷ 600 + 7 % if thinker) × fatigue</code>, between 2 % and 60 %.</p>\n<p class=\"lbl\">Votes</p><p>Each virtual castaway votes for whoever maximises <code>threat − affinity − 25 if allied</code>. Jurors vote for the finalist with the best <code>appeal + answer bonus</code> (+9 if the tone of the answer suits them, −3 otherwise).</p>\n<p class=\"lbl\">From 3,000 simulated games</p><ul><li>Average length: 22 days; about 33 minutes for a solo player.</li><li>Average energy: 48 (days 1–3), 55 (days 4–12), 49 (days 13–18), 40 after.</li><li>Evenings: 27 % full bellies, 59 % half rations, 14 % hunger.</li></ul>","\n<p class=\"lbl\">Score d'épreuve</p><p><code>score = brut × énergie × sport × famille × motivation × maladie</code></p><ul><li><b>brut</b> : 0 à 100 au mini-jeu (ou <code>stat × 0,62 + hasard(0–40)</code> en simulé).</li><li><b>énergie</b> : de ×0,75 à 0 d'énergie à ×1 à 100.</li><li><b>sport</b> : +0,5 % par point de stat au-dessus de 55 (−10 % à +20 %).</li><li><b>famille</b> : parents et couples jusqu'à +6 %.</li><li><b>maladie</b> : ×0,85.</li></ul>\n<p class=\"lbl\">Repas du soir</p><p><code>besoin = 2 portions × aventuriers</code>, un repas cuisiné = 1,5 portion, une ration = 1.</p><p><code>remplissage f = portions mangées ÷ besoin</code>, puis <code>énergie = −12 + f × 22</code> (×19 ou ×16 avec des vivres crus).</p>\n<p class=\"lbl\">L'usure</p><ul><li>Énergie maximale : <code>100 − 1,5 × (jour − 1)</code>, jamais sous 60.</li><li>Chaque nuit : −6, plus 1 de plus tous les 6 jours.</li><li>Fatigue : efficacité au camp −25 % sous 40 d'énergie, −50 % sous 20 ; seuils abaissés de <code>(endurance − 55) ÷ 5</code>, par les sports d'endurance (−5) et les Baroudeurs (−5).</li><li>Expérience : pêche et cueillette passent de 55 % à 100 % de réussite en 8 essais.</li></ul>\n<p class=\"lbl\">Fouille de la jungle</p><p><code>chance = (0,18 × difficulté + (stratégie − 55) ÷ 300 + (survie − 55) ÷ 600 + 7 % si cérébral) × fatigue</code>, entre 2 % et 60 %.</p>\n<p class=\"lbl\">Les votes</p><p>Chaque aventurier virtuel vote pour celui qui maximise <code>menace − affinité − 25 si allié</code>. Les jurés votent pour le finaliste au meilleur <code>attrait + bonus de réponse</code> (+9 si le ton de la réponse leur plaît, −3 sinon).</p>\n<p class=\"lbl\">Sur 3 000 parties simulées</p><ul><li>Durée moyenne : 22 jours, environ 33 minutes pour un joueur seul.</li><li>Énergie moyenne : 48 (jours 1–3), 55 (jours 4–12), 49 (jours 13–18), 40 ensuite.</li><li>Soirs : 27 % ventre plein, 59 % demi-rations, 14 % faim.</li></ul>")}</div>`;const geekHtml=()=>'';
 
-const APP_VER='2.130 · 2026-11-21';
+/* v2.131 (revue 9 axes du 23/11, idée 14) : niveau conseillé d'après les 5 dernières parties (statistiques de carrière) :
+   2 victoires ou plus = un niveau au-dessus de la plus haute victoire ; aucune victoire et place moyenne dans la moitié basse
+   = un niveau en dessous de la dernière partie ; sinon le niveau de la dernière partie. Au moins 3 parties terminées. */
+const LVORD=['easy','normal','hard','expert'];
+function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includes(x.d));if(last.length<3)return null;
+  const wins=last.filter(x=>x.pl===1),rel=last.reduce((t,x)=>t+x.pl/Math.max(2,x.n),0)/last.length,cur=LVORD.indexOf(last[0].d);
+  if(wins.length>=2)return{k:LVORD[Math.min(3,Math.max(...wins.map(x=>LVORD.indexOf(x.d)))+1)],r:'up',w:wins.length,n:last.length};
+  if(!wins.length&&rel>.5)return{k:LVORD[Math.max(0,cur-1)],r:'down',n:last.length};return{k:LVORD[cur],r:'keep',n:last.length}}
+function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
+  const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
+  return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
+const APP_VER='2.131 · 2026-11-23';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8302,7 +8356,9 @@ function screenLayoutFixes(html){try{const w=$app.querySelector('.wrap');if(!w)r
 let SCG=null;
 /* v2.130 : Mémoire des totems en manches et secondes (totemTxt) */
 const scTx=()=>SCG==='shells'?shellsTxt:SCG==='totem'?totemTxt:null;
-const scShow=(v,p)=>scTx()&&v!=null?scTx()(v,p&&SHT[p.id]):v;
+const scShow=(v,p,short)=>{if(!scTx()||v==null)return v;const t=scTx()(v,p&&SHT[p.id]);return short?String(t).replace(/[\s\u00a0]+s$/,''):t};
+/* v2.131 (revue 9 axes du 23/11, idée 7) : l'unité du résultat en tête du classement, valeurs sans unité répétée */
+const scUnit=()=>SCG==='shells'?L("Time (s)","Temps (s)"):SCG==='totem'?L("Rounds · s","Manches · s"):L("Points","Points");
 const scPts=(v,p)=>scTx()?scTx()(v,p&&SHT[p.id]):`${v} ${L("pts","pts","pts")}`;
 const scAvg=(x,y)=>scTx()?scTx()(x):sc2(x,y);
 function sc2(x,y){if(y==null||Math.round(x)!==Math.round(y))return String(Math.round(x));const d=Math.abs(x-y)>=0.05||Math.abs(x-y)===0?1:2;return nf(x.toFixed(d))}
