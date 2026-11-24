@@ -4320,7 +4320,7 @@ function campAce(p,kind,sc){try{
   if(kind==='climb')return window.__lastClimb!=null&&sc>=80;
   if(kind==='shelter')return !!window.__lastShelter&&window.__lastShelter.miss===0;
   }catch(e){}return false}
-async function campMini(p,kind){LASTMG=null;window.__mgCampP=p;if(SET.campmg==='quick'||S.quick||SIMR||AUTO)return null;
+async function campMini(p,kind){LASTMG=null;window.__mgCampP=p;/* v2.133 : en partie rapide aussi, le réglage « Mini-jeux au camp » décide (choix de Clément du 24/11) */if(SET.campmg==='quick'||SIMR||AUTO)return null;
   /* v2.75 : l'abri a son schéma, son rappel et un essai qui ne compte pas */
   const demo=kind==='shelter',campH=`${eb(L("Camp","Camp","Campamento"))}<h1 class="h">${CAMPMG_N[kind]()}</h1><p>${gR(kind)}</p><!--trynote-->
     <div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu","Jugar al minijuego"),L("Your score decides the result: a great game brings back more.","Votre score décide du résultat : une belle partie rapporte plus.","Tu puntuación decide el resultado: una buena partida da más."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite","Hacerlo rápido"),L("The result depends on your characteristics, as before.","Le résultat dépend de vos caractéristiques, comme avant.","El resultado depende de tus características, como antes."))}</div><div class="row">${demo?`<!--try--><button class="btn ghost" data-act="try">🧪 ${L("Practice","Essai","Prueba")}</button>`:''}<button class="btn ghost" data-act="mgback">← ${L("Back","Retour","Volver")}</button></div>
@@ -7861,7 +7861,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.132 · 2026-11-23';
+const APP_VER='2.133 · 2026-11-24';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8015,7 +8015,7 @@ const KIC={water:'💧',fish:'🎣',food:'🧺',wood:'🪵',shelter:'🛖',fire:
 
 
 
-async function fireQuick(p,t){let quick=SET.campmg==='quick'||S.quick;
+async function fireQuick(p,t){let quick=SET.campmg==='quick';/* v2.133 : plus de S.quick */
   if(!quick){const a=await ask(`${eb(L("Camp","Camp"))}<h1 class="h">${gN('fire')}</h1><div class="choices">${choice('mgplay','🎮 '+L("Play the mini-game","Jouer le mini-jeu"),L("Rub, then blow: a score of 60 lights the fire.","Frotter puis souffler : un score de 60 allume le feu."))}${choice('mgquick','⚡ '+L("Do it quickly","Faire vite"),L("The result depends on your Survival, Agility and job, like for the other castaways.","Le résultat dépend de votre Survie, de votre Agilité et de votre métier, comme pour les autres aventuriers."))}</div><div class="row"><button class="btn ghost" data-act="mgback">← ${L("Back","Retour","Volver")}</button></div>`);if(a==='mgback')return campRetour();quick=a!=='mgplay'}
   if(!quick)return null;const wxf=S.wx&&S.wx.type==='storm'?.4:S.wx&&S.wx.type==='rain'?.7:1;const ok=Math.random()<clamp(fireOdds(p)*wxf*2.5,.04,.5);
   if(ok){S.fire[t]=true;let k=1;if(W(t)>=1){addWood(t,-1);k=2}/* v2.122 : 2 bûches */credit(p,'fire',1);fireLogs(p,k);unlock(p,'fire');tribeMembers(t).forEach(m=>{if(m.id!==p.id)mutual(p.id,m.id,4)});return L("<b>Fire!</b> After a long effort, the flame caught. The tribe cheers.","<b>Le feu !</b> Après un long effort, la flamme a pris. La tribu exulte.")}
