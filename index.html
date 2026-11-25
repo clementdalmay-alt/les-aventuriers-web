@@ -2345,6 +2345,11 @@ body .toast.tq.tach.tpill{max-width:calc(100% - 32px)!important}
 #app .bbar > .btn.tryb{flex:0 0 auto !important;width:auto !important;max-width:34%;padding-left:14px;padding-right:14px;white-space:nowrap}
 #app .bbar:has(> .tryb) > .btn[data-act="go"]{flex:1 1 0 !important;width:auto !important;min-width:0}
 #app .bbar:has(> .tryb) > .autob{flex:0 0 56px !important;width:56px !important}
+/* v2.135, lot D (idée 21) : camp sous la pluie */
+body.icoanim .cv-ring{animation:cvring 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+body.icoanim .cv-drip ellipse{animation:cvdrip 1.2s linear infinite}
+@keyframes cvring{from{transform:scale(.4);opacity:.9}to{transform:scale(2.4);opacity:0}}
+@keyframes cvdrip{from{transform:translateY(-6px);opacity:0}30%{opacity:1}to{transform:translateY(22px);opacity:0}}
 </style>
 
 <div id="app"></div>
@@ -2446,7 +2451,7 @@ const FIRE_DAY={easy:.06,normal:.05,hard:.04,expert:.03};
 /* le gain par jour suit la durée de la partie : pour 20 jours, + la base chaque jour ; 40 jours, moitié moins ; 12 jours, 1,7 fois plus */
 const fireBase=()=>{const b=(S&&FIRE_DAY[S.diff])||.05,d=S?Math.max(1,S.day):1,R=20/clamp((S&&S.totalDays)||20,10,40);return Math.min(.6,b*(1+(d-1)*R))};
 const fireOdds=a=>clamp(fireBase()*(1+(a.agi+st(a,'surv')-110)/200),.01,.8)*(perk(a)==='handy'?2:1)*(a.arch==='survivor'?1.5:1);
-const fishWx=()=>(S.wx?({storm:.4,rain:.8}[S.wx.type]||1):1)*LOC(S.loc).clim.fish*isfx('fish');
+/* v2.135 : la pluie fait mordre (×1,2), l'orage reste dangereux */const fishWx=()=>(S.wx?({storm:.5,rain:1.2}[S.wx.type]||1):1)*LOC(S.loc).clim.fish*isfx('fish');
 const lx=(l,k)=>LANG==='fr'?l.fr[k]:LANG==='es'?l.es[k]:l[k];
 const cap1=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
 function setLocation(id){const l=LOC(id),tn=(()=>{try{return S&&S.loc===id&&S.tn}catch(e){return null}})();['A','B','M'].forEach((k,i)=>{if(tn&&tn[k]){TR[k].n=tn[k][0];TR[k].m=tnMean(id,tn[k]);return}TR[k].n=l.t[i][0];TR[k].m=LANG==='fr'?l.fr.m[i]:LANG==='es'?l.es.m[i]:l.t[i][1]});applyCols()}
@@ -3584,12 +3589,20 @@ function letterHtml(p){const w=whyOf(p),fam=p.kids>0?L("your children","vos enfa
 /* extra maths section */
 const LOT2_MATHS=()=>L("<p class=\"lbl\">New rules (v2.30)</p><ul><li><b>Strategy of the day.</b> Low profile: threat −5, bonds ×0.8. Leader: threat +5, bonds ×1.2, your allies follow your vote plan ×1.5. Hard worker: camp work ×1.25, bonds ×0.9.</li><li><b>Mistrust.</b> For 3 days after a betrayal is found out or a promise is broken: affinity gains ×0.5 for both sides; alliance acceptance −10.</li><li><b>Negotiate.</b> Chance = 35 % + affinity ÷ 100 + 20 % if they are under 40 energy + (trust − 50) ÷ 200 − 15 % if you are mistrusted (between 5 and 95 %). Costs one ration. A promise lowers their vote score for you by 45 for 3 days. Broken: −20 affinity, mistrust.</li><li><b>Alliances.</b> Core when mutual affinity ≥ 35 (weight ×1.4), otherwise circumstantial (×0.7), for vote plans and protection.</li><li><b>Injuries.</b> A sick or injured castaway: threat +6 before the merge (weak link), −3 after.</li><li><b>3-day goal.</b> Reward +8 motivation, +6 energy.</li><li><b>Seasons.</b> Wet: 30 % of dry days turn to rain (20 % of those to storm). Dry: 45 % of rainy days turn cloudy, 35 % of sunny days turn to heatwave.</li></ul>","<p class=\"lbl\">Nouvelles règles (v2.30)</p><ul><li><b>Stratégie du jour.</b> Discret : menace −5, liens ×0,8. Leader : menace +5, liens ×1,2, vos alliés suivent votre plan de vote ×1,5. Travailleur : travail au camp ×1,25, liens ×0,9.</li><li><b>Méfiance.</b> Pendant 3 jours après une trahison découverte ou une promesse rompue : gains d'affinité ×0,5 des deux côtés ; acceptation d'alliance −10.</li><li><b>Négocier.</b> Chance = 35 % + affinité ÷ 100 + 20 % s'il a moins de 40 d'énergie + (confiance − 50) ÷ 200 − 15 % si vous êtes sous méfiance (entre 5 et 95 %). Coûte une ration. La promesse baisse de 45 son score de vote contre vous pendant 3 jours. Rompue : −20 d'affinité et méfiance.</li><li><b>Alliances.</b> Noyau dur si l'affinité mutuelle ≥ 35 (poids ×1,4), sinon de circonstance (×0,7), pour les plans de vote et la protection.</li><li><b>Blessures.</b> Un aventurier malade ou blessé : menace +6 avant la réunification (maillon faible), −3 après.</li><li><b>Objectif sur 3 jours.</b> Récompense +8 de motivation, +6 d'énergie.</li><li><b>Saisons.</b> Saison des pluies : 30 % des jours secs tournent à la pluie (dont 20 % en tempête). Saison sèche : 45 % des jours de pluie deviennent nuageux, 35 % des jours de soleil tournent à la canicule.</li></ul>");
 /* ==================== Île et ambiance : météo, saisons, événements, sons ==================== */
-function rollWeather(){const c=LOC(S.loc).clim,r=Math.random();let type=r<c.storm?'storm':r<c.storm+c.rain?'rain':r<c.storm+c.rain+.25?'clouds':'sun';
+function rollWeather(){const prevWx=S.wx?{type:S.wx.type,run:S.wx.run||0}:null;const c=LOC(S.loc).clim,r=Math.random();let type=r<c.storm?'storm':r<c.storm+c.rain?'rain':r<c.storm+c.rain+.25?'clouds':'sun';
   let temp=rint(c.t[0],c.t[1]);if(type==='sun'&&temp>=c.t[1]-1)type='heat';if(type==='storm'||type==='rain')temp=Math.max(c.t[0]-2,temp-3);S.wx={type,temp}
 try{if(!S.wseason)S.wseason=pick(['dry','wet','mid']);const w=S.wx,r=Math.random();
   if(S.wseason==='wet'){if((w.type==='sun'||w.type==='clouds'||w.type==='heat')&&r<.3){w.type=Math.random()<.2?'storm':'rain';w.temp=Math.max(LOC(S.loc).clim.t[0]-2,w.temp-3)}}
   else if(S.wseason==='dry'){if((w.type==='rain'||w.type==='storm')&&r<.45)w.type='clouds';else if(w.type==='sun'&&r<.35){w.type='heat';w.temp=Math.max(w.temp,LOC(S.loc).clim.t[1])}}}catch(e){}
-try{if(S.story&&S.story.i===0&&S.day===2&&!S._storm2){S._storm2=1;S.wx.type='storm';S.wx.temp=Math.max(LOC(S.loc).clim.t[0]-2,S.wx.temp-3)}}catch(e){}}
+try{if(S.story&&S.story.i===0&&S.day===2&&!S._storm2){S._storm2=1;S.wx.type='storm';S.wx.temp=Math.max(LOC(S.loc).clim.t[0]-2,S.wx.temp-3)}}catch(e){}
+  wxPersist(prevWx)}
+/* v2.135, lot D de la revue 9 axes du 23/11 (idée 11 ; choix de Clément du 24/11 « aléatoire et peut durer jusqu'à 3 jours ») :
+   une pluie ou un orage peut continuer le lendemain (1 fois sur 2), jusqu'à 3 jours de suite ; après 3 jours, éclaircie. */
+const WXRUN={keep:.5,max:3};
+function wxPersist(prev){try{const w=S.wx,wet=x=>x==='rain'||x==='storm',c=LOC(S.loc).clim;if(!w)return;
+  if(prev&&wet(prev.type)){if(prev.run>=WXRUN.max){if(wet(w.type))w.type='clouds'}
+    else if(!wet(w.type)&&S.wseason!=='dry'&&Math.random()<WXRUN.keep){w.type=Math.random()<.2?'storm':'rain';w.temp=Math.max(c.t[0]-2,w.temp-3)}}
+  w.run=wet(w.type)?(prev&&wet(prev.type)?(prev.run||1)+1:1):0}catch(e){}}
 const wxLine=()=>S.wx?`${L(...WX[S.wx.type])} · ${tempTxt(S.wx.temp)}`:'';
 const wxAdvice=()=>!S.wx?'':L(...WXADV[S.wx.type])+(S.wx.temp>=32?' '+L("Over 32 °C, every effort costs more: eat and rest.","Au-dessus de 32 °C, chaque effort coûte plus cher : mangez et reposez-vous.","Por encima de 32 °C, cada esfuerzo cuesta más: come y descansa."):'');
 const wxEffect=()=>!S.wx?'':({storm:L("Fishing is very hard and fires may go out.","La pêche est très difficile et les feux peuvent s'éteindre.","Pescar es muy difícil y los fuegos pueden apagarse."),rain:L("Fishing is harder and nights without fire are colder.","La pêche est plus dure et les nuits sans feu plus froides.","Pescar es más difícil y las noches sin fuego son más frías."),heat:L("The heat drains energy. Rest helps.","La chaleur épuise. Le repos aide.","El calor agota. Descansar ayuda."),clouds:L("A mild day.","Une journée douce.","Un día tranquilo."),sun:L("Good conditions for fishing.","De bonnes conditions pour pêcher.","Buenas condiciones para pescar.")})[S.wx.type];
@@ -4019,7 +4032,7 @@ async function humanCamp(p,when,left){musicSet('camp');
   }else if(act==='fish'){
     p.energy-=12;expAdd(p,'fish');const mg=await campMini(p,'fish');
     /* v2.119 : avec le mini-jeu, une prise = un poisson, sans tirage */
-    if(mg!=null){const n=window.__lastFish!=null?window.__lastFish:Math.round(mg*(3+(S.kit[t]?1:0))/100);if(n>0){S.food[t]+=n;credit(p,'fish',n);if(Math.random()<.04)sicken(p,'cut',L(`${p.name} cut a foot on the coral and the wound got infected.`,`${p.name} s'est coupé${p.g==='f'?'e':''} le pied sur le corail et la plaie s'est infectée.`,`${p.name} se cortó el pie con el coral y la herida se infectó.`));msg=n>=2?L(`${n} fish. The tribe eats well tonight.`,`${n} poissons. La tribu mangera bien ce soir.`):L("One fish. Better than nothing.","Un poisson. C'est mieux que rien.","Un pez. Mejor que nada.")}else msg=L("Hours in the water and the fish won. Nothing to bring back.","Des heures dans l'eau, et les poissons ont gagné. Rien à rapporter.","Horas en el agua y los peces han ganado. Nada que traer.")}
+    if(mg!=null){let n=window.__lastFish!=null?window.__lastFish:Math.round(mg*(3+(S.kit[t]?1:0))/100);/* v2.135 : sous la pluie, ça mord : +1 poisson une fois sur 3 */if(n>0&&S.wx&&S.wx.type==='rain'&&Math.random()<1/3)n++;if(n>0){S.food[t]+=n;credit(p,'fish',n);if(Math.random()<.04)sicken(p,'cut',L(`${p.name} cut a foot on the coral and the wound got infected.`,`${p.name} s'est coupé${p.g==='f'?'e':''} le pied sur le corail et la plaie s'est infectée.`,`${p.name} se cortó el pie con el coral y la herida se infectó.`));msg=n>=2?L(`${n} fish. The tribe eats well tonight.`,`${n} poissons. La tribu mangera bien ce soir.`):L("One fish. Better than nothing.","Un poisson. C'est mieux que rien.","Un pez. Mejor que nada.")}else msg=L("Hours in the water and the fish won. Nothing to bring back.","Des heures dans l'eau, et les poissons ont gagné. Rien à rapporter.","Horas en el agua y los peces han ganado. Nada que traer.")}
     else if(mg==null&&Math.random()<(0.35+p.energy/250+(S.kit[t]?0.25:0)+(p.end-55)/400+(st(p,'surv')-55)/250+(perk(p)==='provider'?0.15:0))*fishWx()*effOf(p)*expMul(p,'fish')){const n=mg!=null&&mg>=85?2:Math.random()<(S.kit[t]?0.55:0.25)?2:1;S.food[t]+=n;credit(p,'fish',n);if(Math.random()<.04)sicken(p,'cut',L(`${p.name} cut a foot on the coral and the wound got infected.`,`${p.name} s'est coupé${p.g==='f'?'e':''} le pied sur le corail et la plaie s'est infectée.`,`${p.name} se cortó el pie con el coral y la herida se infectó.`));msg=n===2?L("Two fat fish. The tribe eats well tonight.","Deux beaux poissons. La tribu mangera bien ce soir.","Dos buenos peces. La tribu comerá bien esta noche."):L("One fish. Better than nothing.","Un poisson. C'est mieux que rien.","Un pez. Mejor que nada.")}
     else msg=L("Hours in the water and the fish won. Nothing to bring back.","Des heures dans l'eau, et les poissons ont gagné. Rien à rapporter.","Horas en el agua y los peces han ganado. Nada que traer.");
   }else if(act==='search'){p._srch=p._srch&&p._srch.d===S.day?{d:S.day,n:p._srch.n+1}:{d:S.day,n:1};if(p._srch.n>=3)unlock(p,'lynx');
@@ -4104,6 +4117,8 @@ function eat(){try{idolRehide()}catch(e){}
     ms.forEach(p=>{if(p.motBase!=null)p.mot=clamp(st(p,'mot')+(p.motBase-st(p,'mot'))*0.1,5,100)});
     if(sh<40)ms.forEach(p=>p.energy-=8+(wet?6:0));else if(sh<100)ms.forEach(p=>p.energy-=2+(wet?2:0));
     if(S.wx&&S.wx.type==='storm'&&sh>0)addSh(t,-15);
+    /* v2.135 : sous la pluie, l'abri se défait peu à peu (−5 % par nuit, −3 % s'il est fini) */
+    else if(S.wx&&S.wx.type==='rain'&&sh>0){const k=sh>=100?3:5;addSh(t,-k);if(ms.some(p=>p.human))(S.notes=S.notes||[]).push({t,msg:L("The rain undid part of the shelter.","La pluie a défait un peu l'abri.")})}
     ms.forEach(p=>p.energy=Math.min(enCap(),clamp(p.energy-6-Math.floor(S.day/6)-(p.human?DF().night:0),15)));
   }
 }
@@ -4318,6 +4333,10 @@ function campView(t,when,me){const sh=SH(t),fire=S.fire[t],water=HW(t),food=S.fo
   if(dark)g+=`<rect width="360" height="170" fill="#0a1030" opacity="${night?.28:.12}" pointer-events="none"/>`;
   if(fire&&dark)g+=`<ellipse cx="${fx}" cy="${fy-6}" rx="34" ry="20" fill="url(#${u}g)" opacity=".55" pointer-events="none"/>`;
   if(wet)g+=`<g class="cv-rain" stroke="#cfe3f0" stroke-width="1.1" opacity=".55" pointer-events="none">${Array.from({length:wx==='storm'?44:24},(_,i)=>`<line x1="${(i*37)%370}" y1="${(i*53)%140+20}" x2="${(i*37)%370-4}" y2="${(i*53)%140+30}"/>`).join('')}</g>`;
+  /* v2.135 (idée 21) : camp sous la pluie : flaques sur le sable, gouttes sous un abri pas fini, feu sous un auvent de palmes */
+  if(wet){g+=`<g pointer-events="none" opacity=".85">${[[42,152,16],[136,160,11],[296,150,18],[330,162,9]].map(([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${(r/3.5).toFixed(1)}" fill="#8fb7c9" opacity=".55" stroke="#cfe3f0" stroke-width=".8"/><ellipse class="cv-ring" cx="${x}" cy="${y}" rx="${r/3}" ry="${(r/10).toFixed(1)}" fill="none" stroke="#e8f4f8" stroke-width=".8"/>`).join('')}</g>`;
+    if(sh>0&&sh<100)g+=`<g class="cv-drip" fill="#cfe3f0" pointer-events="none">${[0,1,2,3].map(i=>`<ellipse cx="${X+8+i*16}" cy="${Y-30+i%2*8}" rx="1.4" ry="2.6" style="animation-delay:-${(i*.4).toFixed(1)}s"/>`).join('')}</g>`;
+    if(fire)g+=`<g pointer-events="none"><path d="M${fx-26} ${fy-28} L${fx-22} ${fy+6} M${fx+26} ${fy-24} L${fx+22} ${fy+6}" stroke="#8a5b2a" stroke-width="2.6"/><path d="M${fx-32} ${fy-26} Q${fx} ${fy-44} ${fx+32} ${fy-22} L${fx+28} ${fy-18} Q${fx} ${fy-36} ${fx-28} ${fy-22}Z" fill="#6aa66a" stroke="${I}" stroke-width="1.4"/></g>`}
   if(wx==='storm')g+=`<rect class="cv-flash" width="360" height="170" fill="#fff" opacity="0" pointer-events="none"/>`;
   const svg=`<svg viewBox="0 0 360 170" class="cvivant" role="img" aria-label="${L("Your camp","Votre camp")}">${g}</svg>`;
   return `<details class="campd" data-keep="camp" ${keepGet().camp!==0?'open':''}><summary>🏝️ ${L("The camp","Le camp")}</summary><figure class="campscene">${svg}</figure><p class="campinfo muted">${L("Tap an element of the camp or a castaway.","Touchez un élément du camp ou un aventurier.")}</p></details>`}
@@ -7870,7 +7889,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.134 · 2026-11-24';
+const APP_VER='2.135 · 2026-11-24';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
