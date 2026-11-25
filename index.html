@@ -2350,6 +2350,8 @@ body.icoanim .cv-ring{animation:cvring 1.6s ease-out infinite;transform-box:fill
 body.icoanim .cv-drip ellipse{animation:cvdrip 1.2s linear infinite}
 @keyframes cvring{from{transform:scale(.4);opacity:.9}to{transform:scale(2.4);opacity:0}}
 @keyframes cvdrip{from{transform:translateY(-6px);opacity:0}30%{opacity:1}to{transform:translateY(22px);opacity:0}}
+/* v2.136 (lot E) : 4 stratégies (Concentré ajoutée) → grille 2 × 2 au lieu de 3 + 1 orphelin */
+.stratb{grid-template-columns:repeat(2,minmax(0,1fr))}
 </style>
 
 <div id="app"></div>
@@ -3521,10 +3523,12 @@ function whyConfOpt(p){const w=whyOf(p);return Math.random()<.6?WHYA[w.a][1]:WHY
 /* strategy of the day */
 const STRATS={low:['🍃',()=>L("Low profile","Discret"),()=>L("Threat −5, but your bonds grow 20 % slower.","Menace −5, mais vos liens progressent 20 % moins vite.")],
   lead:['📣',()=>L("Leader","Leader"),()=>L("Bonds +20 % and your allies follow your plan more, but threat +5.","Liens +20 % et vos alliés suivent davantage votre plan, mais menace +5.")],
-  work:['🪓',()=>L("Hard worker","Travailleur"),()=>L("Camp work counts 25 % more, bonds 10 % slower.","Le travail au camp compte 25 % de plus, les liens 10 % moins vite.")]};
+  work:['🪓',()=>L("Hard worker","Travailleur"),()=>L("Camp work counts 25 % more, bonds 10 % slower.","Le travail au camp compte 25 % de plus, les liens 10 % moins vite.")],
+  /* v2.136 (lot E, idée 18) : Concentré = épreuves du jour ×1,08 (humanPlay), liens −15 % (mutMod) */
+  focus:['🎯',()=>L("Focused","Concentré"),()=>L("You only think about the challenges: better scores today, but you talk less with the others.","Vous ne pensez qu'aux épreuves : meilleur score aux épreuves du jour, mais vous parlez moins avec les autres.")]};
 /* v2.98 (lot I1, point 4) : l'effet chiffré de chaque Stratégie, sous son nom ; vert = favorable au joueur, rouge = défavorable */
-const STRAT_FX={low:[['threat','−5',1],['bonds','−20 %',0]],lead:[['bonds','+20 %',1],['threat','+5',0]],work:[['work','+25 %',1],['bonds','−10 %',0]]};
-const stratFx=s=>`<span class="sfx">${(STRAT_FX[s]||[]).map(([k,v,g])=>`<span class="${g?'up':'down'}">${k==='threat'?L("Threat","Menace","Amenaza"):k==='bonds'?L("Bonds","Liens","Lazos"):L("Work","Travail","Trabajo")} ${v}</span>`).join('')}</span>`;
+const STRAT_FX={low:[['threat','−5',1],['bonds','−20 %',0]],lead:[['bonds','+20 %',1],['threat','+5',0]],work:[['work','+25 %',1],['bonds','−10 %',0]],focus:[['ch','+8 %',1],['bonds','−15 %',0]]};
+const stratFx=s=>`<span class="sfx">${(STRAT_FX[s]||[]).map(([k,v,g])=>`<span class="${g?'up':'down'}">${k==='threat'?L("Threat","Menace","Amenaza"):k==='bonds'?L("Bonds","Liens","Lazos"):k==='ch'?L("Challenges","Épreuves"):L("Work","Travail","Trabajo")} ${v}</span>`).join('')}</span>`;
 const stratOf=p=>{try{const s=S.strat&&S.strat[p.id];return s&&s.d===S.day?s.k:null}catch(e){return null}};
 // Stratégie du jour : un premier appui montre les effets, « Valider » fixe le choix pour la journée
 let STRAT_PEND=null;
@@ -3546,7 +3550,7 @@ function stratBar(p){if(!p||!p.human)return'';const k=stratOf(p);if(!k&&stratLoc
 
 /* mistrust after a betrayal or a broken promise: 3 days */
 function mistSet(...ids){S.mist=S.mist||{};ids.forEach(id=>{S.mist[id]=S.day+2})}
-function mutMod(a,b,v){try{if(!S||v<=0)return v;if(mistrusted(a)||mistrusted(b))v*=.5;[a,b].forEach(id=>{const k=stratOf(P(id));if(k==='low')v*=.8;else if(k==='lead')v*=1.2;else if(k==='work')v*=.9});return v}catch(e){return v}}
+function mutMod(a,b,v){try{if(!S||v<=0)return v;if(mistrusted(a)||mistrusted(b))v*=.5;[a,b].forEach(id=>{const k=stratOf(P(id));if(k==='low')v*=.8;else if(k==='lead')v*=1.2;else if(k==='work')v*=.9;else if(k==='focus')v*=.85});return v}catch(e){return v}}
 
 /* two-level alliances: core when mutual affinity ≥ 35 */
 const alCore=(a,b)=>{try{return (aff(a,b)+aff(b,a))/2>=35}catch(e){return false}};
@@ -3902,8 +3906,17 @@ function rumeurDuJour(p){try{if(!S||S.day<2||S.humans>1)return;S._rumD=S._rumD||
   const v=Math.floor(r(5)*3);const T3={vise:[()=>L(`word is ${zn} is thinking of voting against ${yn} at the next Council.`,`${zn} penserait à voter contre ${yn} au prochain Conseil.`,`${zn} pensaría votar contra ${yn} en el próximo Consejo.`),()=>L(`word is ${zn} has already made a choice: it would be ${yn}.`,`${zn} aurait déjà fait son choix : ce serait ${yn}.`,`${zn} ya habría tomado su decisión: sería ${yn}.`),()=>L(`word is ${zn} is looking for votes against ${yn}.`,`${zn} chercherait des voix contre ${yn}.`,`${zn} estaría buscando votos contra ${yn}.`)],proche:[()=>L(`word is ${zn} and ${yn} have become inseparable.`,`${zn} et ${yn} ne se quitteraient plus.`,`${zn} y ${yn} ya no se separarían.`),()=>L(`word is ${zn} and ${yn} share secrets by the water.`,`${zn} et ${yn} se feraient des confidences au bord de l'eau.`,`${zn} y ${yn} se harían confidencias a la orilla del agua.`),()=>L(`word is ${zn} would protect ${yn} no matter what.`,`${zn} protégerait ${yn} quoi qu'il arrive.`,`${zn} protegería a ${yn} pase lo que pase.`)],collier:[()=>L(`word is ${zn} has found an immunity collar.`,`${zn} aurait trouvé un collier d'immunité.`,`${zn} habría encontrado un collar de inmunidad.`),()=>L(`word is ${zn} dug up a collar in the jungle.`,`${zn} aurait déniché un collier dans la jungle.`,`${zn} habría encontrado un collar en la selva.`),()=>L(`word is ${zn} was seen searching the island in secret.`,`On aurait vu ${zn} fouiller l'île en cachette.`,`Habrían visto a ${zn} registrando la isla a escondidas.`)],fatigue:[()=>L(`word is ${zn} is running on empty.`,`${zn} serait au bout du rouleau.`,`${zn} estaría al límite.`),()=>L(`word is ${zn} has almost nothing left.`,`${zn} n'aurait presque plus de forces.`,`A ${zn} casi no le quedarían fuerzas.`),()=>L(`word is ${zn} won't last much longer.`,`${zn} aurait du mal à tenir encore longtemps.`,`A ${zn} le costaría aguantar mucho más.`)]};
   const txt=T3[kind][v]();
   campNewsAdd(`<span class="rum">🗣️ <b>${L("Today's rumour:","Rumeur du jour :","Rumor del día:")}</b> ${txt}</span>`)}catch(e){}}
+/* v2.136 (lot E, idée 12) : avant le Conseil, si au moins 2 votes se préparent contre le joueur, un aventurier qui l'apprécie
+   (lien ≥ 60) le prévient 1 fois sur 2 en tête des Nouvelles. Affichage seul (hasard d'affichage hrnd, aucun tirage du jeu). */
+function allyWarn(p){try{if(!S||S.humans>1)return;S._awD=S._awD||0;if(S._awD===S.day)return;S._awD=S.day;
+  const voters=(S.merged?alive():tribeMembers(tk(p))),elig=voters.filter(v=>!v.immune),vs=[];
+  voters.filter(v=>!v.human).forEach(a=>{let b=null,bs=-1e9;for(const c of elig){if(c.id===a.id)continue;const s=-aff(a.id,c.id)+threat(c)+(allied(a.id,c.id)?-25:0);if(s>bs){bs=s;b=c}}if(b&&b.id===p.id)vs.push(a)});
+  if(vs.length<2||hrnd(S.day,77,p.id)>=.5)return;const al=voters.filter(a=>!a.human&&!vs.includes(a)&&aff(a.id,p.id)>=60).sort((a,b)=>aff(b.id,p.id)-aff(a.id,p.id))[0];if(!al)return;
+  const an=esc(al.name),n1=esc(vs[0].name),n2=esc(vs[1].name),more=vs.length-2;
+  campNewsAdd(`<span class="rum awarn">🤫 <b>${an}</b> ${more>0?L(`warns you: ${n1}, ${n2} and ${more} more want to write your name tonight.`,`vous prévient : ${n1}, ${n2} et ${more} autre(s) veulent écrire votre nom ce soir.`):L(`warns you: ${n1} and ${n2} want to write your name tonight.`,`vous prévient : ${n1} et ${n2} veulent écrire votre nom ce soir.`)}</span>`)}catch(e){}}
 async function humanCamp(p,when,left){musicSet('camp');
   if(left===ACTIONS[when]&&when==='am')rumeurDuJour(p);
+  if(left===ACTIONS[when]&&when==='tc'&&whenOf(p,when)==='tc')allyWarn(p);
   if(left===ACTIONS[when])await readInbox(p);
   if(left===ACTIONS[when]&&when==='pm')await confessional(p,tk(p),tribeMembers(tk(p)).filter(m=>m.id!==p.id));
   if(left===ACTIONS[when]&&when==='am')await maybeDilemma(p,tk(p),tribeMembers(tk(p)).filter(m=>m.id!==p.id));
@@ -5003,7 +5016,7 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
   if(choiceAct!=='auto'&&!gaveUp){if(g==='edible'&&raw>=100)unlock(p,'edible100');if(g==='raft'&&raw>=96)unlock(p,'raft8');
     try{const k='aventuriers-games',o=JSON.parse(localStorage.getItem(k)||'{}');o[g]=1;localStorage.setItem(k,JSON.stringify(o));if(POOL.every(x=>o[x]))unlock(p,'allgames')}catch(e){}}
   if(g==='edible'&&window.__poison&&Math.random()<.6)sicken(p,'food',L(`${p.name} ate something they should not have during the challenge.`,`${p.name} a mangé ce qu'il ne fallait pas pendant l'épreuve.`,`${p.name} comió lo que no debía durante la prueba.`));
-  const formeM=ef(p)*(1+bonus/100)*(1+famMotiv(p)/100)*motMul(p)*sickMul(p)*hurtMul(p,g);
+  const formeM=ef(p)*(1+bonus/100)*(1+famMotiv(p)/100)*motMul(p)*sickMul(p)*hurtMul(p,g)*(stratOf(p)==='focus'?1.08:1);
   /* v2.128 : Coquillages joués jusqu'au bout = temps retenu (temps joué ÷ forme), converti en score interne */
   const shL=g==='shells'&&choiceAct!=='auto'&&!gaveUp&&window.__lastShells?window.__lastShells:null,shR=shL&&shL.done?shL.t/formeM:null;
   /* v2.130 : Mémoire des totems jouée = manches réussies + temps retenu (temps joué ÷ forme), converti en score interne */
@@ -5083,14 +5096,24 @@ async function confortPhase(q,lines){
   const sc=await playAll(g,KIND_C());
   const rank=alive().sort((a,b)=>sc[b.id]-sc[a.id]||Math.random()-.5),w=rank[0];
   if(!q)await ask(`${eb(L("Confort · Results","Confort · Résultats","Recompensa · Resultados"))}<h1 class="h">${L(`${esc(w.name)} wins the trip`,`${esc(w.name)} remporte l'escapade`,`${esc(w.name)} gana la excursión`)}</h1><div class="results">${scoreRows(sc,rank,w.id)}</div><button class="btn" data-act="go">${L("Continue","Continuer","Continuar")}</button>`);
-  const others=alive().filter(p=>p.id!==w.id);let guest;
-  if(w.human){await passPhone(w,L("Reward","Récompense","Recompensa"));guest=P(+await ask(`${eb(L("Reward · ","Récompense · ","Recompensa · ")+esc(w.name))}<h1 class="h">${L("Who comes with you?","Qui vous accompagne ?","¿Quién te acompaña?")}</h1><p class="muted">${L("Bringing someone builds a strong bond. The others may resent it.","Emmener quelqu'un crée un lien fort. Les autres pourraient vous en vouloir.","Llevar a alguien crea un vínculo fuerte. Los demás podrían tomárselo mal.")}</p>
-    <div class="pick">${others.map(ppick).join('')}</div>`))}
-  else guest=others.sort((a,b)=>aff(w.id,b.id)-aff(w.id,a.id))[0];
-  [w,guest].forEach(p=>{p.energy=clamp(p.energy+25);motv(p,8)});S.away=[w.id,guest.id];logH(w.id,guest.id,`${w.name} took ${guest.name} on the reward trip.`,`${w.name} a emmené ${guest.name} profiter de la récompense.`,`${w.name} se llevó a ${guest.name} a disfrutar de la recompensa.`);mutual(w.id,guest.id,20);
-  others.filter(o=>o.id!==guest.id).forEach(o=>addAff(o.id,w.id,-3));
-  lines.push(L(`<b>${esc(w.name)}</b> won the reward trip and took ${esc(guest.name)}.`,`<b>${esc(w.name)}</b> remporte l'escapade et emmène ${esc(guest.name)}.`,`<b>${esc(w.name)}</b> gana la excursión y se lleva a ${esc(guest.name)}.`));
-  if(!q)await note(`${eb(L("Reward","Récompense","Recompensa"))}<h1 class="h">${L(`${esc(w.name)} and ${esc(guest.name)} leave camp`,`${esc(w.name)} et ${esc(guest.name)} quittent le camp`,`${esc(w.name)} y ${esc(guest.name)} dejan el campamento`)}</h1><p>${L("A hot meal and a night in a real bed. Both come back with +25 energy, and closer than ever. They miss the afternoon at camp, so the others can talk freely.","Un repas chaud et une nuit dans un vrai lit. Tous deux reviennent avec +25 d'énergie, et plus proches que jamais. Ils manquent l'après-midi au camp : les autres peuvent parler librement.","Una comida caliente y una noche en una cama de verdad. Ambos vuelven con +25 de energía y más unidos que nunca. Se pierden la tarde en el campamento: los demás pueden hablar libremente.")}</p><button class="btn" data-act="go">${L("Back to camp","Retour au camp","Volver al campamento")}</button>`);
+  /* v2.136 (lot E de la revue 9 axes du 23/11, idée 6) : le vainqueur part seul, avec 1 invité (comme avant) ou avec 2 invités.
+     Seul : +40 énergie, +12 moral, −6 de lien chez tous les autres. 1 invité : +25 / +8 chacun, +20 de lien entre eux, −3 chez les autres.
+     2 invités : +15 énergie et +5 moral chacun, +12 de lien entre le vainqueur et chacun, −1 chez les autres.
+     Virtuels : menacés (aiDanger) → 2 invités ; Grande gueule, Compétiteur ou énergie < 30 → seul ; sinon 1 invité. */
+  const others=alive().filter(p=>p.id!==w.id),byAff=[...others].sort((a,b)=>aff(w.id,b.id)-aff(w.id,a.id));let mode,guests=[];
+  if(w.human){await passPhone(w,L("Reward","Récompense","Recompensa"));
+    mode=others.length<2?'one':await ask(`${eb(L("Reward · ","Récompense · ","Recompensa · ")+esc(w.name))}<h1 class="h">${L("How do you go?","Comment partez-vous ?")}</h1><div class="choices">${[['solo','🏝️',L("Go alone","Partir seul"),'⚡ +40 · ✊ +12 · 😒 −6 '+L("from the others","des autres")],['one','👥',L("Take one adventurer","Emmener un aventurier"),'⚡ +25 · ✊ +8 · 🤝 +20 · 😒 −3'],['two','👨‍👩‍👦',L("Take two adventurers","Emmener deux aventuriers"),'⚡ +15 · ✊ +5 · 🤝 +12 · 😒 −1']].map(([k,i,t,e])=>`<button class="choice" data-act="${k}"><b>${i} ${t}</b><span class="effl">${e}</span></button>`).join('')}</div>`);
+    for(let i=0;i<(mode==='two'?2:mode==='one'?1:0);i++){const left=others.filter(o=>!guests.includes(o));guests.push(P(+await ask(`${eb(L("Reward · ","Récompense · ","Recompensa · ")+esc(w.name))}<h1 class="h">${i?L("Who else?","Et qui d'autre ?"):L("Who comes with you?","Qui vous accompagne ?","¿Quién te acompaña?")}</h1><p class="muted">${L("Bringing someone builds a strong bond. The others may resent it.","Emmener quelqu'un crée un lien fort. Les autres pourraient vous en vouloir.","Llevar a alguien crea un vínculo fuerte. Los demás podrían tomárselo mal.")}</p>
+    <div class="pick">${left.map(ppick).join('')}</div>`)))}}
+  else{mode=others.length>=2&&aiDanger(w)?'two':(w.arch==='hothead'||w.arch==='competitor'||w.energy<30)?'solo':'one';guests=byAff.slice(0,mode==='two'?2:mode==='one'?1:0)}
+  if(mode!=='solo'&&mode!=='two')mode='one';guests=guests.filter(Boolean);if(mode==='two'&&guests.length<2)mode=guests.length?'one':'solo';if(mode==='one'&&!guests.length){if(byAff[0])guests=[byAff[0]];else mode='solo'}
+  const guest=guests[0]||null;
+  if(mode==='solo'){w.energy=clamp(w.energy+40);motv(w,12);S.away=[w.id];others.forEach(o=>addAff(o.id,w.id,-6))}
+  else if(mode==='two'){[w,...guests].forEach(p=>{p.energy=clamp(p.energy+15);motv(p,5)});S.away=[w.id,...guests.map(g=>g.id)];guests.forEach(g=>{logH(w.id,g.id,`${w.name} took ${guest.name} on the reward trip.`,`${w.name} a emmené ${guest.name} profiter de la récompense.`,`${w.name} se llevó a ${guest.name} a disfrutar de la recompensa.`);mutual(w.id,g.id,12)});others.filter(o=>!guests.includes(o)).forEach(o=>addAff(o.id,w.id,-1))}
+  else{[w,guest].forEach(p=>{p.energy=clamp(p.energy+25);motv(p,8)});S.away=[w.id,guest.id];logH(w.id,guest.id,`${w.name} took ${guest.name} on the reward trip.`,`${w.name} a emmené ${guest.name} profiter de la récompense.`,`${w.name} se llevó a ${guest.name} a disfrutar de la recompensa.`);mutual(w.id,guest.id,20);others.filter(o=>o.id!==guest.id).forEach(o=>addAff(o.id,w.id,-3))}
+  const g2=guests[1]||null;
+  lines.push(mode==='solo'?L(`<b>${esc(w.name)}</b> won the reward trip and went alone.`,`<b>${esc(w.name)}</b> remporte l'escapade et part seul.`):mode==='two'?L(`<b>${esc(w.name)}</b> won the reward trip and took ${esc(guest.name)} and ${esc(g2.name)}.`,`<b>${esc(w.name)}</b> remporte l'escapade et emmène ${esc(guest.name)} et ${esc(g2.name)}.`):L(`<b>${esc(w.name)}</b> won the reward trip and took ${esc(guest.name)}.`,`<b>${esc(w.name)}</b> remporte l'escapade et emmène ${esc(guest.name)}.`,`<b>${esc(w.name)}</b> gana la excursión y se lleva a ${esc(guest.name)}.`));
+  if(!q)await note(`${eb(L("Reward","Récompense","Recompensa"))}<h1 class="h">${mode==='solo'?L(`${esc(w.name)} leaves camp alone`,`${esc(w.name)} quitte le camp, seul`):mode==='two'?L(`${esc(w.name)}, ${esc(guest.name)} and ${esc(g2.name)} leave camp`,`${esc(w.name)}, ${esc(guest.name)} et ${esc(g2.name)} quittent le camp`):L(`${esc(w.name)} and ${esc(guest.name)} leave camp`,`${esc(w.name)} et ${esc(guest.name)} quittent le camp`,`${esc(w.name)} y ${esc(guest.name)} dejan el campamento`)}</h1><p>${mode==='solo'?L("A hot meal and a night in a real bed, all to yourself: +40 energy. Back at camp, people did not like it.","Un repas chaud et une nuit dans un vrai lit, rien que pour soi : +40 d'énergie. Au camp, on n'a pas apprécié."):mode==='two'?L("A hot meal shared by three: +15 energy each, and stronger bonds. Back at camp, people liked the gesture.","Un repas chaud partagé à trois : +15 d'énergie chacun, et des liens plus forts. Au camp, on salue le geste."):L("A hot meal and a night in a real bed. Both come back with +25 energy, and closer than ever. They miss the afternoon at camp, so the others can talk freely.","Un repas chaud et une nuit dans un vrai lit. Tous deux reviennent avec +25 d'énergie, et plus proches que jamais. Ils manquent l'après-midi au camp : les autres peuvent parler librement.","Una comida caliente y una noche en una cama de verdad. Ambos vuelven con +25 de energía y más unidos que nunca. Se pierden la tarde en el campamento: los demás pueden hablar libremente.")}</p><button class="btn" data-act="go">${L("Back to camp","Retour au camp","Volver al campamento")}</button>`);
 }
 
 async function lettersReward(g,q,lines,startBtn){
@@ -7889,7 +7912,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.135 · 2026-11-24';
+const APP_VER='2.136 · 2026-11-24';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
