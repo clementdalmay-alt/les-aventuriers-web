@@ -2352,6 +2352,8 @@ body.icoanim .cv-drip ellipse{animation:cvdrip 1.2s linear infinite}
 @keyframes cvdrip{from{transform:translateY(-6px);opacity:0}30%{opacity:1}to{transform:translateY(22px);opacity:0}}
 /* v2.136 (lot E) : 4 stratégies (Concentré ajoutée) → grille 2 × 2 au lieu de 3 + 1 orphelin */
 .stratb{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* v2.137 (lot G, idée 20) : commentaire de l animateur sur le rang, au-dessus du classement */
+#app .wrap .rkhost{margin:0 0 8px}
 </style>
 
 <div id="app"></div>
@@ -5744,7 +5746,7 @@ if(dagger)autoStop('dagger',L("here are the daggers.","voici les poignards."));
   outPlayer(e,'elim');
   lines.push(L((""+((dagger)?`Orienteering: <b>${esc(e.name)}</b> did not find a dagger in time and leaves the adventure. Joins the jury.`:`<b>${esc(e.name)}</b> finished last in the elimination challenge and left the island. Joins the jury.`)),(""+((dagger)?`Épreuve d'orientation : <b>${esc(e.name)}</b> n'a pas trouvé de poignard à temps et quitte l'aventure. Rejoint le jury.`:`<b>${esc(e.name)}</b> termine ${e.g==='f'?'dernière':'dernier'} de l'épreuve éliminatoire et quitte l'île. Rejoint le jury.`)),(""+((dagger)?`Prueba de orientación: <b>${esc(e.name)}</b> no encontró ningún puñal a tiempo y abandona la aventura. Entra en el jurado.`:`<b>${esc(e.name)}</b> terminó ${e.g==='f'?'última':'último'} en la prueba de eliminación y abandona la isla. Entra en el jurado.`))));
   if(!q)await ask(`${eb(L("Elimination · Results","Éliminatoire · Résultats","Eliminación · Resultados"))}<h1 class="h">${L(`${esc(e.name)} finishes last`,`${esc(e.name)} termine ${e.g==='f'?'dernière':'dernier'}`,`${esc(e.name)} termina ${e.g==='f'?'última':'último'}`)}</h1>
-    <div class="results">${scoreRows(sc,rank,w.id)}</div>
+    <div class="results">${scoreRows(sc,rank,w.id,true)}</div>
     <div class="elimrow"><div class="torchbox"><div class="snuffer"></div><div class="flame out"></div><div class="smoke"><i></i><i></i><i></i></div><div class="stick"></div></div><div class="facebox">${face(e,96,'gone')}</div></div>
     ${stillInFold()}
     ${host(L(`${esc(e.name)}, the challenge has decided. You join the jury.`,`${esc(e.name)}, l'épreuve a tranché. Vous rejoignez le jury.`,`${esc(e.name)}, la prueba ha decidido. Entras en el jurado.`))}
@@ -7912,7 +7914,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.136 · 2026-11-24';
+const APP_VER='2.137 · 2026-11-24';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8451,10 +8453,20 @@ const scPts=(v,p)=>scTx()?scTx()(v,p&&SHT[p.id]):`${v} ${L("pts","pts","pts")}`;
 const scAvg=(x,y)=>scTx()?scTx()(x):sc2(x,y);
 function sc2(x,y){if(y==null||Math.round(x)!==Math.round(y))return String(Math.round(x));const d=Math.abs(x-y)>=0.05||Math.abs(x-y)===0?1:2;return nf(x.toFixed(d))}
 function tieWin(sc,A,B){if(A!==B)return A>B?'A':'B';const best=t=>tribeMembers(t).filter(p=>sc[p.id]!=null).map(p=>sc[p.id]).sort((a,b)=>b-a);const a=best('A'),b=best('B');for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]??-1,y=b[i]??-1;if(x!==y)return x>y?'A':'B'}return W('A')>=W('B')?'A':'B'}
+/* v2.137 (lot G de la revue 9 axes du 23/11, idée 20) : l'animateur commente le rang du joueur dans une épreuve individuelle.
+   Solo, 4 classés ou plus. 5 tranches (1er, podium, 1re moitié, 2e moitié, dernier), 3 variantes chacune,
+   tirées au hasard d'affichage (hrnd : aucun tirage du jeu). */
+const RANKHOST={first:3,podium:3,top:3,low:3,last:3};
+function rankHost(sc,ps){try{if(!S||S.humans>1)return'';const r=ps.filter(p=>sc[p.id]!=null);if(r.length<4)return'';const me=r.find(p=>p.human);if(!me)return'';
+  const i=r.indexOf(me)+1,n=r.length,k=i===1?'first':i===n?'last':i<=3?'podium':i<=n/2?'top':'low',v=1+Math.floor(hrnd(S.day,63,i,n,r[0].id)*RANKHOST[k]);
+  const nm=esc(me.name),rk=ordN(i),t={first:[L(`Nobody beat ${nm} today. Hats off!`,`Personne n'a fait mieux que ${nm} aujourd'hui. Chapeau !`),L(`${nm} takes first place. The others will be watching you now.`,`${nm} prend la première place. Les autres vont vous surveiller, maintenant.`),L(`What a challenge from ${nm}! A clear first place.`,`Quelle épreuve de ${nm} ! Une première place nette.`)],podium:[L(`${nm} makes the podium, ${rk}. Well played.`,`${nm} monte sur le podium, ${rk}. Belle épreuve.`),L(`${rk} for ${nm}: not far from the top.`,`${rk} pour ${nm} : il ne manquait pas grand-chose.`),L(`${nm} finishes ${rk}. Victory is within reach.`,`${nm} termine ${rk}. La victoire n'est pas loin.`)],
+   top:[L(`${nm} finishes ${rk} of ${n}: in the top half.`,`${nm} finit ${rk} sur ${n} : dans la bonne moitié.`),L(`${rk} for ${nm}. Decent, nothing more.`,`${rk} pour ${nm}. Correct, sans plus.`),L(`${nm} stays with the leading pack, ${rk}.`,`${nm} reste dans le groupe de tête, ${rk}.`)],low:[L(`${nm}, ${rk} of ${n}… you will need to do better.`,`${nm}, ${rk} sur ${n}… il faudra faire mieux.`),L(`${rk} for ${nm}: a tough one.`,`${rk} pour ${nm} : une épreuve difficile.`),L(`${nm} finishes ${rk}. Back at camp, people noticed.`,`${nm} termine ${rk}. Au camp, on l'a remarqué.`)],last:[L(`Last place for ${nm}. People will talk at camp tonight.`,`Dernière place pour ${nm}. Ça va parler au camp ce soir.`),L(`${nm} brings up the rear today.`,`${nm} ferme la marche aujourd'hui.`),L(`${nm} finishes last. Time to bounce back.`,`${nm} termine à la dernière place. Il va falloir réagir.`)]}[k];
+  return host(t[v-1]).replace('<p class="host"','<p class="host rkhost"')}catch(e){return''}}
 /* 4. compact individual results; your line opens your score detail */
-const scoreRows=(sc,ps,winId)=>{const bb=breakBox();const inner=bb?bb.replace(/^<details[^>]*><summary>[\s\S]*?<\/summary>/,'').replace(/<\/details>$/,''):'';
+/* noHost : pas de commentaire de l'animateur (éliminatoire : l'écran raconte déjà l'élimination) */
+const scoreRows=(sc,ps,winId,noHost)=>{const bb=breakBox();const inner=bb?bb.replace(/^<details[^>]*><summary>[\s\S]*?<\/summary>/,'').replace(/<\/details>$/,''):'';
   // « ⭐ vous : 5e sur 5 » seulement quand le classement est long (sinon il fait doublon avec la liste)
-  return (ps.length>10?youRank(sc,ps):'')+`<ol class="crank">${ps.map((p,i)=>`<li class="res crow ${p.id===winId?'win':''} ${p.human?'me':''}" data-pid="${p.id}"><span class="crk">${sc[p.id]!=null?i+1:'–'}</span><b>${esc(p.name)}</b><span class="crs">${esc(sportName(p.sport))}</span><span class="num">${sc[p.id]!=null?scShow(sc[p.id],p):'—'}</span>${p.human&&inner?`<button type="button" class="mplus crplus" aria-label="${L("Score detail","Détail du score")}">+</button><div class="minfo crinfo" hidden>${inner}</div>`:''}</li>`).join('')}</ol>`};
+  return (noHost?'':rankHost(sc,ps))+(ps.length>10?youRank(sc,ps):'')+`<ol class="crank">${ps.map((p,i)=>`<li class="res crow ${p.id===winId?'win':''} ${p.human?'me':''}" data-pid="${p.id}"><span class="crk">${sc[p.id]!=null?i+1:'–'}</span><b>${esc(p.name)}</b><span class="crs">${esc(sportName(p.sport))}</span><span class="num">${sc[p.id]!=null?scShow(sc[p.id],p):'—'}</span>${p.human&&inner?`<button type="button" class="mplus crplus" aria-label="${L("Score detail","Détail du score")}">+</button><div class="minfo crinfo" hidden>${inner}</div>`:''}</li>`).join('')}</ol>`};
 /* 2. history: compact, names in tribe colours */
 // après l'affichage
 function screenConseilFlame(html){try{const w=$app.querySelector('.wrap');if(!w)return;
