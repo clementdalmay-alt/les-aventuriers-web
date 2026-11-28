@@ -2354,6 +2354,12 @@ body.icoanim .cv-drip ellipse{animation:cvdrip 1.2s linear infinite}
 .stratb{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* v2.137 (lot G, idée 20) : commentaire de l animateur sur le rang, au-dessus du classement */
 #app .wrap .rkhost{margin:0 0 8px}
+/* v2.139 : Nouvelles, actions simulées et répliques au même alignement et dans la même police que les autres lignes */
+#app .ctp li.simh .simt{font-family:inherit;font-weight:700;font-size:inherit;letter-spacing:normal}
+#app .ctp li.siml{background:none;border:0}
+#app .ctp li.vline .vwin{display:inline;margin:0;font-size:inherit;font-weight:700;color:var(--muted)}
+#app .ctp li.vline .vq{font-style:italic}
+#app .ctp li.vline .lface{vertical-align:-4px}
 </style>
 
 <div id="app"></div>
@@ -7916,7 +7922,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.138 · 2026-11-27';
+const APP_VER='2.139 · 2026-11-27';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8918,7 +8924,8 @@ function newsMerge(bar,pn,hp,one){try{const nb=bar.querySelector('[data-ctab="ne
   const norm=t=>String(t||'').replace(/\s+/g,' ').trim();
   /* v2.111 (Clément, 10/11, 15 h 24) : « Précédemment » n'a plus sa place dans les Nouvelles (les pages des jours le disent déjà) */
   if(np)np.querySelectorAll('.prevbox').forEach(x=>x.remove());
-  if(np){const top=[...np.querySelectorAll('.nightb, .prog')];np.querySelectorAll('ul.lines').forEach(u=>{let x=u.previousSibling;while(x&&x.nodeType===1&&x.tagName==='BR'){const y=x.previousSibling;x.remove();x=y}u.remove()});
+  if(np){const top=[...np.querySelectorAll('.nightb, .prog')];np.querySelectorAll('ul.lines').forEach(u=>{let x=u.previousSibling;while(x&&x.nodeType===1&&x.tagName==='BR'){const y=x.previousSibling;x.remove();x=y}const lone=e=>e&&e.nodeType===1&&(e.tagName==='B'||(e.tagName==='P'&&e.children.length===1&&e.firstElementChild.tagName==='B'&&e.textContent.trim()===e.firstElementChild.textContent.trim()));
+      if(lone(x)){let y=x.previousSibling;x.remove();while(y&&y.nodeType===1&&y.tagName==='BR'){const z=y.previousSibling;y.remove();y=z}}/* v2.139 : titre seul (« Décisions prises pour vous », « Messages privés ») retiré avec sa liste */u.remove()});
     const htxt=norm(hp.textContent);const rest=[...np.children].filter(x=>!top.includes(x)&&norm(x.textContent)&&!htxt.includes(norm(x.textContent)));
     if(top.length){const box=document.createElement(one?'li':'div');box.className='htoday';top.forEach(x=>{if(one&&x.matches('.nightb')){const s=document.createElement('span');s.className='hnight';s.innerHTML=x.innerHTML;box.appendChild(s)}else box.appendChild(x)});
       if(one){const hd=[...hp.querySelectorAll(':scope > .hday')].find(h=>+(h.textContent.match(/\d+/)||[0])[0]===S.day);let ul=hd&&hd.nextElementSibling&&hd.nextElementSibling.matches('ul')?hd.nextElementSibling:null;
@@ -8935,6 +8942,19 @@ function newsMerge(bar,pn,hp,one){try{const nb=bar.querySelector('[data-ctab="ne
     np.remove()}
   /* résultat surligné (.hres) déjà écrit tel quel dans une ligne : on garde la ligne, surlignée, et on retire le doublon */
   {const res=hp.querySelector(':scope > .hres');if(res){const t=norm(res.textContent),li=[...hp.querySelectorAll('li')].find(l=>norm(l.textContent)===t);if(li){li.classList.add('hnew');res.remove()}}}
+  /* v2.139 (capture de Clément du 27/11, 22 h 02 : « Pas aligné et pas la même police ») : « 🎲 Actions simulées » n'est plus un encadré
+     avec sa liste dedans : une ligne de titre en police du texte, puis une ligne par action, au même retrait que les autres.
+     La réplique d'un aventurier tient sur une ligne : « … » — tête et prénom à la suite, plus sur une ligne à part. */
+  if(one){hp.querySelectorAll('li').forEach(li=>{const sl=li.querySelector(':scope > ul.simlog');if(!sl)return;const t=li.querySelector(':scope > b'),w=li.dataset.w||'';
+      const h=document.createElement('li');h.className=(li.className+' simh').trim();if(w)h.dataset.w=w;const sp=document.createElement('span');sp.className='simt';sp.innerHTML=t?t.innerHTML:'';h.appendChild(sp);
+      const items=[...sl.children].map(x=>{x.classList.add('siml');if(li.classList.contains('hnew'))x.classList.add('hnew');if(w)x.dataset.w=w;return x});li.replaceWith(h,...items)});
+    /* une ligne par message : un bloc de la veille fait de plusieurs lignes séparées par <br> devient autant de lignes */
+    hp.querySelectorAll('li.hnewsx').forEach(li=>{const kids=[...li.childNodes];if(!kids.some(n=>n.nodeType===1&&n.tagName==='BR'))return;const parts=[[]];
+      kids.forEach(n=>{if(n.nodeType===1&&n.tagName==='BR')parts.push([]);else parts[parts.length-1].push(n)});
+      const out=parts.filter(ns=>ns.some(n=>(n.textContent||'').trim())).map(ns=>{const l=document.createElement('li');l.className=li.className;if(li.dataset.w)l.dataset.w=li.dataset.w;ns.forEach(n=>l.appendChild(n));return l});
+      if(out.length)li.replaceWith(...out)});
+    hp.querySelectorAll('li').forEach(li=>{const q=li.querySelector(':scope > .vq'),v=li.querySelector(':scope > .vw');if(!q||!v)return;
+      v.classList.add('vwin');v.prepend(document.createTextNode(' — '));li.classList.add('vline')})}
   if(nb){if(nb.classList.contains('unread'))hb.classList.add('unread');nb.remove();bar.querySelectorAll('[data-ctab="news"][data-clone]').forEach(x=>x.remove())}
   if(CTAB_SEL==='news')CTAB_SEL='histd';
   hb.textContent='📰 '+L("News","Nouvelles");
