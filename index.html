@@ -2360,6 +2360,24 @@ body.icoanim .cv-drip ellipse{animation:cvdrip 1.2s linear infinite}
 #app .ctp li.vline .vwin{display:inline;margin:0;font-size:inherit;font-weight:700;color:var(--muted)}
 #app .ctp li.vline .vq{font-style:italic}
 #app .ctp li.vline .lface{vertical-align:-4px}
+/* v2.140 : Paires cachées, galets gravés sur le sable (planche v1) ; plage centrée, à la taille de l'écran */
+.prhud{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:4px 2px 8px;font-weight:700}
+.prhud span{white-space:nowrap}
+.prhud .big-time{font-size:1.35rem;margin:0;line-height:1}
+.prbeach{background:linear-gradient(#e9d7a8,#dcc48f);border-radius:18px;padding:10px;margin:0 auto;
+  width:min(100%,calc((100dvh - 250px)*var(--c)/var(--r)));}
+.prg{display:grid;grid-template-columns:repeat(var(--c),minmax(0,1fr));gap:6px}
+.prs{appearance:none;border:0;background:none;padding:0;margin:0;aspect-ratio:1;display:grid;place-items:center;cursor:pointer;border-radius:50%;transition:transform .6s ease}
+.prs svg{width:100%;height:100%;display:block}
+.prs .prb{fill:#9a948a}.prs.up .prb,.prs.got .prb{fill:#d7d1c2}
+.prs .prgv{stroke:#3d3a33}.prs .prgv.wet{stroke:#8d8a80;opacity:.6}
+.prs .prr{stroke:transparent}.prs.got .prr{stroke:#4fa86a}
+.prs.up svg,.prs.got svg{animation:prflip .22s ease-out}
+.prs.mv{z-index:2;position:relative}
+.prs:focus-visible{outline:3px solid var(--torch);outline-offset:2px}
+@keyframes prflip{from{transform:scaleX(.2)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.prs{transition:none}.prs.up svg,.prs.got svg{animation:none}}
+.prfb{text-align:center;min-height:1.4em}
 </style>
 
 <div id="app"></div>
@@ -4516,7 +4534,7 @@ const GAMES={
   raft:{name:"Raft Lashing",nf:"Le radeau",stat:'surv',rules:"Lash logs together by tapping the arrows in the order shown. Each completed knot adds a log. A wrong arrow undoes the knot. 25 seconds.",rf:"Attachez les rondins en tapant les flèches dans l'ordre indiqué. Chaque nœud terminé ajoute un rondin. Une erreur défait le nœud. 25 secondes."},
   bamboo:{name:"Bamboo Water",nf:"L'eau dans le bambou",stat:'surv',rules:"Hold <b>Pour</b> to fill the bamboo and release right on the line. Five pours. Overflow wastes everything.",rf:"Maintenez <b>Verser</b> pour remplir le bambou et relâchez pile sur le trait. Cinq essais. Si ça déborde, tout est perdu."},
   spear:{name:"Spear Throw",nf:"Lancer de sagaie",stat:'str',rules:"A target slides back and forth across the lagoon. Tap <b>Throw</b> when it crosses the line. Five throws, each faster.",rf:"Une cible glisse d'un bord à l'autre du lagon. Tapez <b>Lancer</b> quand elle passe sur la ligne. Cinq lancers, de plus en plus rapides."},
-  pairs:{name:"Hidden Pairs",nf:"Les paires cachées",stat:'mind',rules:"Sixteen tiles hide eight pairs of island symbols. Flip two at a time and find every pair as fast as you can.",rf:"Seize tuiles cachent huit paires de symboles. Retournez-en deux à la fois et trouvez toutes les paires le plus vite possible."},
+  pairs:{name:"Hidden Pairs",nf:"Les paires cachées",stat:'mind',rules:"Stones lie on the sand, each carved underneath. Turn two over per move: the same carving and they stay face up. Find every pair in as few moves as possible; time breaks ties. Easy 6 pairs, Normal 8, Hard 10, Expert 12, and in Expert two hidden stones swap places every 4 pairs.",rf:"Des galets gravés sont posés sur le sable. Retournez-en deux à chaque coup : même gravure, ils restent retournés. Trouvez toutes les paires en le moins de coups possible ; le temps départage. Facile 6 paires, Normal 8, Difficile 10, Expert 12, et en Expert deux galets cachés changent de place toutes les 4 paires."},
   swim:{name:"Lagoon Swim",nf:"Course à la nage",stat:'end',rules:"Swim to the buoy by tapping <b>Left</b> and <b>Right</b> in turn. Tap the same arm twice and you lose your rhythm.",rf:"Nagez jusqu'à la bouée en tapant <b>Gauche</b> et <b>Droite</b> en alternance. Deux fois le même bras et vous perdez le rythme."},
   coconuts:{name:"Falling Coconuts",nf:"Pluie de noix de coco",stat:'agi',rules:"For 20 seconds, coconuts drop into the nine baskets. Tap each one before it rolls away.",rf:"Pendant 20 secondes, des noix de coco tombent dans les neuf paniers. Touchez-les avant qu'elles ne roulent."},
   dagger:{name:"The Daggers",nf:"Les poignards",ne:"Los puñales",stat:'mind',rules:"Each castaway searches the island map for a hidden dagger. Tap a square to dig: the hint tells you how close you are (🔥 next square, ♨️ two away, 🌡️ three or four away, ❄️ further). Your score depends on how many squares you dig: the fewer, the better.",rf:"Chaque aventurier fouille la carte de l'île pour trouver un poignard caché. Touchez une case pour creuser : l'indice dit si vous êtes proche (🔥 case voisine, ♨️ à deux cases, 🌡️ à trois ou quatre, ❄️ plus loin). Votre score dépend du nombre de cases creusées : moins il y en a, mieux c'est.",re:"Cada aventurero busca en el mapa de la isla un puñal escondido. Toca una casilla para cavar: la pista indica si estás cerca (🔥 casilla vecina, ♨️ a dos, 🌡️ a tres o cuatro, ❄️ más lejos). Tu puntuación depende de cuántas casillas caves: cuantas menos, mejor."},
@@ -4758,6 +4776,7 @@ function totemDrum(k){if(!SET.sound)return;try{AC=AC||new (window.AudioContext||
    pendant ~1,2 s quand le jeu est réussi (mât qui se dresse, panier qui déborde, corde au sol…). Renvoie le délai à ajouter
    avant l'écran de résultat ; rien sans écran ni avec « réduire les animations » (le jeu ne change pas). */
 const MGWIN={
+  pairs:`<g class="mwr">${[22,58].map(x=>`<ellipse cx="${x}" cy="76" rx="16" ry="13" fill="#d7d1c2" stroke="#4fa86a" stroke-width="3"/><circle cx="${x}" cy="76" r="5" fill="none" stroke="#3d3a33" stroke-width="2.4"/>`).join('')}</g>`,
   totem:`<g class="mwr">${[0,1,2,3,4].map(i=>`<rect x="22" y="${82-i*15}" width="36" height="14" rx="3" fill="#a8734a" stroke="#2a1c0d" stroke-width="2"/><rect x="22" y="${82-i*15}" width="36" height="4" rx="2" fill="${TOTC[i%4]}"/><circle cx="33" cy="${90-i*15}" r="1.8" fill="#2a1c0d"/><circle cx="47" cy="${90-i*15}" r="1.8" fill="#2a1c0d"/>`).join('')}</g>`,
   shells:`<path d="M14 58 H66 L60 92 H20Z" fill="#c8954f" stroke="#2a1c0d" stroke-width="2.4" stroke-linejoin="round"/><path d="M17 68 H63 M18 79 H62" stroke="#8a5b2a" stroke-width="1.6"/>${[[26,1],[40,0],[54,2],[33,1],[47,0]].map(([x,k],i)=>`<g class="mwp" style="--d:${i*90}ms"><ellipse cx="${x}" cy="54" rx="7" ry="6" fill="${['#f3c9a0','#f0b8a8','#efe2c4'][k]}" stroke="#2a1c0d" stroke-width="1.8"/></g>`).join('')}`,
   rope:`<path d="M6 80 Q24 74 40 82 Q58 90 74 78" fill="none" stroke="#c8a25a" stroke-width="5" stroke-linecap="round" class="mwd"/><path d="M38 70 L44 88" stroke="#d9534f" stroke-width="5" stroke-linecap="round" class="mwd"/><path d="M40 20 V60" stroke="#2a1c0d" stroke-width="2.4"/><path d="M40 20 L62 28 L40 36Z" fill="#f39a2b" stroke="#2a1c0d" stroke-width="2" class="mwf"/>`,
@@ -5029,12 +5048,14 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
   const shL=g==='shells'&&choiceAct!=='auto'&&!gaveUp&&window.__lastShells?window.__lastShells:null,shR=shL&&shL.done?shL.t/formeM:null;
   /* v2.130 : Mémoire des totems jouée = manches réussies + temps retenu (temps joué ÷ forme), converti en score interne */
   const tmL=g==='totem'&&choiceAct!=='auto'&&!gaveUp&&window.__lastTotem?window.__lastTotem:null,tmR=tmL?Math.round(tmL.t/formeM*10)/10:null;
-  const fin=tmL?totScore(tmL.ok,tmR,tmL.lv):shR!=null?shScore(shR,shL.lv):shL?raw:Math.round(clamp(raw*formeM));p.scores.push(fin);const shV=g==='shells'||g==='totem';if(shL)SHT[p.id]=shR!=null?{t:Math.round(shR*10)/10}:{k:shL.got,n:shL.n};if(tmL)SHT[p.id]={ok:tmL.ok,n:tmL.n,t:tmR};const shRes=shV?SHT[p.id]:null;
-  const resT=(v,r)=>g==='totem'?totemTxt(v,r):shellsTxt(v,r);
+  /* v2.140 : Paires cachées jouées = paires trouvées + coups retenus (coups joués ÷ forme), converti en score interne */
+  const prL=g==='pairs'&&choiceAct!=='auto'&&!gaveUp&&window.__lastPairs?window.__lastPairs:null,prR=prL?Math.round(prL.c/formeM*10)/10:null;
+  const fin=prL?prScore(prL.ok,prR,prL.t,prL.lv):tmL?totScore(tmL.ok,tmR,tmL.lv):shR!=null?shScore(shR,shL.lv):shL?raw:Math.round(clamp(raw*formeM));p.scores.push(fin);const shV=g==='shells'||g==='totem'||g==='pairs';if(shL)SHT[p.id]=shR!=null?{t:Math.round(shR*10)/10}:{k:shL.got,n:shL.n};if(tmL)SHT[p.id]={ok:tmL.ok,n:tmL.n,t:tmR};if(prL)SHT[p.id]={ok:prL.ok,n:prL.n,c:prR};const shRes=shV||prL?SHT[p.id]:null;
+  const resT=(v,r)=>g==='pairs'?pairsTxt(v,r):g==='totem'?totemTxt(v,r):shellsTxt(v,r);
   await stashOrAsk(fin,`${eb(gN(g))}<h1 class="h">${esc(p.name)} : ${shV?`<span class="num">${resT(fin,shRes)}</span>`:`<span class="num">${fin}</span> ${L("points","points","puntos")}`}</h1>
     ${(()=>{const motF=0.9+st(p,'mot')/500,charF=motMul(p)/motF,pct=x=>(x>=1?'+':'')+nf(((x-1)*100).toFixed(0))+' %',row=(a,b,c)=>`<span>${a}</span><b class="num">${b}</b>${c?`<span class="hint" style="grid-column:1/-1;margin-top:-4px">${c}</span>`:''}`;
       return `<section class="pgroup"><p class="lbl">${L("How your score was calculated","Comment votre score est calculé","Cómo se calcula tu puntuación")}</p><div class="kv" style="margin-top:8px">
-      ${tmL?row(L("Rounds · time played","Manches · temps joué"),totemTxt(0,tmL),L("Rounds won, then rebuilding time.","Manches réussies, puis temps de reconstruction.")):shL?row(L("Time played","Temps joué"),shL.done?climbTxt(shL.t):L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`),L("Mistakes add time.","Une erreur ajoute du temps.")):row(L("Raw score in the game","Score brut de l'épreuve","Puntuación bruta de la prueba"),raw,gaveUp?L(`Simulated from your ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Simulé selon votre ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`):choiceAct==='auto'?L(`Played for you from your ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Joué à votre place selon votre ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Jugado por ti según tu ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`):L("From 0 to 100, based on how you played.","De 0 à 100, selon votre performance.","De 0 a 100, según cómo hayas jugado."))}
+      ${prL?row(L("Moves played","Coups joués"),pairsTxt(0,prL),L("One move = two stones turned over.","Un coup = deux galets retournés.")):tmL?row(L("Rounds · time played","Manches · temps joué"),totemTxt(0,tmL),L("Rounds won, then rebuilding time.","Manches réussies, puis temps de reconstruction.")):shL?row(L("Time played","Temps joué"),shL.done?climbTxt(shL.t):L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`),L("Mistakes add time.","Une erreur ajoute du temps.")):row(L("Raw score in the game","Score brut de l'épreuve","Puntuación bruta de la prueba"),raw,gaveUp?L(`Simulated from your ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Simulé selon votre ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`):choiceAct==='auto'?L(`Played for you from your ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Joué à votre place selon votre ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`,`Jugado por ti según tu ${statN(GAMES[g].stat)} (${st(p,GAMES[g].stat)}).`):L("From 0 to 100, based on how you played.","De 0 à 100, selon votre performance.","De 0 a 100, según cómo hayas jugado."))}
       ${row(L("Sport","Sport","Deporte"),pct(1+bonus/100),L(`${esc(sportName(p.sport))}: ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0.5% per point above 55).`,`${esc(sportName(p.sport))} : ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0,5 % par point au-dessus de 55).`,`${esc(sportName(p.sport))}: ${statN(GAMES[g].stat)} ${st(p,GAMES[g].stat)} (0,5 % por punto por encima de 55).`))}
       ${row(L("Energy","Énergie","Energía"),'×'+nf(ef(p).toFixed(2)),L(`Energy ${Math.round(p.energy)}/100: at 0 you keep 75% of your score.`,`Énergie ${Math.round(p.energy)}/100 : à 0, vous gardez 75 % du score.`,`Energía ${Math.round(p.energy)}/100: a 0 conservas el 75 % de la puntuación.`))}
       ${row(L("Family","Famille","Situación"),pct(1+famMotiv(p)/100),L("+1% per child, +2% with a partner.","+1 % par enfant, +2 % en couple.","+1 % por hijo, +2 % con pareja."))}
@@ -5042,7 +5063,7 @@ try{S._su=S._su||{};const k=GAMES[g]&&GAMES[g].stat;if(k)S._su[k]=(S._su[k]||0)+
       ${p.sick?row(L("Sickness","Maladie","Enfermedad"),'×0,85'.replace(',',LANG!=='en'?',':'.'),sickTxt(p)):''}
       ${row(L("Motivation","Motivation","Motivación"),pct(motF),L(`Motivation ${st(p,'mot')}/100: from −10% to +10%.`,`Motivation ${st(p,'mot')}/100 : de −10 % à +10 %.`,`Motivación ${st(p,'mot')}/100: de −10 % a +10 %.`))}
       ${Math.abs(charF-1)>.001?row(L("Character","Caractère","Carácter"),pct(charF),archN(p.arch,p.g)):''}
-      <span><b>${shR!=null||tmL?L("Time kept","Temps retenu"):L("Final score","Score final","Puntuación final")}</b></span><b class="num" style="color:var(--torch)">${shV?resT(fin,shRes):fin}</b></div>${shR!=null||tmL?`<p class="hint">${L("Time played divided by your form (energy, sport, family, motivation…).","Temps joué divisé par votre forme (énergie, sport, famille, motivation…).")}</p>`:''}</section>`})()}
+      <span><b>${prL?L("Moves kept","Coups retenus"):shR!=null||tmL?L("Time kept","Temps retenu"):L("Final score","Score final","Puntuación final")}</b></span><b class="num" style="color:var(--torch)">${shV?resT(fin,shRes):fin}</b></div>${prL?`<p class="hint">${L("Moves played ÷ form (sport, energy, family, motivation…): good form counts fewer moves.","Coups joués ÷ forme (sport, énergie, famille, motivation…) : une bonne forme compte des coups en moins.")}</p>`:shR!=null||tmL?`<p class="hint">${L("Time played divided by your form (energy, sport, family, motivation…).","Temps joué divisé par votre forme (énergie, sport, famille, motivation…).")}</p>`:''}</section>`})()}
     <button class="btn" data-act="ok">${L("Continue","Continuer","Continuar")}</button>`);
   return fin;
 }
@@ -5806,17 +5827,64 @@ function gameEdible(){return miniJeu(j=>{const LV=edLv(),R=EDLV[LV]||EDLV.n,TT=R
   el('eat').onclick=()=>answer(1);el('leave').onclick=()=>answer(0);
   const tick=()=>{if(j.fini)return;if(!lock){const f=(performance.now()-t0)/TT;el('tb').style.width=Math.max(0,100-f*100)+'%';if(f>=1)answer(-1)}requestAnimationFrame(tick)};
   show();requestAnimationFrame(tick)})}
-function gamePairs(){return miniJeu(j=>{const LV=MGLV(),NP=MD(6,8,10),LIM=MD(60,75,90);
-  const icons=shuffle(PAIRICONS).slice(0,LV==='h'?NP-3:NP);const sym=LV==='h'?[...icons.map(s=>[s,0]),...icons.slice(0,3).map(s=>[s,1])]:icons.map(s=>[s,0]);const deck=shuffle([...sym,...sym]);
-  screen(`${eb(gN('pairs'))}<div class="big-time" id="tm">0.0s</div><p class="muted" style="text-align:center">${L("Pairs found","Paires trouvées")} : <b id="pf" class="num">0</b>/${NP}${LV==='h'?` · ${L("careful: some come in two colours","attention : certaines existent en deux couleurs")}`:''}</p>
-    <div class="pairs p${deck.length}">${deck.map((c,i)=>`<button class="tile" data-i="${i}" aria-label="${L("Tile","Tuile")}"><span class="pic${c[1]?' alt':''}">${c[0]}</span></button>`).join('')}</div>`);
-  const tiles=[...$app.querySelectorAll('.tile')];let open=[],found=0,lock=false;const t0=performance.now();
-  const tick=()=>{if(j.fini)return;const t=(performance.now()-t0)/1000;el('tm').textContent=nf(t.toFixed(1))+'s';if(t>LIM){j.fini=true;j.fin(Math.round(found/NP*50));return}requestAnimationFrame(tick)};requestAnimationFrame(tick);
-  tiles.forEach(b=>b.onclick=()=>{if(lock||j.fini||b.classList.contains('up'))return;b.classList.add('up');open.push(+b.dataset.i);
-    if(open.length===2){const[a,c]=open;open=[];
-      if(deck[a][0]===deck[c][0]&&deck[a][1]===deck[c][1]){found++;el('pf').textContent=found;tiles[a].classList.add('got');tiles[c].classList.add('got');
-        if(found===NP){j.fini=true;const t=(performance.now()-t0)/1000,par=NP*5;j.fin(Math.round(clamp((par+20-t)/(par)*100)),700)}}
-      else{lock=true;setTimeout(()=>{tiles[a].classList.remove('up');tiles[c].classList.remove('up');lock=false},650)}}})})}
+/* v2.140 : Les paires cachées, galets gravés sur le sable (planche « Paires cachées » v1, questionnaire de Clément du 27/11 vers 23 h 30 :
+   « Pierres gravées sur le sable », résultat « Nombre de coups total », plus de paires à chaque niveau, Expert galets qui s'échangent,
+   atouts du personnage ; « Vas-y pour le jeu pour le coder et publier » à 23 h 40). Un coup = deux galets retournés ; le temps départage.
+   En partie, coups retenus = coups joués ÷ forme (dont le Mental). Score interne : droite calée sur les rivaux virtuels (même Mental que les Totems). */
+const PAIRCF={n:{e:6,n:8,h:10,x:12},cols:{e:3,n:4,h:4,x:4},close:{e:900,n:700,h:600,x:500},lim:{e:60,n:75,h:90,x:100},swap:{x:4},
+  cb:{e:10,n:14,h:18,x:23},cm:{e:15,n:20,h:25,x:31}};
+const pairsLv=fireLv;
+/* coups → score (les rivaux : meilleur ≈ cb coups, médian ≈ cm ; jamais moins de 1,3 coup par paire affiché pour un rival) ; tout trouvé = 20 au moins ; pas fini = moins de 20 */
+const prV=(c,lv)=>{const vb=TOTCF.vb[lv],vm=TOTCF.vm[lv];return vm+(PAIRCF.cm[lv]-c)*(vb-vm)/(PAIRCF.cm[lv]-PAIRCF.cb[lv])};
+const prScore=(ok,c,t,lv)=>{const n=PAIRCF.n[lv],L=PAIRCF.lim[lv];if(ok<n)return Math.round(clamp(ok/n*19,0,19));return Math.round(clamp(prV(c,lv),20,100)*10+clamp(1-t/L,0,1)*9)/10};
+const prFrom=(v,lv)=>{const n=PAIRCF.n[lv];if(v<20)return {ok:Math.max(0,Math.min(n-1,Math.floor(v/19*n))),n,c:Math.round(PAIRCF.cm[lv]*1.4)};const vb=TOTCF.vb[lv],vm=TOTCF.vm[lv];
+  return {ok:n,n,c:Math.max(Math.round(n*1.3),Math.round(PAIRCF.cm[lv]-(Math.floor(v)-vm)*(PAIRCF.cm[lv]-PAIRCF.cb[lv])/(vb-vm)))}};
+/* score → « 8/8 · 14 coups » ; r = résultat réel du joueur ({ok,n,c}) */
+const pairsTxt=(v,r)=>{const x=r&&r.ok!=null?r:prFrom(v,pairsLv()),ok=x.ok,n=x.n,c=Math.round(x.c);return L(`${ok}/${n} · ${c} move${c>1?'s':''}`,`${ok}/${n} · ${c} coup${c>1?'s':''}`)};
+/* record de l'Entraînement : coups × 1 000 + dixièmes de seconde (le plus petit gagne) */
+const prRec=(c,t)=>c*1000+Math.min(999,Math.round(t*10)),prRecTxt=v=>{const c=Math.floor(v/1000);return L(`${c} moves`,`${c} coups`)};
+function pairsMods(p){const m={peek:false,fast:false,wet:false};if(!p||!INGAME||!S)return m;if(st(p,'mind')>=70)m.peek=true;if(p.energy<35)m.fast=true;const w=S.wx&&S.wx.type;if(w==='rain'||w==='storm')m.wet=true;return m}
+const pairsModsTxt=m=>[m.peek?L("🧠 Mind: everything shown for 1 s","🧠 Mental : tout est montré 1 s"):'',m.fast?L("😫 Tired: stones close faster","😫 Fatigue : les galets se referment plus vite"):'',m.wet?L("🌧️ Rain: faint carvings","🌧️ Pluie : gravures pâles"):''].filter(Boolean).join(' · ');
+/* gravures (trait encre au centre du galet) */
+const PRG={tortue:'<ellipse cx="32" cy="34" rx="13" ry="10"/><circle cx="47" cy="32" r="4"/><path d="M22 26l-5-4M22 42l-5 4M40 26l4-4M40 42l4 4M24 34h16M32 26v16"/>',
+ poisson:'<path d="M14 32c8-10 22-10 30 0c-8 10-22 10-30 0z"/><path d="M44 32l8-7v14z"/><circle cx="21" cy="30" r="1.6"/>',
+ coquillage:'<path d="M32 46L16 30a16 16 0 0 1 32 0z"/><path d="M32 46L24 22M32 46V20M32 46l8-24"/>',
+ palmier:'<path d="M32 50c0-10 1-18 2-24"/><path d="M34 26c-6-6-14-6-18-2M34 26c6-6 14-6 18-2M34 26c-2-6-8-10-14-10M34 26c3-6 9-9 14-8"/>',
+ soleil:'<circle cx="32" cy="32" r="8"/><path d="M32 14v6M32 44v6M14 32h6M44 32h6M19 19l4 4M41 41l4 4M45 19l-4 4M23 41l-4 4"/>',
+ lune:'<path d="M38 16a16 16 0 1 0 8 26a13 13 0 0 1-8-26z"/>',
+ etoile:'<path d="M32 14l4 13 13 2-10 8 4 13-11-7-11 7 4-13-10-8 13-2z"/>',
+ coco:'<circle cx="32" cy="34" r="13"/><circle cx="28" cy="30" r="1.6"/><circle cx="35" cy="30" r="1.6"/><circle cx="31.5" cy="36" r="1.6"/>',
+ vague:'<path d="M12 36c6-8 10-8 14 0s8 8 12 0 8-8 14 0"/><path d="M12 44c6-8 10-8 14 0s8 8 12 0 8-8 14 0"/>',
+ feuille:'<path d="M16 46C16 28 30 16 48 16C48 34 36 46 16 46z"/><path d="M16 46L40 24"/>',
+ crabe:'<ellipse cx="32" cy="36" rx="11" ry="7"/><path d="M21 34l-7-6M43 34l7-6M23 40l-6 5M41 40l6 5M14 28c-2-4 2-8 5-5M50 28c2-4-2-8-5-5"/>',
+ plume:'<path d="M44 14C26 18 18 32 20 48c14-4 24-16 24-34z"/><path d="M20 48L38 24"/>'};
+const prStone=(g,wet)=>`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="40" rx="25" ry="17" fill="rgba(80,60,30,.25)"/><ellipse class="prb" cx="32" cy="33" rx="25" ry="22"/><path d="M14 26c6-8 18-11 28-8" stroke="rgba(255,255,255,.45)" stroke-width="3" fill="none" stroke-linecap="round"/>${g?`<g class="prgv${wet?' wet':''}" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" transform="translate(32 33) scale(.62) translate(-32 -32)">${PRG[g]}</g>`:''}<ellipse class="prr" cx="32" cy="33" rx="25" ry="22" fill="none" stroke-width="3"/></svg>`;
+function gamePairs(){return miniJeu(j=>{const LV=pairsLv(),NP=PAIRCF.n[LV],LIM=PAIRCF.lim[LV],COLS=PAIRCF.cols[LV],SW=PAIRCF.swap[LV]||0,P=INGAME?window.__mgP:null,M=pairsMods(P),mt=pairsModsTxt(M);
+  const CL=Math.max(350,PAIRCF.close[LV]-(M.fast?200:0));window.__lastPairs=null;
+  const deck=shuffle([...shuffle(Object.keys(PRG)).slice(0,NP)].flatMap(g=>[g,g])),rows=Math.ceil(deck.length/COLS);
+  screen(`${eb(gN('pairs'))}<div class="prhud"><span>${L("Moves","Coups")} <b class="num" id="pc">0</b></span><span>${L("Pairs","Paires")} <b class="num" id="pf">0</b>/${NP}</span><span class="big-time" id="tm">${climbTxt(0)}</span></div>
+    <div class="prbeach" style="--c:${COLS};--r:${rows}"><div class="prg" id="prg">${deck.map((g,i)=>`<button class="prs" data-i="${i}" aria-label="${L("Stone","Galet")}">${prStone(null)}</button>`).join('')}</div></div>
+    <p class="fb prfb${mt?' prmods':''}" id="fb">${mt||L("Tap two stones: same carving, they stay face up.","Touchez deux galets : même gravure, ils restent retournés.")}</p>`);
+  const tiles=[...$app.querySelectorAll('.prs')],state=deck.map(()=>0);let open=[],found=0,moves=0,lock=false,t0=null,clk=null;
+  const face=i=>{tiles[i].innerHTML=prStone(state[i]?deck[i]:null,M.wet);tiles[i].classList.toggle('up',state[i]===1);tiles[i].classList.toggle('got',state[i]===2);tiles[i].setAttribute('aria-label',state[i]?deck[i]:L("Stone","Galet"))};
+  const now=()=>clk?clk()/1000:0;
+  const tick=()=>{if(j.fini)return;const t=now();el('tm').textContent=climbTxt(Math.round(t*10)/10);if(t>=LIM){end(false);return}requestAnimationFrame(tick)};
+  function end(all){if(j.fini)return;j.fini=true;const t=Math.min(LIM,Math.round(now()*10)/10);window.__lastPairs={ok:found,n:NP,c:moves,t,lv:LV};
+    el('fb').textContent=all?L("All pairs found!","Toutes les paires !"):L("Time's up.","Temps écoulé.");j.fin(prScore(found,moves,t,LV),mgWin('pairs',all)||900)}
+  /* Expert : deux galets cachés échangent leur place (on les voit glisser) */
+  function swap(){const hid=state.map((s,i)=>s===0?i:-1).filter(i=>i>=0&&!open.includes(i));if(hid.length<2)return;const a=pick(hid);const b=pick(hid.filter(i=>i!==a));
+    const ra=tiles[a].getBoundingClientRect(),rb=tiles[b].getBoundingClientRect();lock=true;el('fb').textContent=L("Two stones swap places…","Deux galets changent de place…");
+    tiles[a].style.transform=`translate(${rb.left-ra.left}px,${rb.top-ra.top}px)`;tiles[b].style.transform=`translate(${ra.left-rb.left}px,${ra.top-rb.top}px)`;tiles[a].classList.add('mv');tiles[b].classList.add('mv');
+    setTimeout(()=>{[deck[a],deck[b]]=[deck[b],deck[a]];[a,b].forEach(i=>{tiles[i].classList.remove('mv');tiles[i].style.transform=''});lock=false},700)}
+  const start=()=>{if(clk)return;t0=performance.now();clk=mgFrameClock(0);requestAnimationFrame(tick)};
+  tiles.forEach((b,i)=>b.addEventListener('click',()=>{if(lock||j.fini||state[i]!==0)return;start();state[i]=1;face(i);open.push(i);
+    if(open.length<2)return;const [a,c]=open;moves++;el('pc').textContent=moves;
+    if(deck[a]===deck[c]){open=[];state[a]=state[c]=2;face(a);face(c);found++;el('pf').textContent=found;el('fb').textContent=L("A pair!","Une paire !");
+      if(found===NP)return end(true);if(SW&&found%SW===0)setTimeout(swap,300)}
+    else{lock=true;setTimeout(()=>{open=[];state[a]=state[c]=0;face(a);face(c);lock=false},CL)}}));
+  /* Mental 70 ou plus : tous les galets montrés 1 s au départ */
+  if(M.peek){lock=true;setTimeout(()=>{if(j.fini)return;state.forEach((_,i)=>{state[i]=1;face(i)});setTimeout(()=>{state.forEach((_,i)=>{state[i]=0;face(i)});lock=false;el('fb').textContent=L("Tap two stones: same carving, they stay face up.","Touchez deux galets : même gravure, ils restent retournés.")},1000)},mt?1600:0)}
+  else if(mt)setTimeout(()=>{if(!j.fini&&!moves)el('fb').textContent=L("Tap two stones: same carving, they stay face up.","Touchez deux galets : même gravure, ils restent retournés.")},2600)})}
 
 function njMazeGen(n){const W=Array.from({length:n},()=>Array.from({length:n},()=>({t:1,r:1,b:1,l:1})));const seen=W.map(r=>r.map(()=>0));const st=[[0,0]];seen[0][0]=1;
   while(st.length){const [r,c]=st[st.length-1];const nb=[[r-1,c,'t','b'],[r+1,c,'b','t'],[r,c-1,'l','r'],[r,c+1,'r','l']].filter(([a,b])=>a>=0&&b>=0&&a<n&&b<n&&!seen[a][b]);
@@ -6116,7 +6184,7 @@ const TLVN={e:()=>L("Easy","Facile"),n:()=>L("Normal","Normal"),h:()=>L("Hard","
 const tlvGet=()=>{try{const v=localStorage.getItem(TLV_KEY);return ['e','n','h','x'].includes(v)?v:'n'}catch(e){return'n'}};
 const tbk=(g,lv)=>lv==='n'?g:g+'_'+lv;
 /* v2.116 : record de la cueillette en temps (clé à part, les anciens scores sur 100 ne sont pas repris) ; poignards et cueillette : le plus petit gagne */
-const recKey=(g,lv)=>tbk(g==='rope'?'ropeG':g==='climb'?'climbT':g==='fire'?'fireT':g==='shells'?'shellsT':g==='totem'?'totemM':g==='fish'?'fishN':g==='shelter'?'shelterP'+shelterTrainVar():g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='rope'?ropeTxt(v):g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='fire'||g==='shells'?climbTxt(v):g==='totem'?totRecTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):g==='shelter'?shelterTxt(v):v,recLow=g=>g==='dagger'||g==='climb'||g==='fire'||g==='shells';
+const recKey=(g,lv)=>tbk(g==='rope'?'ropeG':g==='climb'?'climbT':g==='fire'?'fireT':g==='shells'?'shellsT':g==='totem'?'totemM':g==='pairs'?'pairsC':g==='fish'?'fishN':g==='shelter'?'shelterP'+shelterTrainVar():g==='wood'?'wood'+woodTrainVar():g,lv),recTxt=(g,v)=>g==='rope'?ropeTxt(v):g==='dagger'?triesTxt(v):g==='climb'?climbTxt(v):g==='fire'||g==='shells'?climbTxt(v):g==='totem'?totRecTxt(v):g==='pairs'?prRecTxt(v):g==='wood'?woodTxt(v):g==='fish'?fishTxt(v):g==='shelter'?shelterTxt(v):v,recLow=g=>g==='dagger'||g==='climb'||g==='fire'||g==='shells'||g==='pairs';
 const TFAM=[['new','🆕',()=>L("New challenges","Nouvelles épreuves"),NJK],['logic','🧠',()=>L("Logic","Logique"),['seq','calc','logs']],['camp','🏝️',()=>L("Camp mini-games","Mini-jeux du camp"),['fish','wood','shelter','climb']],['classic','🔥',()=>L("Classic challenges","Épreuves classiques"),null]];
 /* Groupes de l'entraînement : repliés à chaque arrivée depuis l'accueil, gardés ouverts pendant la visite (retour d'une épreuve). */
 const TROPEN=new Set();
@@ -6162,7 +6230,7 @@ const SCORE_RULES={
   swim:()=>L("Buoy reached: 100 in 12 s or less, 0 at 30 s. Not reached: up to 50 by distance.","Bouée atteinte : 100 en 12 s ou moins, 0 à 30 s. Pas atteinte : jusqu'à 50 selon la distance.","Boya alcanzada: 100 en 12 s o menos, 0 a los 30 s. Sin alcanzarla: hasta 50 según la distancia."),
   coconuts:()=>L("Caught ÷ dropped × 110, capped at 100 (missing 1 in 11 still gives 100).","Attrapées ÷ tombées × 110, plafonné à 100 (en rater 1 sur 11 donne encore 100).","Atrapadas ÷ caídas × 110, con un máximo de 100 (fallar 1 de 11 sigue dando 100)."),
   dagger:()=>L("Fewer digs is better: 1 dig = 100, then −4 per extra dig (minimum 5). Grid: 8×8 Easy, 10×10 Normal, 12×12 Hard, 14×14 Expert (no ‘warm’ clue).","Moins vous creusez, mieux c'est : 1 coup = 100, puis −4 par coup en plus (minimum 5). Grille : 8×8 en Facile, 10×10 en Normal, 12×12 en Difficile, 14×14 en Expert (sans l'indice « tiède »).","Cuanto menos caves, mejor: 1 golpe = 100, luego −4 por cada golpe extra (mínimo 5). Cuadrícula: 8×8 en Fácil, 10×10 en Normal, 12×12 en Difícil, 14×14 en Experto (sin la pista «templado»)."),
-  pairs:()=>L("All pairs found: 100 if within the par time, falling as you go over. Time's up: up to 50 by pairs found.","Toutes les paires : 100 dans le temps de référence, puis moins si vous le dépassez. Temps écoulé : jusqu'à 50 selon les paires trouvées.","Todas las parejas: 100 dentro del tiempo de referencia, menos si lo superas. Tiempo agotado: hasta 50 según las parejas encontradas."),
+  pairs:()=>L("Pairs found, then number of moves (fewest wins), then time. In a game, moves kept = moves played ÷ form.","Paires trouvées, puis nombre de coups (le plus petit gagne), puis le temps. En partie, coups retenus = coups joués ÷ forme."),
   edible:()=>L("Right answers ÷ cards × 100.","Bonnes réponses ÷ cartes × 100.","Respuestas correctas ÷ cartas × 100."),
   seq:()=>L("Right answers ÷ 8 × 100.","Bonnes réponses ÷ 8 × 100.","Respuestas correctas ÷ 8 × 100."),
   calc:()=>L("Points per right answer, minus half that per wrong answer.","Des points par bonne réponse, moins la moitié par erreur.","Puntos por respuesta correcta, menos la mitad por cada error."),
@@ -6205,10 +6273,10 @@ async function trainGame(g,direct){const lv=tlvGet(),key=recKey(g,lv),best0=best
     <div class="row"><button class="btn" data-act="go">${L("Let's go!","C'est parti !","¡Vamos!")}</button><button class="btn ghost" data-act="back">${L("Back","Retour","Volver")}</button></div>`);
   if(a==='back')return trainScreen(true);if(String(a).startsWith('lv_')){try{localStorage.setItem(TLV_KEY,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('sv_')){try{localStorage.setItem(SHEL_TV,a.slice(3))}catch(e){}return trainGame(g)}if(String(a).startsWith('wv_')){try{localStorage.setItem(WOOD_TV,a.slice(3))}catch(e){}return trainGame(g)}
   TLV=lv;let sc;window.__rounds=null;try{await countdown(true);horlogeVitesse(vitesseEpreuve(g,lv));sc=await lancerMiniJeu(g)}finally{TLV=null;horlogeVitesse(1);}const gave=sc<0;if(gave)sc=0;
-  const dg=g==='dagger',cq=g==='shells',cl=g==='climb'||g==='fire'||cq,wd=g==='wood',fs=g==='fish',sh=g==='shelter',rp=g==='rope',tm=g==='totem',val=tm?(gave||!window.__lastTotem?null:totRec(window.__lastTotem.ok,window.__lastTotem.t)):rp?(gave?null:window.__lastRope):dg?window.__lastDigs:cl?(gave?null:cq?(window.__lastShells&&window.__lastShells.done?window.__lastShells.t:null):g==='fire'?(window.__lastFire&&window.__lastFire.lit?window.__lastFire.t:null):window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
+  const dg=g==='dagger',cq=g==='shells',cl=g==='climb'||g==='fire'||cq,wd=g==='wood',fs=g==='fish',sh=g==='shelter',rp=g==='rope',tm=g==='totem',pr=g==='pairs',val=pr?(gave||!window.__lastPairs||window.__lastPairs.ok<window.__lastPairs.n?null:prRec(window.__lastPairs.c,window.__lastPairs.t)):tm?(gave||!window.__lastTotem?null:totRec(window.__lastTotem.ok,window.__lastTotem.t)):rp?(gave?null:window.__lastRope):dg?window.__lastDigs:cl?(gave?null:cq?(window.__lastShells&&window.__lastShells.done?window.__lastShells.t:null):g==='fire'?(window.__lastFire&&window.__lastFire.lit?window.__lastFire.t:null):window.__lastClimb):wd?(gave?null:window.__lastWood):fs?(gave?null:window.__lastFish):sh?(gave||!window.__lastShelter?null:window.__lastShelter.pct):sc;
   const best=bestGet(),rec=!gave&&val!=null&&(best[key]==null||(recLow(g)?val<best[key]:val>best[key]));if(rec){best[key]=val;bestSet(best)}if(!gave&&val!=null)trhAdd(key,val);
   try{const o=JSON.parse(localStorage.getItem('aventuriers-njplayed')||'{}');if(NJK.includes(g)){o[g]=1;localStorage.setItem('aventuriers-njplayed',JSON.stringify(o));if(NJK.every(k=>o[k])){const a=achGet();if(!a.alltrades)unlock({human:true,name:L("Training","Entraînement"),id:-1},'alltrades')}}}catch(e){}
-  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):cq?(window.__lastShells?L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`):'—'):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):tm?(val!=null?totemTxt(0,window.__lastTotem):'—'):rp?(val!=null?ropeTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}${trhSpark(g,key)?`<p class="muted trhl">${L("Last 5 tries","5 derniers essais")} ${trhSpark(g,key)}</p>`:''}
+  const b=await ask(`${eb(L("Training · ","Entraînement · ")+gN(g)+' · '+TLVN[lv]())}<h1 class="h">${dg?(val!=null?triesTxt(val):L("Not found","Pas trouvé")):cl?(val!=null?climbTxt(val):cq?(window.__lastShells?L(`${window.__lastShells.got}/${window.__lastShells.n} shells`,`${window.__lastShells.got}/${window.__lastShells.n} coquillages`):'—'):L("Not at the top","Pas en haut")):wd?(val!=null?woodTxt(val):'—'):fs?(val!=null?fishTxt(val):'—'):sh?(val!=null?shelterTxt(val):'—'):pr?(window.__lastPairs&&!gave?pairsTxt(0,window.__lastPairs):'—'):tm?(val!=null?totemTxt(0,window.__lastTotem):'—'):rp?(val!=null?ropeTxt(val):'—'):`<span class="num">${sc}</span> ${L("points","points")}`}</h1>${gave?`<p class="muted">${L("Simulated: no score kept.","Simulé : pas de score retenu.")}</p>`:rec?`<p class="secret">🏅 ${L("New personal best!","Nouveau record personnel !")}</p>`:`<p class="muted">${L("Personal best","Record personnel")} : ${best[key]!=null?recTxt(g,best[key]):'—'}</p>`}${trhSpark(g,key)?`<p class="muted trhl">${L("Last 5 tries","5 derniers essais")} ${trhSpark(g,key)}</p>`:''}
     ${(()=>{const R=!gave&&(g==='spear'||g==='bamboo')&&Array.isArray(window.__rounds)&&window.__rounds.length?window.__rounds:null;return scoreBox(g,false,R?`${g==='spear'?L("Throws","Lancers","Lanzamientos"):L("Pours","Versements","Vertidos")} : ${R.join(' · ')} → ${L("average","moyenne","media")} ${sc}`:'')})()}
     <div class="row"><button class="btn" data-act="again">${L("Play again","Rejouer","Volver a jugar")}</button><button class="btn ghost" data-act="list">${L("Other challenges","Autres épreuves","Otras pruebas")}</button></div>`);
   if(b==='again')return trainGame(g,true);trainScreen(true)}
@@ -7922,7 +7990,7 @@ function lvSuggest(){const s=statsGet(),last=(s.last||[]).filter(x=>LVORD.includ
 function lvSuggestHtml(cur){const x=lvSuggest();if(!x||!DIFF[x.k])return'';const lvN=L(...DIFF[x.k].n),w=x.w,n=x.n;
   const t=x.r==='up'?L(`Suggested: ${lvN} (${w} wins in your last ${n} games)`,`Conseillé : ${lvN} (${w} victoires sur vos ${n} dernières parties)`):x.r==='down'?L(`Suggested: ${lvN} (your last games were tough)`,`Conseillé : ${lvN} (vos dernières parties ont été difficiles)`):L(`Suggested: ${lvN}`,`Conseillé : ${lvN}`);
   return `<p class="hint lvsug">${t}${x.k!==cur?` <button type="button" class="linkb" data-lvs="${x.k}">${L("Pick","Choisir")}</button>`:''}</p>`}
-const APP_VER='2.139 · 2026-11-27';
+const APP_VER='2.140 · 2026-11-27';
 function codeScreen(){const rec=codesGet();
   screen(`${langToggle()}${eb(L("Challenge code","Code de défi","Código de reto"))}<h1 class="h">${L("Play a friend's island","Jouer l'île d'un ami")}</h1><p class="muted">${L("Enter the code a friend shared at the end of their game: same island, same castaways, same tribes. Who does better?","Entrez le code partagé par un ami à la fin de sa partie : même île, mêmes aventuriers, mêmes tribus. Qui fera mieux ?")}</p>
   <label class="field"><span class="lbl">${L("Code","Code")}</span><div class="codein"><input id="code" class="name" autocomplete="off" placeholder="PA-16F-20-RAN-K3F9Q">${navigator.clipboard&&navigator.clipboard.readText?`<button type="button" class="btn ghost" id="cpaste">📋 ${L("Paste","Coller","Pegar")}</button>`:''}</div></label><p class="err" id="err" hidden></p>
@@ -8150,7 +8218,6 @@ const RICON={rations:'🍚',flint:'🔥',kit:'🎣',feast:'⚡'};
 /* grouped task list */
 
 /* pairs: island tiles + difficulty */
-const PAIRICONS=['🐚','🦀','🥥','🐟','🎋','🌺','🍌','🐢','⭐','🪸','🍍','🦜'];
 
 
 
@@ -8453,10 +8520,10 @@ function screenLayoutFixes(html){try{const w=$app.querySelector('.wrap');if(!w)r
 /* v2.128 : épreuve dont on affiche les résultats (SCG, posé par playAll, playTeam et le jour 1) ; Coquillages en secondes */
 let SCG=null;
 /* v2.130 : Mémoire des totems en manches et secondes (totemTxt) */
-const scTx=()=>SCG==='shells'?shellsTxt:SCG==='totem'?totemTxt:null;
+const scTx=()=>SCG==='shells'?shellsTxt:SCG==='totem'?totemTxt:SCG==='pairs'?pairsTxt:null;
 const scShow=(v,p,short)=>{if(!scTx()||v==null)return v;const t=scTx()(v,p&&SHT[p.id]);return short?String(t).replace(/[\s\u00a0]+s$/,''):t};
 /* v2.131 (revue 9 axes du 23/11, idée 7) : l'unité du résultat en tête du classement, valeurs sans unité répétée */
-const scUnit=()=>SCG==='shells'?L("Time (s)","Temps (s)"):SCG==='totem'?L("Rounds · s","Manches · s"):L("Points","Points");
+const scUnit=()=>SCG==='shells'?L("Time (s)","Temps (s)"):SCG==='totem'?L("Rounds · s","Manches · s"):SCG==='pairs'?L("Pairs · moves","Paires · coups"):L("Points","Points");
 const scPts=(v,p)=>scTx()?scTx()(v,p&&SHT[p.id]):`${v} ${L("pts","pts","pts")}`;
 const scAvg=(x,y)=>scTx()?scTx()(x):sc2(x,y);
 function sc2(x,y){if(y==null||Math.round(x)!==Math.round(y))return String(Math.round(x));const d=Math.abs(x-y)>=0.05||Math.abs(x-y)===0?1:2;return nf(x.toFixed(d))}
